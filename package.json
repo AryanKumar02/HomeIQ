@@ -1,0 +1,29 @@
+{
+  "name": "sellthis",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "client/**/*.{js,jsx,ts,tsx}": "cd client && eslint --fix",
+    "server/**/*.{js,jsx,ts,tsx}": "cd server && eslint --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AryanKumar02/SellThis.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AryanKumar02/SellThis/issues"
+  },
+  "homepage": "https://github.com/AryanKumar02/SellThis#readme",
+  "description": "",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.1"
+  }
+}
