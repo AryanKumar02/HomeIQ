@@ -71,3 +71,5 @@ process.on('SIGTERM', () => {
   logger.info('SIGTERM RECEIVED. Shutting down gracefully');
   process.exit(0);
 });
+
+export default app;

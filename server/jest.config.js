@@ -1,7 +1,6 @@
 export default {
   testEnvironment: 'node',
   transform: {},
-  setupFilesAfterEnv: ['./tests/setup.js'],
   // Add any other Jest configurations you might need here
   // For example, to collect coverage:
   // collectCoverage: true,
