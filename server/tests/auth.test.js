@@ -2,19 +2,26 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import dotenv from 'dotenv';
 import User from '../models/User.js';
-import app from '../server.js';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
 dotenv.config({ path: '.env.test' });
 
+let mongoServer;
+let app;
+
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URI, {
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+  await mongoose.connect(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
+  app = (await import('../server.js')).default;
 });
 
 afterAll(async () => {
   await mongoose.connection.close();
+  if (mongoServer) await mongoServer.stop();
 });
 
 beforeEach(async () => {
