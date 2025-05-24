@@ -12,20 +12,63 @@ const signToken = id =>
 const MAX_LOGIN_ATTEMPTS = parseInt(process.env.MAX_LOGIN_ATTEMPTS, 10) || 5;
 const LOCK_TIME = parseInt(process.env.LOCK_TIME, 10) || 30 * 60 * 1000; // ms
 
+// Helper for token-based user actions
+const handleTokenAction = async ({
+  token,
+  tokenField,
+  expiresField,
+  updateFields,
+  errorMessage,
+  saveOptions = {},
+}) => {
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  const user = await User.findOne({
+    [tokenField]: hashedToken,
+    [expiresField]: { $gt: Date.now() },
+  });
+  if (!user) {
+    return { error: errorMessage };
+  }
+  Object.assign(user, updateFields);
+  await user.save(saveOptions);
+  return { user };
+};
+
+// Helper: Check if account is locked
+function isAccountLocked(user) {
+  if (user.lockUntil && user.lockUntil > Date.now()) {
+    const minutes = Math.ceil((user.lockUntil - Date.now()) / 60000);
+    return { locked: true, minutes };
+  }
+  return { locked: false };
+}
+
+// Helper: Handle failed login attempt
+async function handleFailedLogin(user) {
+  user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+  if (user.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
+    user.lockUntil = Date.now() + LOCK_TIME;
+    await user.save({ validateBeforeSave: false });
+    return { locked: true };
+  }
+  await user.save({ validateBeforeSave: false });
+  return { locked: false };
+}
+
+// Helper: Check if email is verified
+function isEmailVerified(user) {
+  return !!user.isEmailVerified;
+}
+
+// Helper: Reset failed login attempts
+async function resetFailedLogin(user) {
+  user.failedLoginAttempts = 0;
+  user.lockUntil = undefined;
+  await user.save({ validateBeforeSave: false });
+}
+
 export const register = async (req, res, next) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return next(
-        new AppError(
-          errors
-            .array()
-            .map(e => e.msg)
-            .join(', '),
-          400,
-        ),
-      );
-    }
     const { name, email, password } = req.body;
 
     // Check for insecure password (add your own rules as needed)
@@ -67,17 +110,16 @@ export const login = async (req, res, next) => {
     }
 
     // Check if account is locked
-    if (user.lockUntil && user.lockUntil > Date.now()) {
-      const minutes = Math.ceil((user.lockUntil - Date.now()) / 60000);
-      return next(new AppError(`Account locked. Try again in ${minutes} minutes.`, 423));
+    const lockStatus = isAccountLocked(user);
+    if (lockStatus.locked) {
+      return next(new AppError(`Account locked. Try again in ${lockStatus.minutes} minutes.`, 423));
     }
 
+    // Check password
     const isPasswordCorrect = await user.correctPassword(password, user.password);
     if (!isPasswordCorrect) {
-      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
-      if (user.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
-        user.lockUntil = Date.now() + LOCK_TIME;
-        await user.save({ validateBeforeSave: false });
+      const failedStatus = await handleFailedLogin(user);
+      if (failedStatus.locked) {
         return next(
           new AppError(
             'Account locked due to too many failed login attempts. Try again in 30 minutes.',
@@ -85,15 +127,12 @@ export const login = async (req, res, next) => {
           ),
         );
       }
-      await user.save({ validateBeforeSave: false });
       return next(new AppError('Incorrect email or password', 401));
     }
 
-    user.failedLoginAttempts = 0;
-    user.lockUntil = undefined;
-    await user.save({ validateBeforeSave: false });
+    await resetFailedLogin(user);
 
-    if (!user.isEmailVerified) {
+    if (!isEmailVerified(user)) {
       return next(new AppError('Please verify your email first.', 401));
     }
     const token = signToken(user._id);
@@ -105,18 +144,21 @@ export const login = async (req, res, next) => {
 
 export const verifyEmail = async (req, res) => {
   try {
-    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
-    const user = await User.findOne({
-      emailVerificationToken: hashedToken,
-      emailVerificationExpires: { $gt: Date.now() },
+    const { error, user } = await handleTokenAction({
+      token: req.params.token,
+      tokenField: 'emailVerificationToken',
+      expiresField: 'emailVerificationExpires',
+      updateFields: {
+        isEmailVerified: true,
+        emailVerificationToken: undefined,
+        emailVerificationExpires: undefined,
+      },
+      errorMessage: 'Token is invalid or has expired',
+      saveOptions: { validateBeforeSave: false },
     });
-    if (!user) {
-      return res.status(400).json({ message: 'Token is invalid or has expired' });
+    if (error) {
+      return res.status(400).json({ message: error });
     }
-    user.isEmailVerified = true;
-    user.emailVerificationToken = undefined;
-    user.emailVerificationExpires = undefined;
-    await user.save({ validateBeforeSave: false });
     res.status(200).json({ message: 'Email verified successfully' });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -126,7 +168,7 @@ export const verifyEmail = async (req, res) => {
 export const resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).lean();
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -145,7 +187,7 @@ export const resendVerification = async (req, res) => {
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).lean();
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -160,18 +202,21 @@ export const forgotPassword = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   try {
-    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
-    const user = await User.findOne({
-      passwordResetToken: hashedToken,
-      passwordResetExpires: { $gt: Date.now() },
+    const { error, user } = await handleTokenAction({
+      token: req.params.token,
+      tokenField: 'passwordResetToken',
+      expiresField: 'passwordResetExpires',
+      updateFields: {
+        password: req.body.password,
+        passwordResetToken: undefined,
+        passwordResetExpires: undefined,
+      },
+      errorMessage: 'Token is invalid or has expired',
+      saveOptions: {},
     });
-    if (!user) {
-      return res.status(400).json({ message: 'Token is invalid or has expired' });
+    if (error) {
+      return res.status(400).json({ message: error });
     }
-    user.password = req.body.password;
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
-    await user.save();
     const token = signToken(user._id);
     res.status(200).json({ token });
   } catch (err) {
@@ -181,7 +226,7 @@ export const resetPassword = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).lean();
     res.status(200).json({ user });
   } catch (err) {
     res.status(500).json({ message: err.message });
