@@ -1,9 +1,48 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Box, Typography, TextField, Button, Alert, Checkbox, FormControlLabel, FormControl } from "@mui/material";
+import { Box, Typography, TextField, Button, Alert, Checkbox, FormControlLabel, FormControl, IconButton, InputAdornment } from "@mui/material";
 import gsap from 'gsap';
 import { signup } from '../../services/auth';
 import { Link as RouterLink} from 'react-router-dom';
 import { useFormGsapAnimation } from '../animation/useFormGsapAnimation';
+import CheckIcon from '@mui/icons-material/Check';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { useTheme } from '@mui/material/styles';
+
+// Custom animated checkbox icons
+const AnimatedCheckboxIcon = ({ checked }: { checked: boolean }) => (
+  <Box
+    sx={{
+      width: 22,
+      height: 22,
+      borderRadius: 2,
+      border: '2px solid',
+      borderColor: checked ? 'primary.main' : '#b0b8c1',
+      background: checked ? 'primary.main' : '#fff',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: 'border-color 0.25s, background 0.25s',
+      boxShadow: checked ? '0 2px 8px 0 rgba(3,108,163,0.10)' : 'none',
+    }}
+  >
+    <Box
+      component="span"
+      sx={{
+        opacity: checked ? 1 : 0,
+        transform: checked ? 'scale(1)' : 'scale(0.7)',
+        transition: 'opacity 0.22s cubic-bezier(.4,1.3,.6,1), transform 0.22s cubic-bezier(.4,1.3,.6,1)',
+        color: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 18,
+      }}
+    >
+      <CheckIcon fontSize="inherit" />
+    </Box>
+  </Box>
+);
 
 const SignupForm: React.FC = () => {
   const [firstName, setFirstName] = useState("");
@@ -21,6 +60,8 @@ const SignupForm: React.FC = () => {
   const passwordRef = useRef(null);
   const checkboxRef = useRef(null);
   const loginRef = useRef(null);
+  const theme = useTheme();
+  const [showPassword, setShowPassword] = useState(false);
 
   useFormGsapAnimation({
     formRef,
@@ -71,6 +112,10 @@ const SignupForm: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTogglePassword = () => {
+    setShowPassword((show) => !show);
   };
 
   return (
@@ -294,7 +339,7 @@ const SignupForm: React.FC = () => {
           </Typography>
           <TextField
             id="password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             fullWidth
@@ -331,6 +376,31 @@ const SignupForm: React.FC = () => {
                 letterSpacing: 0.01,
               },
             }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    onClick={handleTogglePassword}
+                    edge="end"
+                    tabIndex={-1}
+                    sx={{
+                      p: 0.7,
+                      borderRadius: '50%',
+                      transition: 'background 0.18s, transform 0.13s',
+                      color: showPassword ? theme.palette.primary.main : theme.palette.grey[500],
+                      backgroundColor: 'transparent',
+                      '&:hover, &:focus': {
+                        backgroundColor: 'rgba(3,108,163,0.08)',
+                        transform: 'scale(1.13)',
+                      },
+                    }}
+                  >
+                    {showPassword ? <VisibilityOff sx={{ fontSize: 22 }} /> : <Visibility sx={{ fontSize: 22 }} />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
         </Box>
         <FormControl ref={checkboxRef} sx={{ mb: 2, alignItems: 'flex-start', width: '100%', pl: 0 }} component="fieldset" variant="standard">
@@ -341,6 +411,8 @@ const SignupForm: React.FC = () => {
                 onChange={e => setAcceptTerms(e.target.checked)}
                 color="primary"
                 sx={{ p: 0, pr: 1.2 }}
+                icon={<AnimatedCheckboxIcon checked={false} />}
+                checkedIcon={<AnimatedCheckboxIcon checked={true} />}
               />
             }
             label={
