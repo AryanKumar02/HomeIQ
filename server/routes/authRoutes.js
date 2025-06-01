@@ -258,4 +258,21 @@ router.post(
   authController.updatePassword,
 );
 
+/**
+ * @swagger
+ * /auth/logout:
+ *   post:
+ *     summary: Logout a user
+ *     description: Logout the currently authenticated user.
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User logged out
+ *       401:
+ *         description: Unauthorized
+ */
+router.post('/logout', authController.logout);
+
 export default router;

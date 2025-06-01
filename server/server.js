@@ -23,7 +23,10 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
 app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -60,14 +63,13 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/sellthis';
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: '*', // Adjust as needed for production
+    origin: '*',
     methods: ['GET', 'POST'],
   },
 });
 
 io.use(async (socket, next) => {
   try {
-    // Accept token from query or socket.handshake.auth
     const token = socket.handshake.auth?.token || socket.handshake.query?.token;
     if (!token) {
       return next(new Error('Authentication error: No token provided'));

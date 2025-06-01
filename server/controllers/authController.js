@@ -69,7 +69,7 @@ async function resetFailedLogin(user) {
 
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { firstName, secondName, email, password } = req.body;
 
     // Check for insecure password (add your own rules as needed)
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=]{8,}$/;
@@ -88,7 +88,7 @@ export const register = async (req, res, next) => {
       return next(new AppError('Email is already registered.', 409));
     }
 
-    const user = await User.create({ name, email, password });
+    const user = await User.create({ firstName, secondName, email, password });
     const emailToken = user.createEmailVerificationToken();
     await user.save({ validateBeforeSave: false });
     // TODO: Send verification email with emailToken
@@ -103,7 +103,7 @@ export const register = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return next(new AppError('Incorrect email or password', 401));
@@ -136,7 +136,22 @@ export const login = async (req, res, next) => {
       return next(new AppError('Please verify your email first.', 401));
     }
     const token = signToken(user._id);
-    res.status(200).json({ token });
+    
+    // Set cookie options based on rememberMe
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    };
+    
+    if (rememberMe) {
+      cookieOptions.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+    } else {
+      cookieOptions.maxAge = 2 * 60 * 60 * 1000; // 2 hours
+    }
+    
+    res.cookie('token', token, cookieOptions);
+    res.status(200).json({ success: true });
   } catch (err) {
     next(err);
   }
@@ -246,4 +261,13 @@ export const updatePassword = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+};
+
+export const logout = (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  });
+  res.json({ success: true });
 };

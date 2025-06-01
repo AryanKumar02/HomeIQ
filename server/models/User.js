@@ -3,9 +3,13 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 
 const userSchema = new mongoose.Schema({
-  name: {
+  firstName: {
     type: String,
-    required: [true, 'Please provide your name'],
+    required: [true, 'Please provide your first name'],
+  },
+  secondName: {
+    type: String,
+    required: [true, 'Please provide your second name'],
   },
   email: {
     type: String,
