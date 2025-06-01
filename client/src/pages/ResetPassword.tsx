@@ -1,15 +1,55 @@
-import Box from '@mui/material/Box';
-import LoginForm from '../components/forms/LoginForm'; // adjust path if needed
+import React from 'react';
+import { Box, Typography } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
+import { useParams } from 'react-router-dom';
+import ResetPasswordForm from '../components/forms/ResetPasswordForm';
 
-const Login = () => {
+const ResetPassword: React.FC = () => {
   const theme = useTheme();
+  const { token } = useParams<{ token: string }>();
+
   /**
    * Show the hero image only on large (lg ≥ 1200 px) screens.
    * On smaller viewports we collapse to a single, centred form.
    */
   const showImage = useMediaQuery(theme.breakpoints.up('lg'));
+
+  const handleSuccess = () => {
+    // Optional: Add any additional success handling here
+    console.log('Password reset successfully');
+  };
+
+  const handleError = (error: string) => {
+    // Optional: Add any additional error handling here
+    console.error('Reset password error:', error);
+  };
+
+  if (!token) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
+          alignItems: 'center',
+          justifyContent: 'center',
+          px: 2,
+          backgroundColor: 'background.default',
+        }}
+      >
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h5" sx={{ color: 'black', mb: 2 }}>
+            Invalid Reset Link
+          </Typography>
+          <Typography sx={{ color: 'black', opacity: 0.6 }}>
+            Please request a new password reset link.
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     showImage ? (
       /* ─────────── Large screens: two‑column layout ─────────── */
@@ -34,12 +74,12 @@ const Login = () => {
         >
           <Box
             component="img"
-            src="/assets/splashes/loginsplash.png"
-            alt="Login splash"
+            src="/assets/splashes/resetpasswordsplash.png"
+            alt="Reset password splash"
             sx={{
               width: '100%',
               height: '100vh',
-              objectPosition: '35%',
+              objectPosition: '55%',
               objectFit: 'cover',
               borderRadius: '0 16px 16px 0',
             }}
@@ -59,7 +99,11 @@ const Login = () => {
           }}
         >
           <Box sx={{ maxWidth: 380, width: '100%' }}>
-            <LoginForm />
+            <ResetPasswordForm
+              token={token}
+              onSuccess={handleSuccess}
+              onError={handleError}
+            />
           </Box>
         </Box>
       </Box>
@@ -77,11 +121,15 @@ const Login = () => {
         }}
       >
         <Box sx={{ width: '100%', maxWidth: 380, mx: 'auto' }}>
-          <LoginForm />
+          <ResetPasswordForm
+            token={token}
+            onSuccess={handleSuccess}
+            onError={handleError}
+          />
         </Box>
       </Box>
     )
   );
 };
 
-export default Login;
+export default ResetPassword;

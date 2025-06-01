@@ -1,11 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Box, Typography, TextField, Button, Alert, Checkbox, FormControlLabel, FormControl } from "@mui/material";
 import gsap from 'gsap';
-import { signup } from '../services/auth';
-import { useNavigate, useLocation } from 'react-router-dom';
-import IconButton from '@mui/material/IconButton';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import { useFormGsapAnimation } from '../components/animation/useFormGsapAnimation';
+import { signup } from '../../services/auth';
+import { Link as RouterLink} from 'react-router-dom';
+import { useFormGsapAnimation } from '../animation/useFormGsapAnimation';
 
 const SignupForm: React.FC = () => {
   const [firstName, setFirstName] = useState("");
@@ -22,14 +20,13 @@ const SignupForm: React.FC = () => {
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const checkboxRef = useRef(null);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const loginRef = useRef(null);
 
   useFormGsapAnimation({
     formRef,
     fieldRefs: [firstNameRef, secondNameRef, emailRef, passwordRef],
     buttonRef,
-    extraRefs: [checkboxRef],
+    extraRefs: [checkboxRef, loginRef],
   });
 
   // Shake animation on error
@@ -85,17 +82,6 @@ const SignupForm: React.FC = () => {
         position: 'relative',
       }}
     >
-      {location.state?.from && (
-        <Box sx={{ mb: 1.5, display: 'flex', alignItems: 'flex-start' }}>
-          <IconButton
-            onClick={() => navigate(-1)}
-            sx={{ p: 0, color: 'black' }}
-            aria-label="Back"
-          >
-            <ArrowBackIosNewIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      )}
       <Typography
         variant="h4"
         sx={{
@@ -361,8 +347,8 @@ const SignupForm: React.FC = () => {
               <Box component="span" sx={{ fontWeight: 700, color: 'black', fontSize: '0.97rem', display: 'inline' }}>
                 I <Box component="span" sx={{ color: '#036CA3', fontWeight: 700, display: 'inline' }}>agree</Box> to the{' '}
                 <Box
-                  component="a"
-                  href="/terms"
+                  component={RouterLink}
+                  to="/terms-of-service"
                   target="_blank"
                   rel="noopener noreferrer"
                   sx={{
@@ -378,8 +364,8 @@ const SignupForm: React.FC = () => {
                 </Box>
                 {' '}and{' '}
                 <Box
-                  component="a"
-                  href="/privacy"
+                  component={RouterLink}
+                  to="/privacy-policy"
                   target="_blank"
                   rel="noopener noreferrer"
                   sx={{
@@ -398,6 +384,37 @@ const SignupForm: React.FC = () => {
             sx={{ alignItems: 'center', m: 0, pl: 0 }}
           />
         </FormControl>
+
+        <Typography ref={loginRef} sx={{
+          mb: 3,
+          fontSize: { xs: "0.85rem", md: "0.95rem" },
+          color: "black",
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          justifyContent: 'flex-start',
+          fontWeight: 600,
+        }}>
+          Have an account already?
+          <Button
+            variant="text"
+            component={RouterLink}
+            to="/login"
+            sx={{
+              fontWeight: 700,
+              color: "primary.main",
+              p: 0,
+              minWidth: 0,
+              "&:focus": { outline: "none", boxShadow: "none" },
+              "&:focus-visible": { outline: "none", boxShadow: "none" },
+            }}
+            disableRipple
+            disableFocusRipple
+          >
+            Log in
+          </Button>
+        </Typography>
+
         <Button
           ref={buttonRef}
           type="submit"
@@ -405,7 +422,7 @@ const SignupForm: React.FC = () => {
           fullWidth
           aria-label="Sign up for your account"
           sx={{
-            mt: 4,
+            mt: 0,
             mb: 2,
             fontSize: { xs: "1rem", md: "1.1rem" },
             fontWeight: 600,

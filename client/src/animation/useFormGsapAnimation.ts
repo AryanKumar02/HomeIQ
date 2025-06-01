@@ -50,5 +50,5 @@ export function useFormGsapAnimation({
         );
       });
     }
-  }, [formRef, fieldRefs, buttonRef, extraRefs]);
+  }, []); // Only run on mount
 }

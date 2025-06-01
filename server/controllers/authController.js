@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { validationResult } from 'express-validator';
 import AppError from '../utils/appError.js';
+import { sendPasswordResetEmail, sendVerificationEmail } from '../services/emailService.js';
+import logger from '../utils/logger.js';
 
 const signToken = id =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -71,7 +73,7 @@ export const register = async (req, res, next) => {
   try {
     const { firstName, secondName, email, password } = req.body;
 
-    // Check for insecure password (add your own rules as needed)
+    // Validate password
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=]{8,}$/;
     if (!passwordRegex.test(password)) {
       return next(
@@ -91,8 +93,19 @@ export const register = async (req, res, next) => {
     const user = await User.create({ firstName, secondName, email, password });
     const emailToken = user.createEmailVerificationToken();
     await user.save({ validateBeforeSave: false });
-    // TODO: Send verification email with emailToken
-    res.status(201).json({ message: 'User registered. Please verify your email.' });
+    
+    // Try to send verification email
+    try {
+      await sendVerificationEmail(email, emailToken);
+      res.status(201).json({ message: 'User registered. Please check your email to verify your account.' });
+    } catch (emailError) {
+      logger.error('Failed to send verification email:', emailError.message);
+      // User is created but email failed - still return success but with different message
+      res.status(201).json({ 
+        message: 'User registered successfully. Email verification is temporarily unavailable. Please contact support.',
+        emailError: true
+      });
+    }
   } catch (err) {
     if (err.name === 'ValidationError') {
       return next(new AppError(err.message, 400));
@@ -136,20 +149,20 @@ export const login = async (req, res, next) => {
       return next(new AppError('Please verify your email first.', 401));
     }
     const token = signToken(user._id);
-    
+
     // Set cookie options based on rememberMe
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
     };
-    
+
     if (rememberMe) {
       cookieOptions.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
     } else {
       cookieOptions.maxAge = 2 * 60 * 60 * 1000; // 2 hours
     }
-    
+
     res.cookie('token', token, cookieOptions);
     res.status(200).json({ success: true });
   } catch (err) {
@@ -183,7 +196,7 @@ export const verifyEmail = async (req, res) => {
 export const resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email }).lean();
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -192,8 +205,11 @@ export const resendVerification = async (req, res) => {
     }
     const emailToken = user.createEmailVerificationToken();
     await user.save({ validateBeforeSave: false });
-    // TODO: Send verification email with emailToken
-    res.status(200).json({ message: 'Verification email resent' });
+
+    // Send verification email
+    await sendVerificationEmail(email, emailToken);
+
+    res.status(200).json({ message: 'Verification email sent. Please check your inbox.' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -202,14 +218,17 @@ export const resendVerification = async (req, res) => {
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email }).lean();
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
     const resetToken = user.createPasswordResetToken();
     await user.save({ validateBeforeSave: false });
-    // TODO: Send password reset email with resetToken
-    res.status(200).json({ message: 'Password reset email sent' });
+
+    // Send password reset email
+    await sendPasswordResetEmail(email, resetToken);
+
+    res.status(200).json({ message: 'Password reset email sent. Please check your inbox.' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -267,7 +286,7 @@ export const logout = (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
+    sameSite: 'strict',
   });
   res.json({ success: true });
 };

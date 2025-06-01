@@ -1,11 +1,13 @@
 import React, { useState, useRef } from "react";
-import { Box, Typography, TextField, Button, Alert, FormControlLabel, Checkbox } from "@mui/material";
-import IconButton from '@mui/material/IconButton';
+import { Box, Typography, TextField, Button, Alert, FormControlLabel, Checkbox, IconButton, InputAdornment } from "@mui/material";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import { login } from '../services/auth';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { login } from '../../services/auth';
 import gsap from 'gsap';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
-import { useFormGsapAnimation } from '../components/animation/useFormGsapAnimation';
+import { useFormGsapAnimation } from '../animation/useFormGsapAnimation';
+import { useTheme } from '@mui/material/styles';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -13,6 +15,7 @@ const LoginForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const emailRef = useRef(null);
@@ -22,6 +25,7 @@ const LoginForm: React.FC = () => {
   const rememberMeRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
 
   // Memoize refs array to avoid triggering animation on every render
   const fieldRefs = [emailRef, passwordRef];
@@ -65,6 +69,10 @@ const LoginForm: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTogglePassword = () => {
+    setShowPassword((show) => !show);
   };
 
   return (
@@ -186,7 +194,7 @@ const LoginForm: React.FC = () => {
           </Typography>
           <TextField
             id="password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             fullWidth
@@ -222,6 +230,44 @@ const LoginForm: React.FC = () => {
                 fontWeight: 500,
                 letterSpacing: 0.01,
               },
+            }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    onClick={handleTogglePassword}
+                    edge="end"
+                    tabIndex={-1}
+                    sx={{
+                      p: 0,
+                      borderRadius: 0,
+                      mr: 0.5,
+                      color: showPassword ? theme.palette.primary.main : theme.palette.grey[500],
+                      backgroundColor: 'transparent',
+                      boxShadow: 'none',
+                      minWidth: 0,
+                      transition: 'color 0.18s',
+                      '&:hover, &:focus': {
+                        color: theme.palette.primary.main,
+                        backgroundColor: 'transparent',
+                        boxShadow: 'none',
+                        transform: 'none',
+                      },
+                      '&:focus': {
+                        outline: 'none',
+                        boxShadow: 'none',
+                      },
+                      '&:focus-visible': {
+                        outline: 'none',
+                        boxShadow: 'none'
+                      }
+                    }}
+                  >
+                    {showPassword ? <VisibilityOff sx={{ fontSize: 20, strokeWidth: 1.5 }} /> : <Visibility sx={{ fontSize: 20, strokeWidth: 1.5 }} />}
+                  </IconButton>
+                </InputAdornment>
+              ),
             }}
           />
         </Box>
@@ -272,15 +318,23 @@ const LoginForm: React.FC = () => {
         </Button>
       </Box>
 
-      <Typography ref={forgotRef} sx={{ mb: 1, fontSize: { xs: "0.85rem", md: "0.95rem" }, color: "black" }}>
+      <Typography ref={forgotRef} sx={{
+        mb: 1,
+        fontSize: { xs: "0.85rem", md: "0.95rem" },
+        color: "black",
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.5,
+      }}>
         Forgot your Password?
         <Button
           variant="text"
+          component={RouterLink}
+          to="/forgot-password"
           aria-label="Reset your password"
           sx={{
             fontWeight: 700,
             color: "primary.main",
-            ml: 1,
             p: 0,
             minWidth: 0,
             "&:focus": { outline: "none", boxShadow: "none" },
@@ -293,7 +347,13 @@ const LoginForm: React.FC = () => {
         </Button>
       </Typography>
 
-      <Typography ref={signupRef} sx={{ fontSize: { xs: "0.85rem", md: "0.95rem" }, color: "black" }}>
+      <Typography ref={signupRef} sx={{
+        fontSize: { xs: "0.85rem", md: "0.95rem" },
+        color: "black",
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.5,
+      }}>
         Don't have an account?
         <Button
           variant="text"
@@ -301,7 +361,6 @@ const LoginForm: React.FC = () => {
           sx={{
             fontWeight: 700,
             color: "primary.main",
-            ml: 1,
             p: 0,
             minWidth: 0,
             "&:focus": { outline: "none", boxShadow: "none" },

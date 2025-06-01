@@ -41,3 +41,51 @@ export async function signup(firstName: string, secondName: string, email: strin
     throw err;
   }
 }
+
+export async function verifyEmail(token: string) {
+  try {
+    console.log('VERIFY EMAIL API CALL:', `/api/v1/auth/verify-email/${token}`);
+    const res = await axios.get(`/api/v1/auth/verify-email/${token}`);
+    console.log('VERIFY EMAIL API RESPONSE:', res);
+    return res.data;
+  } catch (err) {
+    console.error('VERIFY EMAIL API ERROR:', err);
+    throw err;
+  }
+}
+
+export async function forgotPassword(email: string) {
+  try {
+    console.log('FORGOT PASSWORD API CALL:', '/api/v1/auth/forgot-password', { email });
+    const res = await axios.post('/api/v1/auth/forgot-password', { email });
+    console.log('FORGOT PASSWORD API RESPONSE:', res);
+    return res.data;
+  } catch (err) {
+    console.error('FORGOT PASSWORD API ERROR:', err);
+    throw err;
+  }
+}
+
+export async function resetPassword(token: string, password: string) {
+  try {
+    console.log('RESET PASSWORD API CALL:', `/api/v1/auth/reset-password/${token}`);
+    const res = await axios.post(`/api/v1/auth/reset-password/${token}`, { password });
+    console.log('RESET PASSWORD API RESPONSE:', res);
+    return res.data;
+  } catch (err) {
+    console.error('RESET PASSWORD API ERROR:', err);
+    throw err;
+  }
+}
+
+export async function resendVerification(email: string) {
+  try {
+    console.log('RESEND VERIFICATION API CALL:', '/api/v1/auth/resend-verification', { email });
+    const res = await axios.post('/api/v1/auth/resend-verification', { email });
+    console.log('RESEND VERIFICATION API RESPONSE:', res);
+    return res.data;
+  } catch (err) {
+    console.error('RESEND VERIFICATION API ERROR:', err);
+    throw err;
+  }
+}

@@ -1,5 +1,5 @@
 import Box from '@mui/material/Box';
-import SignupForm from '../components/SignupForm';
+import SignupForm from '../components/forms/SignupForm';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 

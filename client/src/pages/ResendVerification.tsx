@@ -1,15 +1,27 @@
+import React from 'react';
 import Box from '@mui/material/Box';
-import LoginForm from '../components/forms/LoginForm'; // adjust path if needed
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
+import ResendVerificationForm from '../components/forms/ResendVerificationForm';
 
-const Login = () => {
+const ResendVerification: React.FC = () => {
   const theme = useTheme();
   /**
    * Show the hero image only on large (lg ≥ 1200 px) screens.
    * On smaller viewports we collapse to a single, centred form.
    */
   const showImage = useMediaQuery(theme.breakpoints.up('lg'));
+
+  const handleSuccess = () => {
+    // Optional: Add any additional success handling here
+    console.log('Verification email sent successfully');
+  };
+
+  const handleError = (error: string) => {
+    // Optional: Add any additional error handling here
+    console.error('Resend verification error:', error);
+  };
+
   return (
     showImage ? (
       /* ─────────── Large screens: two‑column layout ─────────── */
@@ -34,12 +46,12 @@ const Login = () => {
         >
           <Box
             component="img"
-            src="/assets/splashes/loginsplash.png"
-            alt="Login splash"
+            src="/assets/splashes/resendverificationsplash.png"
+            alt="Verification splash"
             sx={{
               width: '100%',
               height: '100vh',
-              objectPosition: '35%',
+              objectPosition: '50%',
               objectFit: 'cover',
               borderRadius: '0 16px 16px 0',
             }}
@@ -59,7 +71,7 @@ const Login = () => {
           }}
         >
           <Box sx={{ maxWidth: 380, width: '100%' }}>
-            <LoginForm />
+            <ResendVerificationForm onSuccess={handleSuccess} onError={handleError} />
           </Box>
         </Box>
       </Box>
@@ -77,11 +89,11 @@ const Login = () => {
         }}
       >
         <Box sx={{ width: '100%', maxWidth: 380, mx: 'auto' }}>
-          <LoginForm />
+          <ResendVerificationForm onSuccess={handleSuccess} onError={handleError} />
         </Box>
       </Box>
     )
   );
 };
 
-export default Login;
+export default ResendVerification;
