@@ -5,6 +5,7 @@ import { validationResult } from 'express-validator';
 import AppError from '../utils/appError.js';
 import { sendPasswordResetEmail, sendVerificationEmail } from '../services/emailService.js';
 import logger from '../utils/logger.js';
+import validator from 'validator';
 
 const signToken = id =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -73,6 +74,12 @@ export const register = async (req, res, next) => {
   try {
     const { firstName, secondName, email, password } = req.body;
 
+    // Safest: force email to string and validate format with validator.js
+    const safeEmail = typeof email === 'string' ? email : '';
+    if (!validator.isEmail(safeEmail)) {
+      return next(new AppError('Invalid email format.', 400));
+    }
+
     // Validate password
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=]{8,}$/;
     if (!passwordRegex.test(password)) {
@@ -85,12 +92,12 @@ export const register = async (req, res, next) => {
     }
 
     // Check for duplicate email
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: safeEmail });
     if (existingUser) {
       return next(new AppError('Email is already registered.', 409));
     }
 
-    const user = await User.create({ firstName, secondName, email, password });
+    const user = await User.create({ firstName, secondName, email: safeEmail, password });
     const emailToken = user.createEmailVerificationToken();
     await user.save({ validateBeforeSave: false });
     
@@ -117,7 +124,12 @@ export const register = async (req, res, next) => {
 export const login = async (req, res, next) => {
   try {
     const { email, password, rememberMe } = req.body;
-    const user = await User.findOne({ email }).select('+password');
+    // Safest: force email to string and validate format with validator.js
+    const safeEmail = typeof email === 'string' ? email : '';
+    if (!validator.isEmail(safeEmail)) {
+      return next(new AppError('Invalid email format.', 400));
+    }
+    const user = await User.findOne({ email: safeEmail }).select('+password');
     if (!user) {
       return next(new AppError('Incorrect email or password', 401));
     }
@@ -196,7 +208,12 @@ export const verifyEmail = async (req, res) => {
 export const resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email });
+    // Safest: force email to string and validate format with validator.js
+    const safeEmail = typeof email === 'string' ? email : '';
+    if (!validator.isEmail(safeEmail)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+    const user = await User.findOne({ email: safeEmail });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -218,7 +235,12 @@ export const resendVerification = async (req, res) => {
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email });
+    // Safest: force email to string and validate format with validator.js
+    const safeEmail = typeof email === 'string' ? email : '';
+    if (!validator.isEmail(safeEmail)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+    const user = await User.findOne({ email: safeEmail });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }

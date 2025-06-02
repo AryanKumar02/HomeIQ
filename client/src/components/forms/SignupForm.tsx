@@ -385,18 +385,31 @@ const SignupForm: React.FC = () => {
                     edge="end"
                     tabIndex={-1}
                     sx={{
-                      p: 0.7,
-                      borderRadius: '50%',
-                      transition: 'background 0.18s, transform 0.13s',
+                      p: 0,
+                      borderRadius: 0,
+                      mr: 0.5,
                       color: showPassword ? theme.palette.primary.main : theme.palette.grey[500],
                       backgroundColor: 'transparent',
+                      boxShadow: 'none',
+                      minWidth: 0,
+                      transition: 'color 0.18s',
                       '&:hover, &:focus': {
-                        backgroundColor: 'rgba(3,108,163,0.08)',
-                        transform: 'scale(1.13)',
+                        color: theme.palette.primary.main,
+                        backgroundColor: 'transparent',
+                        boxShadow: 'none',
+                        transform: 'none',
                       },
+                      '&:focus': {
+                        outline: 'none',
+                        boxShadow: 'none',
+                      },
+                      '&:focus-visible': {
+                        outline: 'none',
+                        boxShadow: 'none'
+                      }
                     }}
                   >
-                    {showPassword ? <VisibilityOff sx={{ fontSize: 22 }} /> : <Visibility sx={{ fontSize: 22 }} />}
+                    {showPassword ? <VisibilityOff sx={{ fontSize: 20, strokeWidth: 1.5 }} /> : <Visibility sx={{ fontSize: 20, strokeWidth: 1.5 }} />}
                   </IconButton>
                 </InputAdornment>
               ),
