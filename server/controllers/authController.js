@@ -176,7 +176,7 @@ export const login = async (req, res, next) => {
     }
 
     res.cookie('token', token, cookieOptions);
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true, token });
   } catch (err) {
     next(err);
   }

@@ -3,6 +3,7 @@ import * as authController from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import validate from '../middleware/validateMiddleware.js';
 import * as validators from '../validators/authValidators.js';
+import sensitiveLimiter from '../middleware/rateLimitMiddleware.js';
 
 const router = express.Router();
 
@@ -40,7 +41,9 @@ const router = express.Router();
  *       409:
  *         description: Email is already registered
  */
-router.post('/register', validators.registerValidator, validate, authController.register);
+router.post('/register',
+  sensitiveLimiter,
+  validators.registerValidator, validate, authController.register);
 
 /**
  * @swagger
@@ -73,7 +76,9 @@ router.post('/register', validators.registerValidator, validate, authController.
  *       401:
  *         description: Invalid credentials
  */
-router.post('/login', validators.loginValidator, validate, authController.login);
+router.post('/login',
+  sensitiveLimiter,
+  validators.loginValidator, validate, authController.login);
 
 /**
  * @swagger
@@ -124,6 +129,7 @@ router.get('/verify-email/:token', authController.verifyEmail);
  */
 router.post(
   '/resend-verification',
+  sensitiveLimiter,
   validators.forgotPasswordValidator,
   validate,
   authController.resendVerification,
@@ -156,6 +162,7 @@ router.post(
  */
 router.post(
   '/forgot-password',
+  sensitiveLimiter,
   validators.forgotPasswordValidator,
   validate,
   authController.forgotPassword,
@@ -195,6 +202,7 @@ router.post(
  */
 router.post(
   '/reset-password/:token',
+  sensitiveLimiter,
   validators.resetPasswordValidator,
   validate,
   authController.resetPassword,
@@ -252,6 +260,7 @@ router.get('/me', protect, authController.getMe);
  */
 router.post(
   '/update-password',
+  sensitiveLimiter,
   protect,
   validators.updatePasswordValidator,
   validate,
@@ -273,6 +282,6 @@ router.post(
  *       401:
  *         description: Unauthorized
  */
-router.post('/logout', authController.logout);
+router.post('/logout', sensitiveLimiter, authController.logout);
 
 export default router;
