@@ -3,10 +3,10 @@ import type { RefObject } from 'react';
 import gsap from 'gsap';
 
 export type UseFormGsapAnimationOptions = {
-  formRef: RefObject<Element | null>;
-  fieldRefs: RefObject<Element | null>[];
-  buttonRef: RefObject<Element | null>;
-  extraRefs?: RefObject<Element | null>[]; // for checkbox, forgot, etc.
+  formRef: RefObject<HTMLElement>;
+  fieldRefs: RefObject<HTMLElement>[];
+  buttonRef: RefObject<HTMLElement>;
+  extraRefs?: RefObject<HTMLElement>[]; // for checkbox, forgot, etc.
 };
 
 export function useFormGsapAnimation({
@@ -42,7 +42,7 @@ export function useFormGsapAnimation({
         { opacity: 1, scale: 1, duration: 0.35, ease: 'power3.out' },
         '-=0.22'
       );
-      extraRefs.forEach((ref, _i) => {
+      extraRefs.forEach((ref) => {
         tl.fromTo(
           ref.current,
           { opacity: 0, y: 18 },

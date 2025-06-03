@@ -18,22 +18,25 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token, onSuccess,
   const navigate = useNavigate();
 
   // GSAP refs
-  const formRef = useRef<any>(null);
-  const passwordFieldRef = useRef<any>(null);
-  const confirmPasswordFieldRef = useRef<any>(null);
-  const submitButtonRef = useRef<any>(null);
-  const requestLinkRef = useRef<any>(null);
+  const formRef = useRef<HTMLDivElement>(null);
+  const passwordFieldRef = useRef<HTMLDivElement>(null);
+  const confirmPasswordFieldRef = useRef<HTMLDivElement>(null);
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
+  const requestLinkRef = useRef<HTMLParagraphElement>(null);
 
   // Apply GSAP animation
   useFormGsapAnimation({
-    formRef,
-    fieldRefs: [passwordFieldRef, confirmPasswordFieldRef],
-    buttonRef: submitButtonRef,
-    extraRefs: [requestLinkRef],
+    formRef: formRef as React.RefObject<HTMLElement>,
+    fieldRefs: [
+      passwordFieldRef as React.RefObject<HTMLElement>,
+      confirmPasswordFieldRef as React.RefObject<HTMLElement>,
+    ],
+    buttonRef: submitButtonRef as React.RefObject<HTMLElement>,
+    extraRefs: [requestLinkRef as React.RefObject<HTMLElement>],
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setMessage(null);
 
     // Validate passwords match
@@ -58,7 +61,9 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token, onSuccess,
     setLoading(true);
 
     try {
-      await resetPassword(token, password);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _authResponse = await resetPassword(token, password);
+      // console.log('Password reset successful', _authResponse); // Optional for debugging
       setMessage({
         type: 'success',
         text: 'Password reset successful! Redirecting to login...',
@@ -67,10 +72,18 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token, onSuccess,
 
       // Redirect to login after 2 seconds
       setTimeout(() => {
-        navigate('/login');
+        void navigate('/login');
       }, 2000);
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Invalid or expired reset link. Please request a new one.';
+    } catch (error: unknown) {
+      let errorMessage = 'Invalid or expired reset link. Please request a new one.';
+      if (typeof error === 'object' && error !== null) {
+        const customError = error as { response?: { data?: { message?: string } }, message?: string };
+        if (customError.response?.data?.message) {
+          errorMessage = customError.response.data.message;
+        } else if (customError.message) {
+          errorMessage = customError.message;
+        }
+      }
       setMessage({
         type: 'error',
         text: errorMessage,
@@ -114,7 +127,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token, onSuccess,
         </Alert>
       )}
 
-      <Box component="form" onSubmit={handleSubmit}>
+      <Box component="form" onSubmit={(e) => { e.preventDefault(); void handleSubmit(e); }}>
         <Box ref={passwordFieldRef} sx={{ mb: 2 }}>
           <Typography
             htmlFor="password"

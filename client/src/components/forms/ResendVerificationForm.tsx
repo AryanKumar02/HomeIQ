@@ -15,21 +15,21 @@ const ResendVerificationForm: React.FC<ResendVerificationFormProps> = ({ onSucce
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // GSAP refs
-  const formRef = useRef<any>(null);
-  const emailFieldRef = useRef<any>(null);
-  const submitButtonRef = useRef<any>(null);
-  const loginLinkRef = useRef<any>(null);
+  const formRef = useRef<HTMLDivElement>(null);
+  const emailFieldRef = useRef<HTMLDivElement>(null);
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
+  const loginLinkRef = useRef<HTMLParagraphElement>(null);
 
   // Apply GSAP animation
   useFormGsapAnimation({
-    formRef,
-    fieldRefs: [emailFieldRef],
-    buttonRef: submitButtonRef,
-    extraRefs: [loginLinkRef],
+    formRef: formRef as React.RefObject<HTMLElement>,
+    fieldRefs: [emailFieldRef as React.RefObject<HTMLElement>],
+    buttonRef: submitButtonRef as React.RefObject<HTMLElement>,
+    extraRefs: [loginLinkRef as React.RefObject<HTMLElement>],
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setLoading(true);
     setMessage(null);
 
@@ -43,8 +43,16 @@ const ResendVerificationForm: React.FC<ResendVerificationFormProps> = ({ onSucce
       // Clear form
       setEmail('');
       onSuccess?.();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Something went wrong. Please try again.';
+    } catch (error: unknown) {
+      let errorMessage = 'Something went wrong. Please try again.';
+      if (typeof error === 'object' && error !== null) {
+        const customError = error as { response?: { data?: { message?: string } }, message?: string };
+        if (customError.response?.data?.message) {
+          errorMessage = customError.response.data.message;
+        } else if (customError.message) {
+          errorMessage = customError.message;
+        }
+      }
       setMessage({
         type: 'error',
         text: errorMessage,
@@ -88,7 +96,7 @@ const ResendVerificationForm: React.FC<ResendVerificationFormProps> = ({ onSucce
         </Alert>
       )}
 
-      <Box component="form" onSubmit={handleSubmit}>
+      <Box component="form" onSubmit={(e) => { e.preventDefault(); void handleSubmit(e); }}>
         <Box ref={emailFieldRef} sx={{ mb: 2 }}>
           <Typography
             htmlFor="email"

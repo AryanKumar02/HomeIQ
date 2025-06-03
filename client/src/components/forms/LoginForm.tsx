@@ -18,11 +18,11 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const emailRef = useRef(null);
-  const passwordRef = useRef(null);
-  const forgotRef = useRef(null);
-  const signupRef = useRef(null);
-  const rememberMeRef = useRef(null);
+  const emailRef = useRef<HTMLDivElement>(null);
+  const passwordRef = useRef<HTMLDivElement>(null);
+  const forgotRef = useRef<HTMLDivElement>(null);
+  const signupRef = useRef<HTMLDivElement>(null);
+  const rememberMeRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -32,43 +32,59 @@ const LoginForm: React.FC = () => {
   const extraRefs = [rememberMeRef, forgotRef, signupRef];
 
   useFormGsapAnimation({
-    formRef,
-    fieldRefs,
-    buttonRef,
-    extraRefs,
+    formRef: formRef as React.RefObject<HTMLElement>,
+    fieldRefs: fieldRefs.map(ref => ref as React.RefObject<HTMLElement>),
+    buttonRef: buttonRef as React.RefObject<HTMLElement>,
+    extraRefs: extraRefs.map(ref => ref as React.RefObject<HTMLElement>),
   });
 
   // Map backend error messages to user-friendly messages
-  function getFriendlyErrorMessage(err: any): string {
-    if (err?.response?.status === 401 && err?.response?.data?.message?.includes('verify your email')) {
-      return 'Please verify your email before logging in.';
-    }
-    if (err?.response?.status === 401 && err?.response?.data?.message?.includes('Incorrect email or password')) {
-      return 'Incorrect email or password. Please try again.';
-    }
-    if (err?.response?.status === 423 && err?.response?.data?.message?.includes('locked')) {
-      return 'Your account is temporarily locked due to too many failed attempts. Please try again later.';
-    }
-    if (err?.response?.status === 500) {
-      return 'Something went wrong. Please try again later.';
+  function getFriendlyErrorMessage(err: unknown): string {
+    if (typeof err === 'object' && err !== null) {
+      const customError = err as { response?: { status?: number; data?: { message?: string } } };
+      if (customError.response?.status === 401 && customError.response?.data?.message?.includes('verify your email')) {
+        return 'Please verify your email before logging in.';
+      }
+      if (customError.response?.status === 401 && customError.response?.data?.message?.includes('Incorrect email or password')) {
+        return 'Incorrect email or password. Please try again.';
+      }
+      if (customError.response?.status === 423 && customError.response?.data?.message?.includes('locked')) {
+        return 'Your account is temporarily locked due to too many failed attempts. Please try again later.';
+      }
+      if (customError.response?.status === 500) {
+        return 'Something went wrong. Please try again later.';
+      }
     }
     return 'Unable to log in. Please check your details and try again.';
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Renamed original handleSubmit to handleSubmitLogic
+  const handleSubmitLogic = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError(null);
     setLoading(true);
     if (buttonRef.current) {
       gsap.to(buttonRef.current, { scale: 0.96, duration: 0.12, yoyo: true, repeat: 1, ease: 'power1.inOut' });
     }
     try {
-      await login(email, password, rememberMe);
-    } catch (err: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _authResponse = await login(email, password, rememberMe);
+      // console.log('Login successful', _authResponse); // Optional: for debugging or further use
+      // Determine where to redirect after login
+      const from = (location.state as { from?: Location })?.from?.pathname || '/dashboard';
+      void navigate(from, { replace: true });
+
+    } catch (err: unknown) {
       setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }
+  };
+
+  // New synchronous wrapper for the form's onSubmit prop
+  const handleFormSubmit = (event: React.FormEvent) => {
+    event.preventDefault(); // Keep preventDefault here as it relates to the form submission event directly
+    void handleSubmitLogic(event);
   };
 
   const handleTogglePassword = () => {
@@ -84,7 +100,7 @@ const LoginForm: React.FC = () => {
         position: 'relative',
       }}
     >
-      {location.state?.from && (
+      {location.state && (location.state as {from?: string})?.from && (
         <IconButton
           onClick={() => navigate(-1)}
           sx={{ position: 'absolute', left: 0, top: 0, mt: 1, ml: 1, color: 'black' }}
@@ -118,7 +134,7 @@ const LoginForm: React.FC = () => {
         Your real estate management system
       </Typography>
 
-      <Box component="form" onSubmit={handleSubmit}>
+      <Box component="form" onSubmit={handleFormSubmit}>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
         )}
@@ -347,30 +363,37 @@ const LoginForm: React.FC = () => {
         </Button>
       </Typography>
 
-      <Typography ref={signupRef} sx={{
-        fontSize: { xs: "0.85rem", md: "0.95rem" },
-        color: "black",
-        display: 'flex',
-        alignItems: 'center',
-        gap: 0.5,
-      }}>
-        Don't have an account?
+      <Typography
+        ref={signupRef}
+        sx={{
+          mt: { xs: 2, md: 2.5 },
+          fontSize: { xs: "0.85rem", md: "0.95rem" },
+          color: "black",
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+        }}
+      >
+        Don&apos;t have an account?{' '}
         <Button
           variant="text"
-          aria-label="Sign up for an account"
+          component={RouterLink}
+          to="/signup"
+          state={{ from: location.pathname }}
           sx={{
             fontWeight: 700,
             color: "primary.main",
+            textDecoration: 'none',
             p: 0,
             minWidth: 0,
+            '&:hover': {
+              textDecoration: 'underline',
+            },
             "&:focus": { outline: "none", boxShadow: "none" },
             "&:focus-visible": { outline: "none", boxShadow: "none" },
           }}
           disableRipple
           disableFocusRipple
-          component={RouterLink}
-          to="/signup"
-          state={{ from: location.pathname }}
         >
           Sign Up.
         </Button>

@@ -15,17 +15,17 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onEr
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // GSAP refs
-  const formRef = useRef<any>(null);
-  const emailFieldRef = useRef<any>(null);
-  const submitButtonRef = useRef<any>(null);
-  const rememberPasswordRef = useRef<any>(null);
+  const formRef = useRef<HTMLDivElement>(null);
+  const emailFieldRef = useRef<HTMLDivElement>(null);
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
+  const rememberPasswordRef = useRef<HTMLParagraphElement>(null);
 
   // Apply GSAP animation
   useFormGsapAnimation({
-    formRef,
-    fieldRefs: [emailFieldRef],
-    buttonRef: submitButtonRef,
-    extraRefs: [rememberPasswordRef],
+    formRef: formRef as React.RefObject<HTMLElement>,
+    fieldRefs: [emailFieldRef as React.RefObject<HTMLElement>],
+    buttonRef: submitButtonRef as React.RefObject<HTMLElement>,
+    extraRefs: [rememberPasswordRef as React.RefObject<HTMLElement>],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,8 +43,16 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onEr
       // Clear form
       setEmail('');
       onSuccess?.();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Something went wrong. Please try again.';
+    } catch (error: unknown) {
+      let errorMessage = 'Something went wrong. Please try again.';
+      if (typeof error === 'object' && error !== null) {
+        const customError = error as { response?: { data?: { message?: string } }, message?: string };
+        if (customError.response?.data?.message) {
+          errorMessage = customError.response.data.message;
+        } else if (customError.message) {
+          errorMessage = customError.message;
+        }
+      }
       setMessage({
         type: 'error',
         text: errorMessage,
@@ -79,7 +87,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onEr
           fontSize: { xs: '0.95rem', md: '1.1rem' },
         }}
       >
-        Enter your email and we'll send you a reset link
+        Enter your email and we&apos;ll send you a reset link
       </Typography>
 
       {message && (
@@ -88,7 +96,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onEr
         </Alert>
       )}
 
-      <Box component="form" onSubmit={handleSubmit}>
+      <Box component="form" onSubmit={(e) => { e.preventDefault(); void handleSubmit(e); }}>
         <Box ref={emailFieldRef} sx={{ mb: 2 }}>
           <Typography
             htmlFor="email"

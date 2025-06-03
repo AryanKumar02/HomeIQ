@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles';
 const Signup = () => {
   const theme = useTheme();
   /**
-   * Show the hero image only on large (lg ≥ 1200 px) screens.
+   * Show the hero image only on large (lg >= 1200 px) screens.
    * On smaller viewports we collapse to a single, centred form.
    */
   const showImage = useMediaQuery(theme.breakpoints.up('lg'));
