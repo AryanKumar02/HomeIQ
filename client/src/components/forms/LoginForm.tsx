@@ -126,7 +126,7 @@ const LoginForm: React.FC = () => {
     >
       {location.state && (location.state as { from?: string })?.from && (
         <IconButton
-          onClick={() => navigate(-1)}
+          onClick={() => void navigate(-1)}
           sx={{ position: 'absolute', left: 0, top: 0, mt: 1, ml: 1, color: 'black' }}
           aria-label="Back"
         >
