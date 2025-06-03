@@ -1,7 +1,7 @@
-import React from 'react';
-import Navbar from '../components/navigation/Navbar';
-import Box from '@mui/material/Box';
-import HeroSection from '../components/landing/HeroSection';
+import React from 'react'
+import Navbar from '../components/navigation/Navbar'
+import Box from '@mui/material/Box'
+import HeroSection from '../components/landing/HeroSection'
 
 const LandingPage: React.FC = () => {
   return (
@@ -21,7 +21,7 @@ const LandingPage: React.FC = () => {
         <HeroSection />
       </Box>
     </>
-  );
-};
+  )
+}
 
-export default LandingPage;
+export default LandingPage

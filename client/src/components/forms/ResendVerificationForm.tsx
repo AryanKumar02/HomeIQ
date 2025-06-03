@@ -1,24 +1,24 @@
-import React, { useState, useRef } from 'react';
-import { Box, Typography, TextField, Button, Alert } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
-import { resendVerification } from '../../services/auth';
-import { useFormGsapAnimation } from '../../animation/useFormGsapAnimation';
+import React, { useState, useRef } from 'react'
+import { Box, Typography, TextField, Button, Alert } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
+import { resendVerification } from '../../services/auth'
+import { useFormGsapAnimation } from '../../animation/useFormGsapAnimation'
 
 interface ResendVerificationFormProps {
-  onSuccess?: () => void;
-  onError?: (error: string) => void;
+  onSuccess?: () => void
+  onError?: (error: string) => void
 }
 
 const ResendVerificationForm: React.FC<ResendVerificationFormProps> = ({ onSuccess, onError }) => {
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   // GSAP refs
-  const formRef = useRef<HTMLDivElement>(null);
-  const emailFieldRef = useRef<HTMLDivElement>(null);
-  const submitButtonRef = useRef<HTMLButtonElement>(null);
-  const loginLinkRef = useRef<HTMLParagraphElement>(null);
+  const formRef = useRef<HTMLDivElement>(null)
+  const emailFieldRef = useRef<HTMLDivElement>(null)
+  const submitButtonRef = useRef<HTMLButtonElement>(null)
+  const loginLinkRef = useRef<HTMLParagraphElement>(null)
 
   // Apply GSAP animation
   useFormGsapAnimation({
@@ -26,42 +26,46 @@ const ResendVerificationForm: React.FC<ResendVerificationFormProps> = ({ onSucce
     fieldRefs: [emailFieldRef as React.RefObject<HTMLElement>],
     buttonRef: submitButtonRef as React.RefObject<HTMLElement>,
     extraRefs: [loginLinkRef as React.RefObject<HTMLElement>],
-  });
+  })
 
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setLoading(true);
-    setMessage(null);
+    event.preventDefault()
+    setLoading(true)
+    setMessage(null)
 
     try {
-      await resendVerification(email);
-      const successMessage = 'Verification email sent! Check your inbox for the new verification link.';
+      await resendVerification(email)
+      const successMessage =
+        'Verification email sent! Check your inbox for the new verification link.'
       setMessage({
         type: 'success',
         text: successMessage,
-      });
+      })
       // Clear form
-      setEmail('');
-      onSuccess?.();
+      setEmail('')
+      onSuccess?.()
     } catch (error: unknown) {
-      let errorMessage = 'Something went wrong. Please try again.';
+      let errorMessage = 'Something went wrong. Please try again.'
       if (typeof error === 'object' && error !== null) {
-        const customError = error as { response?: { data?: { message?: string } }, message?: string };
+        const customError = error as {
+          response?: { data?: { message?: string } }
+          message?: string
+        }
         if (customError.response?.data?.message) {
-          errorMessage = customError.response.data.message;
+          errorMessage = customError.response.data.message
         } else if (customError.message) {
-          errorMessage = customError.message;
+          errorMessage = customError.message
         }
       }
       setMessage({
         type: 'error',
         text: errorMessage,
-      });
-      onError?.(errorMessage);
+      })
+      onError?.(errorMessage)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <Box ref={formRef} sx={{ width: '100%' }}>
@@ -96,7 +100,13 @@ const ResendVerificationForm: React.FC<ResendVerificationFormProps> = ({ onSucce
         </Alert>
       )}
 
-      <Box component="form" onSubmit={(e) => { e.preventDefault(); void handleSubmit(e); }}>
+      <Box
+        component="form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void handleSubmit(e)
+        }}
+      >
         <Box ref={emailFieldRef} sx={{ mb: 2 }}>
           <Typography
             htmlFor="email"
@@ -123,12 +133,14 @@ const ResendVerificationForm: React.FC<ResendVerificationFormProps> = ({ onSucce
                 borderRadius: 2,
                 background: '#f7f8fa',
                 boxShadow: 'none',
-                transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
+                transition:
+                  'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-notchedOutline': {
                 borderWidth: '1.5px',
                 borderColor: '#e0e3e7',
-                transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
+                transition:
+                  'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
                 borderColor: '#036CA3',
@@ -183,14 +195,17 @@ const ResendVerificationForm: React.FC<ResendVerificationFormProps> = ({ onSucce
         </Button>
       </Box>
 
-      <Typography ref={loginLinkRef} sx={{
-        textAlign: 'left',
-        fontSize: { xs: '0.85rem', md: '0.95rem' },
-        color: 'black',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 0.5,
-      }}>
+      <Typography
+        ref={loginLinkRef}
+        sx={{
+          textAlign: 'left',
+          fontSize: { xs: '0.85rem', md: '0.95rem' },
+          color: 'black',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+        }}
+      >
         Already verified?
         <Button
           variant="text"
@@ -211,7 +226,7 @@ const ResendVerificationForm: React.FC<ResendVerificationFormProps> = ({ onSucce
         </Button>
       </Typography>
     </Box>
-  );
-};
+  )
+}
 
-export default ResendVerificationForm;
+export default ResendVerificationForm

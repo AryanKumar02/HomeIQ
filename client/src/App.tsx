@@ -1,15 +1,15 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, CssBaseline } from '@mui/material';
-import theme from './theme';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import VerifyEmail from './pages/VerifyEmail';
-import ResendVerification from './pages/ResendVerification';
-import TermsOfService from './pages/TermsOfService';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import LandingPage from './pages/LandingPage';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { ThemeProvider, CssBaseline } from '@mui/material'
+import theme from './theme'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
+import VerifyEmail from './pages/VerifyEmail'
+import ResendVerification from './pages/ResendVerification'
+import TermsOfService from './pages/TermsOfService'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import LandingPage from './pages/LandingPage'
 
 function App() {
   return (
@@ -30,7 +30,7 @@ function App() {
         </Routes>
       </Router>
     </ThemeProvider>
-  );
+  )
 }
 
-export default App;
+export default App

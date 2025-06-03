@@ -1,6 +1,6 @@
-import React from 'react';
-import { Box, Paper } from '@mui/material';
-import ReactMarkdown from 'react-markdown';
+import React from 'react'
+import { Box, Paper } from '@mui/material'
+import ReactMarkdown from 'react-markdown'
 
 const termsContent = `
 # EstateLink – Terms of Service
@@ -144,7 +144,7 @@ If you have questions about these Terms, please email **support@estatelink.com**
 ---
 
 *© 2025 EstateLink.  All rights reserved.*
-`;
+`
 
 const TermsOfService: React.FC = () => {
   return (
@@ -221,7 +221,7 @@ const TermsOfService: React.FC = () => {
         <ReactMarkdown>{termsContent}</ReactMarkdown>
       </Box>
     </Paper>
-  );
-};
+  )
+}
 
-export default TermsOfService;
+export default TermsOfService

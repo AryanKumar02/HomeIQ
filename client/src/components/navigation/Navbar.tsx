@@ -1,40 +1,44 @@
-import React, { useState } from 'react';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
-import { Link as RouterLink } from 'react-router-dom';
-import MobileMenuDrawer from './MobileMenuDrawer';
-import { useTheme } from '@mui/material/styles';
+import React, { useState } from 'react'
+import AppBar from '@mui/material/AppBar'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import IconButton from '@mui/material/IconButton'
+import MenuIcon from '@mui/icons-material/Menu'
+import Button from '@mui/material/Button'
+import Box from '@mui/material/Box'
+import { Link as RouterLink } from 'react-router-dom'
+import MobileMenuDrawer from './MobileMenuDrawer'
+import { useTheme } from '@mui/material/styles'
 
 const navLinks = [
   { label: 'Features', to: '/#features' },
   { label: 'Pricing', to: '/#pricing' },
   { label: 'About', to: '/#about' },
   { label: 'Contact', to: '/#contact' },
-];
+]
 
 const Navbar: React.FC = () => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const theme = useTheme();
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const theme = useTheme()
 
   const handleDrawerToggle = () => {
-    setDrawerOpen(!drawerOpen);
-  };
+    setDrawerOpen(!drawerOpen)
+  }
 
   return (
-    <AppBar position="fixed" elevation={0} sx={{
-      background: '#fff',
-      color: '#000',
-      boxShadow: '0 2px 8px 0 rgba(3,108,163,0.08)',
-      width: '100%',
-      top: 0,
-      left: 0,
-      right: 0
-    }}>
+    <AppBar
+      position="fixed"
+      elevation={0}
+      sx={{
+        background: '#fff',
+        color: '#000',
+        boxShadow: '0 2px 8px 0 rgba(3,108,163,0.08)',
+        width: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+      }}
+    >
       <Toolbar sx={{ minHeight: 64, px: { xs: 1, sm: 3 } }}>
         {/* Logo/Brand */}
         <Box
@@ -68,13 +72,12 @@ const Navbar: React.FC = () => {
               ml: 0.5,
               alignSelf: 'center',
             }}
-          >
-          </Box>
+          ></Box>
         </Box>
 
         {/* Desktop nav links */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1.5, alignItems: 'center' }}>
-          {navLinks.map(link => (
+          {navLinks.map((link) => (
             <Button
               key={link.label}
               component={RouterLink}
@@ -132,7 +135,8 @@ const Navbar: React.FC = () => {
               boxShadow: '0 4px 18px 0 rgba(3,108,163,0.13)',
               color: '#fff',
               background: theme.palette.secondary.main,
-              transition: 'background 0.22s cubic-bezier(0.4,0,0.2,1), box-shadow 0.22s cubic-bezier(0.4,0,0.2,1)',
+              transition:
+                'background 0.22s cubic-bezier(0.4,0,0.2,1), box-shadow 0.22s cubic-bezier(0.4,0,0.2,1)',
               '&:hover': {
                 background: theme.palette.secondary.dark || theme.palette.secondary.main,
                 color: '#fff',
@@ -148,7 +152,13 @@ const Navbar: React.FC = () => {
         <IconButton
           edge="end"
           color="inherit"
-          sx={{ display: { md: 'none' }, color: '#000', mr: 1.5, transition: 'color 0.22s', '&:hover': { color: theme.palette.secondary.main } }}
+          sx={{
+            display: { md: 'none' },
+            color: '#000',
+            mr: 1.5,
+            transition: 'color 0.22s',
+            '&:hover': { color: theme.palette.secondary.main },
+          }}
           aria-label="menu"
           onClick={handleDrawerToggle}
         >
@@ -157,12 +167,16 @@ const Navbar: React.FC = () => {
       </Toolbar>
 
       {/* Mobile Drawer */}
-      <MobileMenuDrawer open={drawerOpen} onClose={handleDrawerToggle} navLinks={navLinks.concat([
-        { label: 'Sign In', to: '/login' },
-        { label: 'Get Started', to: '/signup' },
-      ])} />
+      <MobileMenuDrawer
+        open={drawerOpen}
+        onClose={handleDrawerToggle}
+        navLinks={navLinks.concat([
+          { label: 'Sign In', to: '/login' },
+          { label: 'Get Started', to: '/signup' },
+        ])}
+      />
     </AppBar>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar

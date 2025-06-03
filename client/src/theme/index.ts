@@ -1,15 +1,15 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles'
 
 // Augment the Palette interface to include our custom background color
 declare module '@mui/material/styles' {
   interface TypeBackground {
-    section?: string;
+    section?: string
   }
   interface PaletteOptions {
-    background?: Partial<TypeBackground>;
+    background?: Partial<TypeBackground>
   }
   interface Palette {
-    background: TypeBackground;
+    background: TypeBackground
   }
 }
 
@@ -93,6 +93,6 @@ const theme = createTheme({
       },
     },
   },
-});
+})
 
-export default theme;
+export default theme

@@ -1,14 +1,14 @@
-import React from 'react';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import { useTheme } from '@mui/material/styles';
+import React from 'react'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import { useTheme } from '@mui/material/styles'
 
 // Icons
-import CheckIcon from '@mui/icons-material/Check';
+import CheckIcon from '@mui/icons-material/Check'
 
 const HeroSection: React.FC = () => {
-  const theme = useTheme();
+  const theme = useTheme()
 
   return (
     <Box
@@ -70,17 +70,42 @@ const HeroSection: React.FC = () => {
           </Typography>
         </Box>
         <Box sx={{ pl: { xs: 2, sm: 3, md: 4 }, mb: 4 }}>
-          <Typography component="div" color="grey.700" lineHeight={1.7} sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>
+          <Typography
+            component="div"
+            color="grey.700"
+            lineHeight={1.7}
+            sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}
+          >
             Streamline your property management with our comprehensive
           </Typography>
-          <Typography component="div" color="grey.700" lineHeight={1.7} sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>
+          <Typography
+            component="div"
+            color="grey.700"
+            lineHeight={1.7}
+            sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}
+          >
             platform. Manage tenants, track rent, handle maintenance, and
           </Typography>
-          <Typography component="div" color="grey.700" lineHeight={1.7} sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}>
+          <Typography
+            component="div"
+            color="grey.700"
+            lineHeight={1.7}
+            sx={{ fontSize: { xs: '1.1rem', md: '1.25rem' } }}
+          >
             analyze performance all in one place.
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 4, pl: { xs: 2, sm: 3, md: 4 } }}> {/* Added pl for alignment */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: 2,
+            mb: 4,
+            pl: { xs: 2, sm: 3, md: 4 },
+          }}
+        >
+          {' '}
+          {/* Added pl for alignment */}
           <Button
             variant="contained"
             color="secondary" // bg-blue-500
@@ -94,7 +119,7 @@ const HeroSection: React.FC = () => {
               boxShadow: 'lg',
               '&:hover': {
                 backgroundColor: theme.palette.primary.dark, // hover:bg-blue-600
-              }
+              },
             }}
           >
             Start Free Trial
@@ -113,21 +138,34 @@ const HeroSection: React.FC = () => {
               '&:hover': {
                 backgroundColor: 'grey.100', // hover:bg-gray-50
                 borderColor: 'grey.500',
-              }
+              },
             }}
           >
             Watch Demo
           </Button>
         </Box>
-        <Box sx={{ mt: 4, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: {sm: 'center'}, gap: {xs: 1.5, sm: 3}, pl: { xs: 2, sm: 3, md: 4 } }}> {/* Added pl for alignment */}
-          {[
-            '14-day free trial',
-            'No credit card required',
-            'Cancel anytime',
-          ].map((text) => (
-            <Box key={text} sx={{ display: 'flex', alignItems: 'center', color: 'grey.600' /* text-gray-500 */ }}>
-              <CheckIcon sx={{ color: 'success.main', mr: 1, fontSize: '1.25rem' }} /> {/* Changed icon and text-green-500 */}
-              <Typography variant="body2" component="span" sx={{fontSize: '0.9rem'}}> {/* text-sm */}
+        <Box
+          sx={{
+            mt: 4,
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { sm: 'center' },
+            gap: { xs: 1.5, sm: 3 },
+            pl: { xs: 2, sm: 3, md: 4 },
+          }}
+        >
+          {' '}
+          {/* Added pl for alignment */}
+          {['14-day free trial', 'No credit card required', 'Cancel anytime'].map((text) => (
+            <Box
+              key={text}
+              sx={{ display: 'flex', alignItems: 'center', color: 'grey.600' /* text-gray-500 */ }}
+            >
+              <CheckIcon sx={{ color: 'success.main', mr: 1, fontSize: '1.25rem' }} />{' '}
+              {/* Changed icon and text-green-500 */}
+              <Typography variant="body2" component="span" sx={{ fontSize: '0.9rem' }}>
+                {' '}
+                {/* text-sm */}
                 {text}
               </Typography>
             </Box>
@@ -135,7 +173,7 @@ const HeroSection: React.FC = () => {
         </Box>
       </Box>
     </Box>
-  );
-};
+  )
+}
 
-export default HeroSection;
+export default HeroSection

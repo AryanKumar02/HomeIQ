@@ -1,17 +1,28 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Box, Typography, TextField, Button, Alert, Checkbox, FormControlLabel, FormControl, IconButton, InputAdornment } from "@mui/material";
-import gsap from 'gsap';
-import { signup } from '../../services/auth';
-import { Link as RouterLink} from 'react-router-dom';
-import { useFormGsapAnimation } from '../animation/useFormGsapAnimation';
-import CheckIcon from '@mui/icons-material/Check';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { useTheme } from '@mui/material/styles';
+import React, { useState, useRef, useEffect } from 'react'
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Alert,
+  Checkbox,
+  FormControlLabel,
+  FormControl,
+  IconButton,
+  InputAdornment,
+} from '@mui/material'
+import gsap from 'gsap'
+import { signup } from '../../services/auth'
+import { Link as RouterLink } from 'react-router-dom'
+import { useFormGsapAnimation } from '../animation/useFormGsapAnimation'
+import CheckIcon from '@mui/icons-material/Check'
+import Visibility from '@mui/icons-material/Visibility'
+import VisibilityOff from '@mui/icons-material/VisibilityOff'
+import { useTheme } from '@mui/material/styles'
 
 // Custom animated checkbox icons
 const AnimatedCheckboxIcon = ({ checked }: { checked: boolean }) => {
-  const theme = useTheme();
+  const theme = useTheme()
   return (
     <Box
       sx={{
@@ -33,7 +44,8 @@ const AnimatedCheckboxIcon = ({ checked }: { checked: boolean }) => {
         sx={{
           opacity: checked ? 1 : 0,
           transform: checked ? 'scale(1)' : 'scale(0.7)',
-          transition: 'opacity 0.22s cubic-bezier(.4,1.3,.6,1), transform 0.22s cubic-bezier(.4,1.3,.6,1)',
+          transition:
+            'opacity 0.22s cubic-bezier(.4,1.3,.6,1), transform 0.22s cubic-bezier(.4,1.3,.6,1)',
           color: '#fff',
           display: 'flex',
           alignItems: 'center',
@@ -44,8 +56,8 @@ const AnimatedCheckboxIcon = ({ checked }: { checked: boolean }) => {
         <CheckIcon fontSize="inherit" />
       </Box>
     </Box>
-  );
-};
+  )
+}
 
 // Common styles for TextFields
 const commonTextFieldStyles = {
@@ -53,12 +65,14 @@ const commonTextFieldStyles = {
     borderRadius: 2,
     background: '#f7f8fa',
     boxShadow: 'none',
-    transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
+    transition:
+      'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
   },
   '& .MuiOutlinedInput-notchedOutline': {
     borderWidth: '1.5px',
     borderColor: '#e0e3e7',
-    transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
+    transition:
+      'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
   },
   input: {
     px: 2,
@@ -70,26 +84,26 @@ const commonTextFieldStyles = {
     fontWeight: 500,
     letterSpacing: 0.01,
   },
-};
+}
 
 const SignupForm: React.FC = () => {
-  const [firstName, setFirstName] = useState("");
-  const [secondName, setSecondName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [acceptTerms, setAcceptTerms] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const formRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const firstNameRef = useRef<HTMLDivElement>(null);
-  const secondNameRef = useRef<HTMLDivElement>(null);
-  const emailRef = useRef<HTMLDivElement>(null);
-  const passwordRef = useRef<HTMLDivElement>(null);
-  const checkboxRef = useRef<HTMLFieldSetElement>(null);
-  const loginRef = useRef<HTMLParagraphElement>(null);
-  const theme = useTheme();
-  const [showPassword, setShowPassword] = useState(false);
+  const [firstName, setFirstName] = useState('')
+  const [secondName, setSecondName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [acceptTerms, setAcceptTerms] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const formRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const firstNameRef = useRef<HTMLDivElement>(null)
+  const secondNameRef = useRef<HTMLDivElement>(null)
+  const emailRef = useRef<HTMLDivElement>(null)
+  const passwordRef = useRef<HTMLDivElement>(null)
+  const checkboxRef = useRef<HTMLFieldSetElement>(null)
+  const loginRef = useRef<HTMLParagraphElement>(null)
+  const theme = useTheme()
+  const [showPassword, setShowPassword] = useState(false)
 
   useFormGsapAnimation({
     formRef: formRef as React.RefObject<HTMLElement>,
@@ -104,58 +118,70 @@ const SignupForm: React.FC = () => {
       checkboxRef as React.RefObject<HTMLElement>,
       loginRef as React.RefObject<HTMLElement>,
     ],
-  });
+  })
 
   // Shake animation on error
   useEffect(() => {
     if (error && formRef.current) {
-      const tl = gsap.timeline();
+      const tl = gsap.timeline()
       tl.to(formRef.current, { x: -14, duration: 0.07, ease: 'power1.inOut' })
         .to(formRef.current, { x: 12, duration: 0.07, ease: 'power1.inOut' })
         .to(formRef.current, { x: -8, duration: 0.06, ease: 'power1.inOut' })
         .to(formRef.current, { x: 6, duration: 0.06, ease: 'power1.inOut' })
         .to(formRef.current, { x: -3, duration: 0.05, ease: 'power1.inOut' })
-        .to(formRef.current, { x: 0, duration: 0.05, ease: 'power1.inOut' });
+        .to(formRef.current, { x: 0, duration: 0.05, ease: 'power1.inOut' })
     }
-  }, [error]);
+  }, [error])
 
   // Map backend error messages to user-friendly messages
   function getFriendlyErrorMessage(err: unknown): string {
     if (typeof err === 'object' && err !== null) {
-      const customError = err as { response?: { status?: number; data?: { message?: string } } };
-      if (customError.response?.status === 409 && customError.response?.data?.message?.includes('already registered')) {
-        return 'An account with this email already exists.';
+      const customError = err as { response?: { status?: number; data?: { message?: string } } }
+      if (
+        customError.response?.status === 409 &&
+        customError.response?.data?.message?.includes('already registered')
+      ) {
+        return 'An account with this email already exists.'
       }
-      if (customError.response?.status === 400 && customError.response?.data?.message?.includes('Password must')) {
-        return 'Password must be at least 8 characters and contain at least one letter and one number.';
+      if (
+        customError.response?.status === 400 &&
+        customError.response?.data?.message?.includes('Password must')
+      ) {
+        return 'Password must be at least 8 characters and contain at least one letter and one number.'
       }
       if (customError.response?.status === 500) {
-        return 'Something went wrong. Please try again later.';
+        return 'Something went wrong. Please try again later.'
       }
     }
-    return 'Unable to sign up. Please check your details and try again.';
+    return 'Unable to sign up. Please check your details and try again.'
   }
 
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setError(null);
-    setLoading(true);
+    event.preventDefault()
+    setError(null)
+    setLoading(true)
     if (buttonRef.current) {
-      gsap.to(buttonRef.current, { scale: 0.96, duration: 0.12, yoyo: true, repeat: 1, ease: 'power1.inOut' });
+      gsap.to(buttonRef.current, {
+        scale: 0.96,
+        duration: 0.12,
+        yoyo: true,
+        repeat: 1,
+        ease: 'power1.inOut',
+      })
     }
     try {
-      await signup(firstName, secondName, email, password);
+      await signup(firstName, secondName, email, password)
       // Optionally redirect or show success
     } catch (err: unknown) {
-      setError(getFriendlyErrorMessage(err));
+      setError(getFriendlyErrorMessage(err))
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleTogglePassword = () => {
-    setShowPassword((show) => !show);
-  };
+    setShowPassword((show) => !show)
+  }
 
   const dynamicTextFieldSx = {
     '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
@@ -166,14 +192,14 @@ const SignupForm: React.FC = () => {
       borderColor: theme.palette.primary.main,
       borderWidth: '2.5px',
     },
-  };
+  }
 
   return (
     <Box
       ref={formRef}
       sx={{
         width: { xs: 300, sm: 320, md: 340 },
-        maxWidth: "100%",
+        maxWidth: '100%',
         position: 'relative',
       }}
     >
@@ -181,9 +207,9 @@ const SignupForm: React.FC = () => {
         variant="h4"
         sx={{
           mb: 2,
-          color: "black",
-          textAlign: "center",
-          fontSize: { xs: "1.7rem", md: "2rem" },
+          color: 'black',
+          textAlign: 'center',
+          fontSize: { xs: '1.7rem', md: '2rem' },
           fontWeight: 700,
         }}
       >
@@ -193,18 +219,26 @@ const SignupForm: React.FC = () => {
         variant="subtitle1"
         sx={{
           mb: { xs: 1.5, md: 2 },
-          color: "black",
+          color: 'black',
           opacity: 0.4,
-          textAlign: "center",
-          fontSize: { xs: "0.92rem", md: "1.05rem" },
+          textAlign: 'center',
+          fontSize: { xs: '0.92rem', md: '1.05rem' },
         }}
       >
         Create your real estate management account
       </Typography>
 
-      <Box component="form" onSubmit={(e) => { e.preventDefault(); void handleSubmit(e); }}>
+      <Box
+        component="form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void handleSubmit(e)
+        }}
+      >
         {error && (
-          <Alert severity="error" sx={{ mb: 1.5 }}>{error}</Alert>
+          <Alert severity="error" sx={{ mb: 1.5 }}>
+            {error}
+          </Alert>
         )}
         <Box sx={{ display: 'flex', gap: 1.5, mb: 1.1 }}>
           <Box ref={firstNameRef} sx={{ flex: 1 }}>
@@ -213,10 +247,10 @@ const SignupForm: React.FC = () => {
               component="label"
               sx={{
                 mb: 0.7,
-                display: "block",
-                fontSize: { xs: "0.89rem", md: "1.01rem" },
+                display: 'block',
+                fontSize: { xs: '0.89rem', md: '1.01rem' },
                 fontWeight: 600,
-                color: "black",
+                color: 'black',
               }}
             >
               First Name
@@ -238,10 +272,10 @@ const SignupForm: React.FC = () => {
               component="label"
               sx={{
                 mb: 0.7,
-                display: "block",
-                fontSize: { xs: "0.89rem", md: "1.01rem" },
+                display: 'block',
+                fontSize: { xs: '0.89rem', md: '1.01rem' },
                 fontWeight: 600,
-                color: "black",
+                color: 'black',
               }}
             >
               Second Name
@@ -264,10 +298,10 @@ const SignupForm: React.FC = () => {
             component="label"
             sx={{
               mb: 0.7,
-              display: "block",
-              fontSize: { xs: "0.89rem", md: "1.01rem" },
+              display: 'block',
+              fontSize: { xs: '0.89rem', md: '1.01rem' },
               fontWeight: 600,
-              color: "black",
+              color: 'black',
             }}
           >
             Email
@@ -289,10 +323,10 @@ const SignupForm: React.FC = () => {
             component="label"
             sx={{
               mb: 0.7,
-              display: "block",
-              fontSize: { xs: "0.89rem", md: "1.01rem" },
+              display: 'block',
+              fontSize: { xs: '0.89rem', md: '1.01rem' },
               fontWeight: 600,
-              color: "black",
+              color: 'black',
             }}
           >
             Password
@@ -335,23 +369,32 @@ const SignupForm: React.FC = () => {
                       },
                       '&:focus-visible': {
                         outline: 'none',
-                        boxShadow: 'none'
-                      }
+                        boxShadow: 'none',
+                      },
                     }}
                   >
-                    {showPassword ? <VisibilityOff sx={{ fontSize: 20, strokeWidth: 1.5 }} /> : <Visibility sx={{ fontSize: 20, strokeWidth: 1.5 }} />}
+                    {showPassword ? (
+                      <VisibilityOff sx={{ fontSize: 20, strokeWidth: 1.5 }} />
+                    ) : (
+                      <Visibility sx={{ fontSize: 20, strokeWidth: 1.5 }} />
+                    )}
                   </IconButton>
                 </InputAdornment>
               ),
             }}
           />
         </Box>
-        <FormControl ref={checkboxRef} sx={{ mb: 2, alignItems: 'flex-start', width: '100%', padding: 0, margin: 0 }} component="fieldset" variant="standard">
+        <FormControl
+          ref={checkboxRef}
+          sx={{ mb: 2, alignItems: 'flex-start', width: '100%', padding: 0, margin: 0 }}
+          component="fieldset"
+          variant="standard"
+        >
           <FormControlLabel
             control={
               <Checkbox
                 checked={acceptTerms}
-                onChange={e => setAcceptTerms(e.target.checked)}
+                onChange={(e) => setAcceptTerms(e.target.checked)}
                 color="primary"
                 sx={{ ml: 0, p: 0, pr: 1.2 }}
                 icon={<AnimatedCheckboxIcon checked={false} />}
@@ -359,8 +402,18 @@ const SignupForm: React.FC = () => {
               />
             }
             label={
-              <Box component="span" sx={{ fontWeight: 700, color: 'black', fontSize: '0.97rem', display: 'inline' }}>
-                I <Box component="span" sx={{ color: theme.palette.primary.main, fontWeight: 700, display: 'inline' }}>agree</Box> to the{' '}
+              <Box
+                component="span"
+                sx={{ fontWeight: 700, color: 'black', fontSize: '0.97rem', display: 'inline' }}
+              >
+                I{' '}
+                <Box
+                  component="span"
+                  sx={{ color: theme.palette.primary.main, fontWeight: 700, display: 'inline' }}
+                >
+                  agree
+                </Box>{' '}
+                to the{' '}
                 <Box
                   component={RouterLink}
                   to="/terms-of-service"
@@ -376,8 +429,7 @@ const SignupForm: React.FC = () => {
                   }}
                 >
                   Terms of Service
-                </Box>
-                {' '}
+                </Box>{' '}
                 and{' '}
                 <Box
                   component={RouterLink}
@@ -419,7 +471,7 @@ const SignupForm: React.FC = () => {
           sx={{
             mt: 3,
             mb: 2,
-            fontSize: { xs: "1rem", md: "1.1rem" },
+            fontSize: { xs: '1rem', md: '1.1rem' },
             fontWeight: 600,
             height: { xs: 42, md: 46 },
             borderRadius: 2,
@@ -441,16 +493,19 @@ const SignupForm: React.FC = () => {
           {loading ? 'Creating Account...' : 'Create Account'}
         </Button>
       </Box>
-      <Typography ref={loginRef} sx={{
-        mt: 0,
-        fontSize: { xs: "0.85rem", md: "0.95rem" },
-        color: "black",
-        textAlign: 'center',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 0.5,
-      }}>
+      <Typography
+        ref={loginRef}
+        sx={{
+          mt: 0,
+          fontSize: { xs: '0.85rem', md: '0.95rem' },
+          color: 'black',
+          textAlign: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 0.5,
+        }}
+      >
         Already have an account?
         <Button
           variant="text"
@@ -460,8 +515,8 @@ const SignupForm: React.FC = () => {
             color: theme.palette.primary.main,
             p: 0,
             minWidth: 0,
-            "&:focus": { outline: "none", boxShadow: "none" },
-            "&:focus-visible": { outline: "none", boxShadow: "none" },
+            '&:focus': { outline: 'none', boxShadow: 'none' },
+            '&:focus-visible': { outline: 'none', boxShadow: 'none' },
           }}
           disableRipple
           disableFocusRipple
@@ -472,7 +527,7 @@ const SignupForm: React.FC = () => {
         </Button>
       </Typography>
     </Box>
-  );
-};
+  )
+}
 
-export default SignupForm;
+export default SignupForm

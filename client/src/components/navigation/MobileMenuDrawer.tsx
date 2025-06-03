@@ -1,31 +1,31 @@
-import React from 'react';
-import Drawer from '@mui/material/Drawer';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
-import Divider from '@mui/material/Divider';
-import { Link as RouterLink } from 'react-router-dom';
-import Fade from '@mui/material/Fade';
-import { useTheme, alpha } from '@mui/material/styles';
+import React from 'react'
+import Drawer from '@mui/material/Drawer'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import IconButton from '@mui/material/IconButton'
+import CloseIcon from '@mui/icons-material/Close'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemButton from '@mui/material/ListItemButton'
+import ListItemText from '@mui/material/ListItemText'
+import Divider from '@mui/material/Divider'
+import { Link as RouterLink } from 'react-router-dom'
+import Fade from '@mui/material/Fade'
+import { useTheme, alpha } from '@mui/material/styles'
 
 interface NavLink {
-  label: string;
-  to: string;
+  label: string
+  to: string
 }
 
 interface MobileMenuDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  navLinks: NavLink[];
+  open: boolean
+  onClose: () => void
+  navLinks: NavLink[]
 }
 
 const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ open, onClose, navLinks }) => {
-  const theme = useTheme();
+  const theme = useTheme()
 
   return (
     <Drawer
@@ -45,21 +45,55 @@ const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ open, onClose, navL
         },
       }}
     >
-      <Box sx={{ px: 2, pt: 2, pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Box component={RouterLink} to="/" sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-          <Box component="img" src="/assets/logo.png" alt="EstateLink logo" sx={{ height: 38, mr: 1 }} />
-          <Typography variant="h6" sx={{ fontWeight: 900, color: theme.palette.secondary.main, fontSize: '1.2rem', letterSpacing: -1.2 }}>
+      <Box
+        sx={{
+          px: 2,
+          pt: 2,
+          pb: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Box
+          component={RouterLink}
+          to="/"
+          sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
+        >
+          <Box
+            component="img"
+            src="/assets/logo.png"
+            alt="EstateLink logo"
+            sx={{ height: 38, mr: 1 }}
+          />
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 900,
+              color: theme.palette.secondary.main,
+              fontSize: '1.2rem',
+              letterSpacing: -1.2,
+            }}
+          >
             EstateLink
           </Typography>
         </Box>
-        <IconButton onClick={onClose} aria-label="Close menu" sx={{ color: theme.palette.secondary.main, ml: 1 }}>
+        <IconButton
+          onClick={onClose}
+          aria-label="Close menu"
+          sx={{ color: theme.palette.secondary.main, ml: 1 }}
+        >
           <CloseIcon fontSize="medium" />
         </IconButton>
       </Box>
       <Divider sx={{ borderColor: theme.palette.divider, mb: 1 }} />
       <List sx={{ px: 1, py: 0 }}>
         {navLinks.map((link, idx) => (
-          <Fade in={open} style={{ transitionDelay: open ? `${idx * 60 + 100}ms` : '0ms' }} key={link.label}>
+          <Fade
+            in={open}
+            style={{ transitionDelay: open ? `${idx * 60 + 100}ms` : '0ms' }}
+            key={link.label}
+          >
             <ListItem disablePadding>
               <ListItemButton
                 component={RouterLink}
@@ -73,7 +107,8 @@ const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ open, onClose, navL
                   px: 2,
                   py: 1.2,
                   fontSize: '1.08rem',
-                  transition: 'color 0.22s cubic-bezier(0.4,0,0.2,1), background 0.22s cubic-bezier(0.4,0,0.2,1)',
+                  transition:
+                    'color 0.22s cubic-bezier(0.4,0,0.2,1), background 0.22s cubic-bezier(0.4,0,0.2,1)',
                   '&:hover': {
                     color: theme.palette.secondary.main,
                     background: alpha(theme.palette.secondary.main, 0.07),
@@ -88,7 +123,8 @@ const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ open, onClose, navL
                     px: 3.5,
                     py: 1.2,
                     boxShadow: `0 4px 18px 0 ${alpha(theme.palette.secondary.main, 0.13)}`,
-                    transition: 'background 0.22s cubic-bezier(0.4,0,0.2,1), box-shadow 0.22s cubic-bezier(0.4,0,0.2,1)',
+                    transition:
+                      'background 0.22s cubic-bezier(0.4,0,0.2,1), box-shadow 0.22s cubic-bezier(0.4,0,0.2,1)',
                     '&:hover': {
                       background: theme.palette.secondary.dark || theme.palette.secondary.main, // Fallback if dark is not defined
                       color: '#fff',
@@ -124,7 +160,7 @@ const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ open, onClose, navL
         &copy; {new Date().getFullYear()} EstateLink
       </Box>
     </Drawer>
-  );
-};
+  )
+}
 
-export default MobileMenuDrawer;
+export default MobileMenuDrawer

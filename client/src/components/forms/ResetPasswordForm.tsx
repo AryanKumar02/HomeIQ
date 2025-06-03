@@ -1,28 +1,28 @@
-import React, { useState, useRef } from 'react';
-import { Box, Typography, TextField, Button, Alert } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { resetPassword } from '../../services/auth';
-import { useFormGsapAnimation } from '../../animation/useFormGsapAnimation';
+import React, { useState, useRef } from 'react'
+import { Box, Typography, TextField, Button, Alert } from '@mui/material'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { resetPassword } from '../../services/auth'
+import { useFormGsapAnimation } from '../../animation/useFormGsapAnimation'
 
 interface ResetPasswordFormProps {
-  token: string;
-  onSuccess?: () => void;
-  onError?: (error: string) => void;
+  token: string
+  onSuccess?: () => void
+  onError?: (error: string) => void
 }
 
 const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token, onSuccess, onError }) => {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const navigate = useNavigate();
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const navigate = useNavigate()
 
   // GSAP refs
-  const formRef = useRef<HTMLDivElement>(null);
-  const passwordFieldRef = useRef<HTMLDivElement>(null);
-  const confirmPasswordFieldRef = useRef<HTMLDivElement>(null);
-  const submitButtonRef = useRef<HTMLButtonElement>(null);
-  const requestLinkRef = useRef<HTMLParagraphElement>(null);
+  const formRef = useRef<HTMLDivElement>(null)
+  const passwordFieldRef = useRef<HTMLDivElement>(null)
+  const confirmPasswordFieldRef = useRef<HTMLDivElement>(null)
+  const submitButtonRef = useRef<HTMLButtonElement>(null)
+  const requestLinkRef = useRef<HTMLParagraphElement>(null)
 
   // Apply GSAP animation
   useFormGsapAnimation({
@@ -33,66 +33,69 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token, onSuccess,
     ],
     buttonRef: submitButtonRef as React.RefObject<HTMLElement>,
     extraRefs: [requestLinkRef as React.RefObject<HTMLElement>],
-  });
+  })
 
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setMessage(null);
+    event.preventDefault()
+    setMessage(null)
 
     // Validate passwords match
     if (password !== confirmPassword) {
       setMessage({
         type: 'error',
         text: 'Passwords do not match.',
-      });
-      return;
+      })
+      return
     }
 
     // Validate password strength
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=]{8,}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=]{8,}$/
     if (!passwordRegex.test(password)) {
       setMessage({
         type: 'error',
         text: 'Password must be at least 8 characters and contain at least one letter and one number.',
-      });
-      return;
+      })
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _authResponse = await resetPassword(token, password);
+      const _authResponse = await resetPassword(token, password)
       // console.log('Password reset successful', _authResponse); // Optional for debugging
       setMessage({
         type: 'success',
         text: 'Password reset successful! Redirecting to login...',
-      });
-      onSuccess?.();
+      })
+      onSuccess?.()
 
       // Redirect to login after 2 seconds
       setTimeout(() => {
-        void navigate('/login');
-      }, 2000);
+        void navigate('/login')
+      }, 2000)
     } catch (error: unknown) {
-      let errorMessage = 'Invalid or expired reset link. Please request a new one.';
+      let errorMessage = 'Invalid or expired reset link. Please request a new one.'
       if (typeof error === 'object' && error !== null) {
-        const customError = error as { response?: { data?: { message?: string } }, message?: string };
+        const customError = error as {
+          response?: { data?: { message?: string } }
+          message?: string
+        }
         if (customError.response?.data?.message) {
-          errorMessage = customError.response.data.message;
+          errorMessage = customError.response.data.message
         } else if (customError.message) {
-          errorMessage = customError.message;
+          errorMessage = customError.message
         }
       }
       setMessage({
         type: 'error',
         text: errorMessage,
-      });
-      onError?.(errorMessage);
+      })
+      onError?.(errorMessage)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <Box ref={formRef} sx={{ width: '100%' }}>
@@ -127,7 +130,13 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token, onSuccess,
         </Alert>
       )}
 
-      <Box component="form" onSubmit={(e) => { e.preventDefault(); void handleSubmit(e); }}>
+      <Box
+        component="form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void handleSubmit(e)
+        }}
+      >
         <Box ref={passwordFieldRef} sx={{ mb: 2 }}>
           <Typography
             htmlFor="password"
@@ -154,12 +163,14 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token, onSuccess,
                 borderRadius: 2,
                 background: '#f7f8fa',
                 boxShadow: 'none',
-                transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
+                transition:
+                  'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-notchedOutline': {
                 borderWidth: '1.5px',
                 borderColor: '#e0e3e7',
-                transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
+                transition:
+                  'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
                 borderColor: '#036CA3',
@@ -209,12 +220,14 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token, onSuccess,
                 borderRadius: 2,
                 background: '#f7f8fa',
                 boxShadow: 'none',
-                transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
+                transition:
+                  'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-notchedOutline': {
                 borderWidth: '1.5px',
                 borderColor: '#e0e3e7',
-                transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
+                transition:
+                  'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
                 borderColor: '#036CA3',
@@ -269,14 +282,17 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token, onSuccess,
         </Button>
       </Box>
 
-      <Typography ref={requestLinkRef} sx={{
-        textAlign: 'left',
-        fontSize: { xs: '0.85rem', md: '0.95rem' },
-        color: 'black',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 0.5,
-      }}>
+      <Typography
+        ref={requestLinkRef}
+        sx={{
+          textAlign: 'left',
+          fontSize: { xs: '0.85rem', md: '0.95rem' },
+          color: 'black',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+        }}
+      >
         Need a new reset link?
         <Button
           variant="text"
@@ -297,7 +313,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token, onSuccess,
         </Button>
       </Typography>
     </Box>
-  );
-};
+  )
+}
 
-export default ResetPasswordForm;
+export default ResetPasswordForm
