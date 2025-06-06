@@ -9,10 +9,10 @@ const sensitiveLimiter = isTest
       windowMs: 10 * 60 * 1000, // 10 minutes
       max: 5,
       message: {
-        message: 'Too many requests from this IP, please try again after 10 minutes.'
+        message: 'Too many requests from this IP, please try again after 10 minutes.',
       },
       standardHeaders: true,
       legacyHeaders: false,
     });
 
-export default sensitiveLimiter; 
+export default sensitiveLimiter;

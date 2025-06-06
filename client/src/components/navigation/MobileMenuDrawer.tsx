@@ -88,71 +88,74 @@ const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ open, onClose, navL
       </Box>
       <Divider sx={{ borderColor: theme.palette.divider, mb: 1 }} />
       <List sx={{ px: 1, py: 0 }}>
-        {navLinks.map((link, idx) => (
-          <Fade
-            in={open}
-            style={{ transitionDelay: open ? `${idx * 60 + 100}ms` : '0ms' }}
-            key={link.label}
-          >
-            <ListItem disablePadding>
-              <ListItemButton
-                component={RouterLink}
-                to={link.to}
-                onClick={onClose}
-                sx={{
-                  color: '#222',
-                  fontWeight: 700,
-                  borderRadius: 2,
-                  mb: 0.5,
-                  px: 2,
-                  py: 1.2,
-                  fontSize: '1.08rem',
-                  transition:
-                    'color 0.22s cubic-bezier(0.4,0,0.2,1), background 0.22s cubic-bezier(0.4,0,0.2,1)',
-                  '&:hover': {
-                    color: theme.palette.secondary.main,
-                    background: alpha(theme.palette.secondary.main, 0.07),
-                  },
-                  ...(link.label === 'Get Started' && {
-                    background: theme.palette.secondary.main,
-                    color: '#fff',
-                    mb: 1.5,
-                    mt: 1,
-                    fontWeight: 800,
-                    borderRadius: 999,
-                    px: 3.5,
-                    py: 1.2,
-                    boxShadow: `0 4px 18px 0 ${alpha(theme.palette.secondary.main, 0.13)}`,
-                    transition:
-                      'background 0.22s cubic-bezier(0.4,0,0.2,1), box-shadow 0.22s cubic-bezier(0.4,0,0.2,1)',
-                    '&:hover': {
-                      background: theme.palette.secondary.dark || theme.palette.secondary.main, // Fallback if dark is not defined
-                      color: '#fff',
-                      boxShadow: `0 6px 24px 0 ${alpha(theme.palette.secondary.dark || theme.palette.secondary.main, 0.18)}`,
-                    },
-                  }),
-                  ...(link.label === 'Sign In' && {
-                    color: theme.palette.secondary.main,
+        {navLinks.map((link, idx) => {
+          const isHashLink = link.to.includes('#');
+          return (
+            <Fade
+              in={open}
+              style={{ transitionDelay: open ? `${idx * 60 + 100}ms` : '0ms' }}
+              key={link.label}
+            >
+              <ListItem disablePadding>
+                <ListItemButton
+                  component={isHashLink ? 'a' : RouterLink}
+                  {...(isHashLink ? { href: link.to } : { to: link.to })}
+                  onClick={onClose}
+                  sx={{
+                    color: '#222',
                     fontWeight: 700,
-                    background: 'none',
+                    borderRadius: 2,
+                    mb: 0.5,
+                    px: 2,
+                    py: 1.2,
+                    fontSize: '1.08rem',
+                    transition:
+                      'color 0.22s cubic-bezier(0.4,0,0.2,1), background 0.22s cubic-bezier(0.4,0,0.2,1)',
                     '&:hover': {
-                      color: theme.palette.secondary.dark || theme.palette.secondary.main,
+                      color: theme.palette.secondary.main,
                       background: alpha(theme.palette.secondary.main, 0.07),
                     },
-                  }),
-                }}
-              >
-                <ListItemText
-                  primary={link.label}
-                  primaryTypographyProps={{
-                    fontWeight: link.label === 'Get Started' ? 800 : 700,
-                    fontSize: link.label === 'Get Started' ? '1.13rem' : '1.08rem',
+                    ...(link.label === 'Get Started' && {
+                      background: theme.palette.secondary.main,
+                      color: '#fff',
+                      mb: 1.5,
+                      mt: 1,
+                      fontWeight: 800,
+                      borderRadius: 999,
+                      px: 3.5,
+                      py: 1.2,
+                      boxShadow: `0 4px 18px 0 ${alpha(theme.palette.secondary.main, 0.13)}`,
+                      transition:
+                        'background 0.22s cubic-bezier(0.4,0,0.2,1), box-shadow 0.22s cubic-bezier(0.4,0,0.2,1)',
+                      '&:hover': {
+                        background: theme.palette.secondary.dark || theme.palette.secondary.main, // Fallback if dark is not defined
+                        color: '#fff',
+                        boxShadow: `0 6px 24px 0 ${alpha(theme.palette.secondary.dark || theme.palette.secondary.main, 0.18)}`,
+                      },
+                    }),
+                    ...(link.label === 'Sign In' && {
+                      color: theme.palette.secondary.main,
+                      fontWeight: 700,
+                      background: 'none',
+                      '&:hover': {
+                        color: theme.palette.secondary.dark || theme.palette.secondary.main,
+                        background: alpha(theme.palette.secondary.main, 0.07),
+                      },
+                    }),
                   }}
-                />
-              </ListItemButton>
-            </ListItem>
-          </Fade>
-        ))}
+                >
+                  <ListItemText
+                    primary={link.label}
+                    primaryTypographyProps={{
+                      fontWeight: link.label === 'Get Started' ? 800 : 700,
+                      fontSize: link.label === 'Get Started' ? '1.13rem' : '1.08rem',
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            </Fade>
+          );
+        })}
       </List>
       <Box sx={{ flexGrow: 1 }} />
       <Divider sx={{ borderColor: theme.palette.divider, mt: 2, mb: 1 }} />

@@ -1,4 +1,5 @@
 import express from 'express';
+
 import * as authController from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import validate from '../middleware/validateMiddleware.js';
@@ -41,9 +42,13 @@ const router = express.Router();
  *       409:
  *         description: Email is already registered
  */
-router.post('/register',
+router.post(
+  '/register',
   sensitiveLimiter,
-  validators.registerValidator, validate, authController.register);
+  validators.registerValidator,
+  validate,
+  authController.register,
+);
 
 /**
  * @swagger
@@ -76,9 +81,7 @@ router.post('/register',
  *       401:
  *         description: Invalid credentials
  */
-router.post('/login',
-  sensitiveLimiter,
-  validators.loginValidator, validate, authController.login);
+router.post('/login', sensitiveLimiter, validators.loginValidator, validate, authController.login);
 
 /**
  * @swagger

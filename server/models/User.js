@@ -1,6 +1,7 @@
+import crypto from 'crypto';
+
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
-import crypto from 'crypto';
 
 const userSchema = new mongoose.Schema({
   firstName: {
@@ -49,7 +50,9 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password')) {
+    return next();
+  }
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });

@@ -77,28 +77,31 @@ const Navbar: React.FC = () => {
 
         {/* Desktop nav links */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1.5, alignItems: 'center' }}>
-          {navLinks.map((link) => (
-            <Button
-              key={link.label}
-              component={RouterLink}
-              to={link.to}
-              sx={{
-                color: '#000',
-                fontWeight: 700,
-                fontSize: '1rem',
-                textTransform: 'none',
-                background: 'none',
-                boxShadow: 'none',
-                transition: 'color 0.25s cubic-bezier(0.4,0,0.2,1)',
-                '&:hover': {
-                  color: theme.palette.secondary.main,
+          {navLinks.map((link) => {
+            const isHashLink = link.to.includes('#');
+            return (
+              <Button
+                key={link.label}
+                component={isHashLink ? 'a' : RouterLink}
+                {...(isHashLink ? { href: link.to } : { to: link.to })}
+                sx={{
+                  color: '#000',
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                  textTransform: 'none',
                   background: 'none',
-                },
-              }}
-            >
-              {link.label}
-            </Button>
-          ))}
+                  boxShadow: 'none',
+                  transition: 'color 0.25s cubic-bezier(0.4,0,0.2,1)',
+                  '&:hover': {
+                    color: theme.palette.secondary.main,
+                    background: 'none',
+                  },
+                }}
+              >
+                {link.label}
+              </Button>
+            );
+          })}
           <Button
             component={RouterLink}
             to="/login"
