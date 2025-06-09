@@ -1,30 +1,30 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Box, Typography, Alert, CircularProgress } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { verifyEmail } from '../../services/auth';
-import { useFormGsapAnimation } from '../../animation/useFormGsapAnimation';
+import React, { useState, useEffect, useRef } from 'react'
+import { Box, Typography, Alert, CircularProgress } from '@mui/material'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { verifyEmail } from '../../services/auth'
+import { useFormGsapAnimation } from '../../animation/useFormGsapAnimation'
 
 interface VerifyEmailFormProps {
-  token: string | undefined;
+  token: string | undefined
 }
 
 const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ token }) => {
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const navigate = useNavigate();
-  const hasVerified = useRef(false);
+  const [loading, setLoading] = useState(true)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const navigate = useNavigate()
+  const hasVerified = useRef(false)
 
   // GSAP refs
-  const formRef = useRef<any>(null);
-  const alertRef = useRef<any>(null);
-  const actionBoxRef = useRef<any>(null);
+  const formRef = useRef<HTMLDivElement>(null)
+  const alertRef = useRef<HTMLDivElement>(null)
+  const actionBoxRef = useRef<HTMLDivElement>(null)
 
   useFormGsapAnimation({
-    formRef,
+    formRef: formRef as React.RefObject<HTMLElement>,
     fieldRefs: [],
-    buttonRef: alertRef,
-    extraRefs: [actionBoxRef],
-  });
+    buttonRef: alertRef as React.RefObject<HTMLElement>,
+    extraRefs: [actionBoxRef as React.RefObject<HTMLElement>],
+  })
 
   useEffect(() => {
     const handleVerifyEmail = async () => {
@@ -32,49 +32,66 @@ const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ token }) => {
         setMessage({
           type: 'error',
           text: 'Invalid verification link. No token provided.',
-        });
-        setLoading(false);
-        return;
+        })
+        setLoading(false)
+        return
       }
-      if (hasVerified.current) return;
-      hasVerified.current = true;
+      if (hasVerified.current) return
+      hasVerified.current = true
       try {
-        await verifyEmail(token);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const _authResponse = await verifyEmail(token)
+        // console.log('Email verification response', _authResponse); // Optional for debugging
         setMessage({
           type: 'success',
           text: 'Email verified successfully! You can now log in to your account.',
-        });
+        })
         setTimeout(() => {
-          navigate('/login');
-        }, 3000);
-      } catch (error: any) {
-        if (
-          error.response?.status === 400 &&
-          (error.response?.data?.message?.includes('already') ||
-            error.response?.data?.message?.includes('used') ||
-            error.response?.data?.message?.includes('invalid'))
-        ) {
+          void navigate('/login')
+        }, 3000)
+      } catch (error: unknown) {
+        let isSpecificError = false
+        if (typeof error === 'object' && error !== null) {
+          const customError = error as {
+            response?: { status?: number; data?: { message?: string } }
+          }
+          if (
+            customError.response?.status === 400 &&
+            (customError.response?.data?.message?.includes('already') ||
+              customError.response?.data?.message?.includes('used') ||
+              customError.response?.data?.message?.includes('invalid'))
+          ) {
+            isSpecificError = true
+          }
+        }
+
+        if (isSpecificError) {
           setMessage({
             type: 'success',
             text: 'Email verified successfully! You can now log in to your account.',
-          });
+          })
           setTimeout(() => {
-            navigate('/login');
-          }, 3000);
+            void navigate('/login')
+          }, 3000)
         } else {
+          let errorMessage = 'Invalid or expired verification link. Please request a new one.'
+          if (typeof error === 'object' && error !== null) {
+            const customError = error as { response?: { data?: { message?: string } } }
+            if (customError.response?.data?.message) {
+              errorMessage = customError.response.data.message
+            }
+          }
           setMessage({
             type: 'error',
-            text:
-              error.response?.data?.message ||
-              'Invalid or expired verification link. Please request a new one.',
-          });
+            text: errorMessage,
+          })
         }
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-    handleVerifyEmail();
-  }, [token, navigate]);
+    }
+    void handleVerifyEmail()
+  }, [token, navigate])
 
   return (
     <Box ref={formRef} sx={{ width: '100%', maxWidth: 500, textAlign: 'center' }}>
@@ -117,7 +134,7 @@ const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ token }) => {
             {message?.type === 'success' ? (
               <Box sx={{ mt: 2 }}>
                 <Typography sx={{ color: 'black', opacity: 0.6, mb: 2 }}>
-                  🎉 Welcome to EstateLink! You'll be redirected to login in a few seconds.
+                  🎉 Welcome to EstateLink! You&apos;ll be redirected to login in a few seconds.
                 </Typography>
                 <Typography
                   component={RouterLink}
@@ -169,7 +186,7 @@ const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ token }) => {
         </>
       )}
     </Box>
-  );
-};
+  )
+}
 
-export default VerifyEmailForm;
+export default VerifyEmailForm

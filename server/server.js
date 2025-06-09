@@ -1,18 +1,20 @@
-import express from 'express';
 import http from 'http';
+
+import express from 'express';
 import { Server as SocketIOServer } from 'socket.io';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import jwt from 'jsonwebtoken';
+import swaggerUi from 'swagger-ui-express';
+
 import authRoutes from './routes/authRoutes.js';
 import logger from './utils/logger.js';
 import AppError from './utils/appError.js';
 import globalErrorHandler from './controllers/errorController.js';
-import jwt from 'jsonwebtoken';
 import User from './models/User.js';
-import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './utils/swagger.js';
 import { connectDB } from './utils/db.js';
 
@@ -102,7 +104,7 @@ io.on('connection', socket => {
 const startServer = async () => {
   try {
     await connectDB(MONGO_URI);
-    logger.info(`MongoDB connected`);
+    logger.info('MongoDB connected');
     server.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
     });

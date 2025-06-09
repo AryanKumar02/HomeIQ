@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+
 import logger from '../utils/logger.js';
 
 let resend;
@@ -167,7 +168,9 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
 
     if (error) {
       logger.error('Resend API error details:', error);
-      throw new Error(`Failed to send password reset email: ${error.message || JSON.stringify(error)}`);
+      throw new Error(
+        `Failed to send password reset email: ${error.message || JSON.stringify(error)}`,
+      );
     }
 
     return data;
@@ -370,7 +373,9 @@ export const sendVerificationEmail = async (email, verificationToken) => {
 
     if (error) {
       logger.error('Resend API error details:', error);
-      throw new Error(`Failed to send verification email: ${error.message || JSON.stringify(error)}`);
+      throw new Error(
+        `Failed to send verification email: ${error.message || JSON.stringify(error)}`,
+      );
     }
 
     return data;

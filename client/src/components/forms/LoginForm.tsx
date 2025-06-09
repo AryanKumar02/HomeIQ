@@ -1,92 +1,132 @@
-import React, { useState, useRef } from "react";
-import { Box, Typography, TextField, Button, Alert, FormControlLabel, Checkbox, IconButton, InputAdornment } from "@mui/material";
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { login } from '../../services/auth';
-import gsap from 'gsap';
-import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
-import { useFormGsapAnimation } from '../animation/useFormGsapAnimation';
-import { useTheme } from '@mui/material/styles';
+import React, { useState, useRef } from 'react'
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Alert,
+  FormControlLabel,
+  Checkbox,
+  IconButton,
+  InputAdornment,
+} from '@mui/material'
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
+import Visibility from '@mui/icons-material/Visibility'
+import VisibilityOff from '@mui/icons-material/VisibilityOff'
+import { login } from '../../services/auth'
+import gsap from 'gsap'
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
+import { useFormGsapAnimation } from '../animation/useFormGsapAnimation'
+import { useTheme } from '@mui/material/styles'
 
 const LoginForm: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const formRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const emailRef = useRef(null);
-  const passwordRef = useRef(null);
-  const forgotRef = useRef(null);
-  const signupRef = useRef(null);
-  const rememberMeRef = useRef(null);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const theme = useTheme();
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [rememberMe, setRememberMe] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const formRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const emailRef = useRef<HTMLDivElement>(null)
+  const passwordRef = useRef<HTMLDivElement>(null)
+  const forgotRef = useRef<HTMLDivElement>(null)
+  const signupRef = useRef<HTMLDivElement>(null)
+  const rememberMeRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const theme = useTheme()
 
   // Memoize refs array to avoid triggering animation on every render
-  const fieldRefs = [emailRef, passwordRef];
-  const extraRefs = [rememberMeRef, forgotRef, signupRef];
+  const fieldRefs = [emailRef, passwordRef]
+  const extraRefs = [rememberMeRef, forgotRef, signupRef]
 
   useFormGsapAnimation({
-    formRef,
-    fieldRefs,
-    buttonRef,
-    extraRefs,
-  });
+    formRef: formRef as React.RefObject<HTMLElement>,
+    fieldRefs: fieldRefs.map((ref) => ref as React.RefObject<HTMLElement>),
+    buttonRef: buttonRef as React.RefObject<HTMLElement>,
+    extraRefs: extraRefs.map((ref) => ref as React.RefObject<HTMLElement>),
+  })
 
   // Map backend error messages to user-friendly messages
-  function getFriendlyErrorMessage(err: any): string {
-    if (err?.response?.status === 401 && err?.response?.data?.message?.includes('verify your email')) {
-      return 'Please verify your email before logging in.';
+  function getFriendlyErrorMessage(err: unknown): string {
+    if (typeof err === 'object' && err !== null) {
+      const customError = err as { response?: { status?: number; data?: { message?: string } } }
+      if (
+        customError.response?.status === 401 &&
+        customError.response?.data?.message?.includes('verify your email')
+      ) {
+        return 'Please verify your email before logging in.'
+      }
+      if (
+        customError.response?.status === 401 &&
+        customError.response?.data?.message?.includes('Incorrect email or password')
+      ) {
+        return 'Incorrect email or password. Please try again.'
+      }
+      if (
+        customError.response?.status === 423 &&
+        customError.response?.data?.message?.includes('locked')
+      ) {
+        return 'Your account is temporarily locked due to too many failed attempts. Please try again later.'
+      }
+      if (customError.response?.status === 500) {
+        return 'Something went wrong. Please try again later.'
+      }
     }
-    if (err?.response?.status === 401 && err?.response?.data?.message?.includes('Incorrect email or password')) {
-      return 'Incorrect email or password. Please try again.';
-    }
-    if (err?.response?.status === 423 && err?.response?.data?.message?.includes('locked')) {
-      return 'Your account is temporarily locked due to too many failed attempts. Please try again later.';
-    }
-    if (err?.response?.status === 500) {
-      return 'Something went wrong. Please try again later.';
-    }
-    return 'Unable to log in. Please check your details and try again.';
+    return 'Unable to log in. Please check your details and try again.'
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  // Renamed original handleSubmit to handleSubmitLogic
+  const handleSubmitLogic = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setError(null)
+    setLoading(true)
     if (buttonRef.current) {
-      gsap.to(buttonRef.current, { scale: 0.96, duration: 0.12, yoyo: true, repeat: 1, ease: 'power1.inOut' });
+      gsap.to(buttonRef.current, {
+        scale: 0.96,
+        duration: 0.12,
+        yoyo: true,
+        repeat: 1,
+        ease: 'power1.inOut',
+      })
     }
     try {
-      await login(email, password, rememberMe);
-    } catch (err: any) {
-      setError(getFriendlyErrorMessage(err));
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _authResponse = await login(email, password, rememberMe)
+      // console.log('Login successful', _authResponse); // Optional: for debugging or further use
+      // Determine where to redirect after login
+      const from = (location.state as { from?: Location })?.from?.pathname || '/dashboard'
+      void navigate(from, { replace: true })
+    } catch (err: unknown) {
+      setError(getFriendlyErrorMessage(err))
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
+  // New synchronous wrapper for the form's onSubmit prop
+  const handleFormSubmit = (event: React.FormEvent) => {
+    event.preventDefault() // Keep preventDefault here as it relates to the form submission event directly
+    void handleSubmitLogic(event)
+  }
 
   const handleTogglePassword = () => {
-    setShowPassword((show) => !show);
-  };
+    setShowPassword((show) => !show)
+  }
 
   return (
     <Box
       ref={formRef}
       sx={{
         width: 360,
-        maxWidth: "100%",
+        maxWidth: '100%',
         position: 'relative',
       }}
     >
-      {location.state?.from && (
+      {location.state && (location.state as { from?: string })?.from && (
         <IconButton
-          onClick={() => navigate(-1)}
+          onClick={() => void navigate(-1)}
           sx={{ position: 'absolute', left: 0, top: 0, mt: 1, ml: 1, color: 'black' }}
           aria-label="Back"
         >
@@ -97,9 +137,9 @@ const LoginForm: React.FC = () => {
         variant="h4"
         sx={{
           mb: 2,
-          color: "black",
-          textAlign: { xs: "center", md: "left" },
-          fontSize: { xs: "1.7rem", md: "2rem" },
+          color: 'black',
+          textAlign: { xs: 'center', md: 'left' },
+          fontSize: { xs: '1.7rem', md: '2rem' },
           fontWeight: 700,
         }}
       >
@@ -109,18 +149,20 @@ const LoginForm: React.FC = () => {
         variant="subtitle1"
         sx={{
           mb: { xs: 2, md: 3 },
-          color: "black",
+          color: 'black',
           opacity: 0.4,
-          textAlign: { xs: "center", md: "left" },
-          fontSize: { xs: "1rem", md: "1.2rem" },
+          textAlign: { xs: 'center', md: 'left' },
+          fontSize: { xs: '1rem', md: '1.2rem' },
         }}
       >
         Your real estate management system
       </Typography>
 
-      <Box component="form" onSubmit={handleSubmit}>
+      <Box component="form" onSubmit={handleFormSubmit}>
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
         )}
         <Box ref={emailRef} sx={{ mb: 2 }}>
           <Typography
@@ -128,10 +170,10 @@ const LoginForm: React.FC = () => {
             component="label"
             sx={{
               mb: 1,
-              display: "block",
-              fontSize: { xs: "0.95rem", md: "1.1rem" },
+              display: 'block',
+              fontSize: { xs: '0.95rem', md: '1.1rem' },
               fontWeight: 600,
-              color: "black",
+              color: 'black',
             }}
           >
             Email
@@ -149,12 +191,14 @@ const LoginForm: React.FC = () => {
                 borderRadius: 2,
                 background: '#f7f8fa',
                 boxShadow: 'none',
-                transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
+                transition:
+                  'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-notchedOutline': {
                 borderWidth: '1.5px',
                 borderColor: '#e0e3e7',
-                transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
+                transition:
+                  'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
                 borderColor: '#036CA3',
@@ -184,10 +228,10 @@ const LoginForm: React.FC = () => {
             component="label"
             sx={{
               mb: 1,
-              display: "block",
-              fontSize: { xs: "0.95rem", md: "1.1rem" },
+              display: 'block',
+              fontSize: { xs: '0.95rem', md: '1.1rem' },
               fontWeight: 600,
-              color: "black",
+              color: 'black',
             }}
           >
             Password
@@ -205,12 +249,14 @@ const LoginForm: React.FC = () => {
                 borderRadius: 2,
                 background: '#f7f8fa',
                 boxShadow: 'none',
-                transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
+                transition:
+                  'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-notchedOutline': {
                 borderWidth: '1.5px',
                 borderColor: '#e0e3e7',
-                transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
+                transition:
+                  'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
                 borderColor: '#036CA3',
@@ -260,11 +306,15 @@ const LoginForm: React.FC = () => {
                       },
                       '&:focus-visible': {
                         outline: 'none',
-                        boxShadow: 'none'
-                      }
+                        boxShadow: 'none',
+                      },
                     }}
                   >
-                    {showPassword ? <VisibilityOff sx={{ fontSize: 20, strokeWidth: 1.5 }} /> : <Visibility sx={{ fontSize: 20, strokeWidth: 1.5 }} />}
+                    {showPassword ? (
+                      <VisibilityOff sx={{ fontSize: 20, strokeWidth: 1.5 }} />
+                    ) : (
+                      <Visibility sx={{ fontSize: 20, strokeWidth: 1.5 }} />
+                    )}
                   </IconButton>
                 </InputAdornment>
               ),
@@ -277,12 +327,16 @@ const LoginForm: React.FC = () => {
           control={
             <Checkbox
               checked={rememberMe}
-              onChange={e => setRememberMe(e.target.checked)}
+              onChange={(e) => setRememberMe(e.target.checked)}
               color="primary"
               sx={{ p: 0, pr: 1.2 }}
             />
           }
-          label={<Box component="span" sx={{ fontWeight: 600, color: 'black', fontSize: '0.97rem' }}>Remember me</Box>}
+          label={
+            <Box component="span" sx={{ fontWeight: 600, color: 'black', fontSize: '0.97rem' }}>
+              Remember me
+            </Box>
+          }
           sx={{ alignItems: 'center', m: 0, pl: 0, mb: 1.5 }}
         />
 
@@ -295,7 +349,7 @@ const LoginForm: React.FC = () => {
           sx={{
             mt: 4,
             mb: 2,
-            fontSize: { xs: "1rem", md: "1.1rem" },
+            fontSize: { xs: '1rem', md: '1.1rem' },
             fontWeight: 600,
             height: { xs: 44, md: 48 },
             borderRadius: 2,
@@ -318,14 +372,17 @@ const LoginForm: React.FC = () => {
         </Button>
       </Box>
 
-      <Typography ref={forgotRef} sx={{
-        mb: 1,
-        fontSize: { xs: "0.85rem", md: "0.95rem" },
-        color: "black",
-        display: 'flex',
-        alignItems: 'center',
-        gap: 0.5,
-      }}>
+      <Typography
+        ref={forgotRef}
+        sx={{
+          mb: 1,
+          fontSize: { xs: '0.85rem', md: '0.95rem' },
+          color: 'black',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+        }}
+      >
         Forgot your Password?
         <Button
           variant="text"
@@ -334,11 +391,11 @@ const LoginForm: React.FC = () => {
           aria-label="Reset your password"
           sx={{
             fontWeight: 700,
-            color: "primary.main",
+            color: 'primary.main',
             p: 0,
             minWidth: 0,
-            "&:focus": { outline: "none", boxShadow: "none" },
-            "&:focus-visible": { outline: "none", boxShadow: "none" },
+            '&:focus': { outline: 'none', boxShadow: 'none' },
+            '&:focus-visible': { outline: 'none', boxShadow: 'none' },
           }}
           disableRipple
           disableFocusRipple
@@ -347,36 +404,43 @@ const LoginForm: React.FC = () => {
         </Button>
       </Typography>
 
-      <Typography ref={signupRef} sx={{
-        fontSize: { xs: "0.85rem", md: "0.95rem" },
-        color: "black",
-        display: 'flex',
-        alignItems: 'center',
-        gap: 0.5,
-      }}>
-        Don't have an account?
+      <Typography
+        ref={signupRef}
+        sx={{
+          mt: { xs: 2, md: 2.5 },
+          fontSize: { xs: '0.85rem', md: '0.95rem' },
+          color: 'black',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+        }}
+      >
+        Don&apos;t have an account?{' '}
         <Button
           variant="text"
-          aria-label="Sign up for an account"
-          sx={{
-            fontWeight: 700,
-            color: "primary.main",
-            p: 0,
-            minWidth: 0,
-            "&:focus": { outline: "none", boxShadow: "none" },
-            "&:focus-visible": { outline: "none", boxShadow: "none" },
-          }}
-          disableRipple
-          disableFocusRipple
           component={RouterLink}
           to="/signup"
           state={{ from: location.pathname }}
+          sx={{
+            fontWeight: 700,
+            color: 'primary.main',
+            textDecoration: 'none',
+            p: 0,
+            minWidth: 0,
+            '&:hover': {
+              textDecoration: 'underline',
+            },
+            '&:focus': { outline: 'none', boxShadow: 'none' },
+            '&:focus-visible': { outline: 'none', boxShadow: 'none' },
+          }}
+          disableRipple
+          disableFocusRipple
         >
           Sign Up.
         </Button>
       </Typography>
     </Box>
-  );
-};
+  )
+}
 
-export default LoginForm;
+export default LoginForm

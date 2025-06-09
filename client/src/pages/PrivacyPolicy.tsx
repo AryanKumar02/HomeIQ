@@ -1,6 +1,6 @@
-import React from 'react';
-import { Box, Paper } from '@mui/material';
-import ReactMarkdown from 'react-markdown';
+import React from 'react'
+import { Box, Paper } from '@mui/material'
+import ReactMarkdown from 'react-markdown'
 
 const privacyContent = `# EstateLink – Privacy Policy
 *Version 1.0 — Effective 1 June 2025*
@@ -122,7 +122,7 @@ If you have questions about this Privacy Policy or our privacy practices, please
 ---
 
 © 2025 EstateLink. All rights reserved.
-`;
+`
 
 const PrivacyPolicy: React.FC = () => {
   return (
@@ -199,7 +199,7 @@ const PrivacyPolicy: React.FC = () => {
         <ReactMarkdown>{privacyContent}</ReactMarkdown>
       </Box>
     </Paper>
-  );
-};
+  )
+}
 
-export default PrivacyPolicy;
+export default PrivacyPolicy

@@ -1,59 +1,70 @@
-import React, { useState, useRef } from 'react';
-import { Box, Typography, TextField, Button, Alert } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
-import { forgotPassword } from '../../services/auth';
-import { useFormGsapAnimation } from '../../animation/useFormGsapAnimation';
+import React, { useState, useRef } from 'react'
+import { Box, Typography, TextField, Button, Alert } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
+import { forgotPassword } from '../../services/auth'
+import { useFormGsapAnimation } from '../../animation/useFormGsapAnimation'
 
 interface ForgotPasswordFormProps {
-  onSuccess?: () => void;
-  onError?: (error: string) => void;
+  onSuccess?: () => void
+  onError?: (error: string) => void
 }
 
 const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onError }) => {
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   // GSAP refs
-  const formRef = useRef<any>(null);
-  const emailFieldRef = useRef<any>(null);
-  const submitButtonRef = useRef<any>(null);
-  const rememberPasswordRef = useRef<any>(null);
+  const formRef = useRef<HTMLDivElement>(null)
+  const emailFieldRef = useRef<HTMLDivElement>(null)
+  const submitButtonRef = useRef<HTMLButtonElement>(null)
+  const rememberPasswordRef = useRef<HTMLParagraphElement>(null)
 
   // Apply GSAP animation
   useFormGsapAnimation({
-    formRef,
-    fieldRefs: [emailFieldRef],
-    buttonRef: submitButtonRef,
-    extraRefs: [rememberPasswordRef],
-  });
+    formRef: formRef as React.RefObject<HTMLElement>,
+    fieldRefs: [emailFieldRef as React.RefObject<HTMLElement>],
+    buttonRef: submitButtonRef as React.RefObject<HTMLElement>,
+    extraRefs: [rememberPasswordRef as React.RefObject<HTMLElement>],
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage(null);
+    e.preventDefault()
+    setLoading(true)
+    setMessage(null)
 
     try {
-      await forgotPassword(email);
-      const successMessage = 'Password reset email sent! Check your inbox.';
+      await forgotPassword(email)
+      const successMessage = 'Password reset email sent! Check your inbox.'
       setMessage({
         type: 'success',
         text: successMessage,
-      });
+      })
       // Clear form
-      setEmail('');
-      onSuccess?.();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Something went wrong. Please try again.';
+      setEmail('')
+      onSuccess?.()
+    } catch (error: unknown) {
+      let errorMessage = 'Something went wrong. Please try again.'
+      if (typeof error === 'object' && error !== null) {
+        const customError = error as {
+          response?: { data?: { message?: string } }
+          message?: string
+        }
+        if (customError.response?.data?.message) {
+          errorMessage = customError.response.data.message
+        } else if (customError.message) {
+          errorMessage = customError.message
+        }
+      }
       setMessage({
         type: 'error',
         text: errorMessage,
-      });
-      onError?.(errorMessage);
+      })
+      onError?.(errorMessage)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <Box ref={formRef} sx={{ width: '100%' }}>
@@ -79,7 +90,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onEr
           fontSize: { xs: '0.95rem', md: '1.1rem' },
         }}
       >
-        Enter your email and we'll send you a reset link
+        Enter your email and we&apos;ll send you a reset link
       </Typography>
 
       {message && (
@@ -88,7 +99,13 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onEr
         </Alert>
       )}
 
-      <Box component="form" onSubmit={handleSubmit}>
+      <Box
+        component="form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void handleSubmit(e)
+        }}
+      >
         <Box ref={emailFieldRef} sx={{ mb: 2 }}>
           <Typography
             htmlFor="email"
@@ -115,12 +132,14 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onEr
                 borderRadius: 2,
                 background: '#f7f8fa',
                 boxShadow: 'none',
-                transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
+                transition:
+                  'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-notchedOutline': {
                 borderWidth: '1.5px',
                 borderColor: '#e0e3e7',
-                transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
+                transition:
+                  'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
                 borderColor: '#036CA3',
@@ -175,14 +194,17 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onEr
         </Button>
       </Box>
 
-      <Typography ref={rememberPasswordRef} sx={{
-        textAlign: 'left',
-        fontSize: { xs: '0.85rem', md: '0.95rem' },
-        color: 'black',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 0.5,
-      }}>
+      <Typography
+        ref={rememberPasswordRef}
+        sx={{
+          textAlign: 'left',
+          fontSize: { xs: '0.85rem', md: '0.95rem' },
+          color: 'black',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+        }}
+      >
         Remember your password?
         <Button
           variant="text"
@@ -203,7 +225,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onEr
         </Button>
       </Typography>
     </Box>
-  );
-};
+  )
+}
 
-export default ForgotPasswordForm;
+export default ForgotPasswordForm

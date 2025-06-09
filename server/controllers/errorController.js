@@ -1,4 +1,3 @@
-import AppError from '../utils/appError.js';
 import logger from '../utils/logger.js';
 
 const sendErrorDev = (err, req, res) => {

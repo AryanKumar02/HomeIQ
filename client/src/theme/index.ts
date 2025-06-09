@@ -1,4 +1,17 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles'
+
+// Augment the Palette interface to include our custom background color
+declare module '@mui/material/styles' {
+  interface TypeBackground {
+    section?: string
+  }
+  interface PaletteOptions {
+    background?: Partial<TypeBackground>
+  }
+  interface Palette {
+    background: TypeBackground
+  }
+}
 
 const theme = createTheme({
   palette: {
@@ -7,10 +20,11 @@ const theme = createTheme({
       main: '#036CA3', // Your brand color
     },
     secondary: {
-      main: '#9c27b0',
+      main: '#3d82f7',
     },
     background: {
-      default: '#f5f5f5',
+      default: '#f9fafb',
+      section: '#f5f8ff', // Added new section background color
     },
   },
   typography: {
@@ -28,6 +42,13 @@ const theme = createTheme({
     borderRadius: 10,
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        html: {
+          scrollBehavior: 'smooth',
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
@@ -79,6 +100,6 @@ const theme = createTheme({
       },
     },
   },
-});
+})
 
-export default theme;
+export default theme

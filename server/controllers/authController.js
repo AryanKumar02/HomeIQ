@@ -1,11 +1,13 @@
-import User from '../models/User.js';
-import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { validationResult } from 'express-validator';
+
+import jwt from 'jsonwebtoken';
+// import { validationResult } from 'express-validator'; // Removed unused import
+import validator from 'validator';
+
+import User from '../models/User.js';
 import AppError from '../utils/appError.js';
 import { sendPasswordResetEmail, sendVerificationEmail } from '../services/emailService.js';
 import logger from '../utils/logger.js';
-import validator from 'validator';
 
 const signToken = id =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -100,17 +102,20 @@ export const register = async (req, res, next) => {
     const user = await User.create({ firstName, secondName, email: safeEmail, password });
     const emailToken = user.createEmailVerificationToken();
     await user.save({ validateBeforeSave: false });
-    
+
     // Try to send verification email
     try {
       await sendVerificationEmail(email, emailToken);
-      res.status(201).json({ message: 'User registered. Please check your email to verify your account.' });
+      res
+        .status(201)
+        .json({ message: 'User registered. Please check your email to verify your account.' });
     } catch (emailError) {
       logger.error('Failed to send verification email:', emailError.message);
       // User is created but email failed - still return success but with different message
-      res.status(201).json({ 
-        message: 'User registered successfully. Email verification is temporarily unavailable. Please contact support.',
-        emailError: true
+      res.status(201).json({
+        message:
+          'User registered successfully. Email verification is temporarily unavailable. Please contact support.',
+        emailError: true,
       });
     }
   } catch (err) {
@@ -184,7 +189,8 @@ export const login = async (req, res, next) => {
 
 export const verifyEmail = async (req, res) => {
   try {
-    const { error, user } = await handleTokenAction({
+    const { error /*, user: _user */ } = await handleTokenAction({
+      // Commented out user as _user as it's not used
       token: req.params.token,
       tokenField: 'emailVerificationToken',
       expiresField: 'emailVerificationExpires',
