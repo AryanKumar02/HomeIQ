@@ -30,16 +30,17 @@ export default [
       ...prettierPlugin.configs.recommended.rules,
       // Add eslint-config-prettier rules (disables eslint rules that conflict with prettier)
       ...eslintConfigPrettier.rules,
-      
+
       // Your custom rules and airbnb-base inspired rules:
       // Note: Full airbnb-base is extensive. These are key ones from your previous setup + common airbnb patterns.
       // For a fuller airbnb-base experience in flat config, more detailed setup might be needed.
       'prettier/prettier': 'error',
       'no-console': 'off', // Your custom rule
-      
+
       // Import plugin rules (subset from airbnb-base)
       'import/no-extraneous-dependencies': 'off', // Your custom rule
-      'import/extensions': [ // Your custom rule, adjusted for ESM
+      'import/extensions': [
+        // Your custom rule, adjusted for ESM
         'error',
         'ignorePackages',
         { js: 'always' }, // Changed from 'never' to 'always'
@@ -54,15 +55,15 @@ export default [
       // Common Airbnb-base rules (JavaScript)
       'no-unused-vars': ['warn', { argsIgnorePattern: 'next' }], // Usually an error in airbnb
       'no-undef': 'error',
-      'eqeqeq': ['error', 'always'],
+      eqeqeq: ['error', 'always'],
       'no-var': 'error',
       'prefer-const': 'error',
-      'strict': ['error', 'global'],
-      'curly': 'error',
+      strict: ['error', 'global'],
+      curly: 'error',
       'no-multi-spaces': 'error',
       'no-trailing-spaces': 'error',
-      'semi': ['error', 'always'],
-      'quotes': ['error', 'single', { avoidEscape: true }],
+      semi: ['error', 'always'],
+      quotes: ['error', 'single', { avoidEscape: true }],
       // Add more rules here if needed to match airbnb-base more closely
     },
     settings: {

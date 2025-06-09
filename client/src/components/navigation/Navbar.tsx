@@ -12,9 +12,9 @@ import { useTheme } from '@mui/material/styles'
 
 const navLinks = [
   { label: 'Features', to: '/#features' },
-  { label: 'Pricing', to: '/#pricing' },
   { label: 'About', to: '/#about' },
-  { label: 'Contact', to: '/#contact' },
+  { label: 'Pricing', to: '/#pricing' },
+  { label: 'Contact', to: 'mailto:sales@homeiq.com' },
 ]
 
 const Navbar: React.FC = () => {
@@ -78,12 +78,13 @@ const Navbar: React.FC = () => {
         {/* Desktop nav links */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1.5, alignItems: 'center' }}>
           {navLinks.map((link) => {
-            const isHashLink = link.to.includes('#');
+            const isHashLink = link.to.includes('#')
+            const isMailto = link.to.startsWith('mailto:')
             return (
               <Button
                 key={link.label}
-                component={isHashLink ? 'a' : RouterLink}
-                {...(isHashLink ? { href: link.to } : { to: link.to })}
+                component={isHashLink || isMailto ? 'a' : RouterLink}
+                {...(isHashLink || isMailto ? { href: link.to } : { to: link.to })}
                 sx={{
                   color: '#000',
                   fontWeight: 700,
@@ -100,7 +101,7 @@ const Navbar: React.FC = () => {
               >
                 {link.label}
               </Button>
-            );
+            )
           })}
           <Button
             component={RouterLink}

@@ -23,7 +23,7 @@ const theme = createTheme({
       main: '#3d82f7',
     },
     background: {
-      default: '#f5f5f5',
+      default: '#f9fafb',
       section: '#f5f8ff', // Added new section background color
     },
   },

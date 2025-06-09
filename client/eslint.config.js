@@ -23,11 +23,11 @@ export default tseslint.config(
       react: reactPlugin,
     },
     languageOptions: {
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
+    parserOptions: {
+      ecmaFeatures: {
+        jsx: true,
       },
+    },
       globals: {
         ...globals.browser,
         ...globals.es2021,

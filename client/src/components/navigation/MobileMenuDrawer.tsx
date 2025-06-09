@@ -89,7 +89,7 @@ const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ open, onClose, navL
       <Divider sx={{ borderColor: theme.palette.divider, mb: 1 }} />
       <List sx={{ px: 1, py: 0 }}>
         {navLinks.map((link, idx) => {
-          const isHashLink = link.to.includes('#');
+          const isHashLink = link.to.includes('#')
           return (
             <Fade
               in={open}
@@ -154,7 +154,7 @@ const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ open, onClose, navL
                 </ListItemButton>
               </ListItem>
             </Fade>
-          );
+          )
         })}
       </List>
       <Box sx={{ flexGrow: 1 }} />
