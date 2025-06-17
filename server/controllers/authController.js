@@ -77,7 +77,7 @@ export const register = async (req, res, next) => {
     const { firstName, secondName, email, password } = req.body;
 
     // Safest: force email to string and validate format with validator.js
-    const safeEmail = typeof email === 'string' ? email : '';
+    const safeEmail = typeof email === 'string' ? email.toLowerCase() : '';
     if (!validator.isEmail(safeEmail)) {
       return next(new AppError('Invalid email format.', 400));
     }
@@ -130,7 +130,7 @@ export const login = async (req, res, next) => {
   try {
     const { email, password, rememberMe } = req.body;
     // Safest: force email to string and validate format with validator.js
-    const safeEmail = typeof email === 'string' ? email : '';
+    const safeEmail = typeof email === 'string' ? email.toLowerCase() : '';
     if (!validator.isEmail(safeEmail)) {
       return next(new AppError('Invalid email format.', 400));
     }
@@ -215,7 +215,7 @@ export const resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
     // Safest: force email to string and validate format with validator.js
-    const safeEmail = typeof email === 'string' ? email : '';
+    const safeEmail = typeof email === 'string' ? email.toLowerCase() : '';
     if (!validator.isEmail(safeEmail)) {
       return res.status(400).json({ message: 'Invalid email format' });
     }
@@ -242,7 +242,7 @@ export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     // Safest: force email to string and validate format with validator.js
-    const safeEmail = typeof email === 'string' ? email : '';
+    const safeEmail = typeof email === 'string' ? email.toLowerCase() : '';
     if (!validator.isEmail(safeEmail)) {
       return res.status(400).json({ message: 'Invalid email format' });
     }
