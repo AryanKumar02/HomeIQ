@@ -54,8 +54,8 @@ const StartSection: React.FC = () => {
             component="a"
             href="mailto:sales@homeiq.com?subject=Request Demo - EstateLink"
             sx={{
-              color: 'common.white',
               borderColor: 'rgba(255,255,255,0.85)',
+              color: 'common.white',
               fontWeight: 600,
               px: 5,
               py: 1.5,
@@ -63,6 +63,7 @@ const StartSection: React.FC = () => {
               '&:hover': {
                 borderColor: 'common.white',
                 bgcolor: 'rgba(255,255,255,0.08)',
+                color: 'common.white',
               },
             }}
           >

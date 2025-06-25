@@ -1,31 +1,92 @@
 import winston from 'winston';
+import 'winston-daily-rotate-file';
 
-const { combine, timestamp, printf, colorize, errors, json } = winston.format;
+// Custom log levels
+const levels = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  http: 4,
+  debug: 5,
+};
 
-const devFormat = combine(
-  colorize(),
-  timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  errors({ stack: true }),
-  printf(({ level, message, timestamp, stack }) =>
-    stack ? `[${timestamp}] ${level}: ${message}\n${stack}` : `[${timestamp}] ${level}: ${message}`,
-  ),
-);
+// Level-specific colors
+const colors = {
+  error: 'red',
+  warn: 'yellow',
+  info: 'green',
+  http: 'magenta',
+  debug: 'white',
+};
 
-const prodFormat = combine(timestamp(), errors({ stack: true }), json());
+// Add colors to winston
+winston.addColors(colors);
 
-const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  format: process.env.NODE_ENV === 'production' ? prodFormat : devFormat,
-  transports: [
-    new winston.transports.Console(),
-    ...(process.env.NODE_ENV === 'production'
-      ? [
-          new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-          new winston.transports.File({ filename: 'logs/combined.log' }),
-        ]
-      : []),
-  ],
-  exitOnError: false,
+// Custom format to minimize log size
+const minimalFormat = winston.format(info => {
+  // Remove null or undefined values
+  Object.keys(info).forEach(key => {
+    if (info[key] === null || info[key] === undefined) {
+      delete info[key];
+    }
+  });
+
+  // Remove stack trace in production
+  if (process.env.NODE_ENV === 'production' && info.stack) {
+    info.stack = info.stack.split('\n')[0]; // Keep only first line of stack trace
+  }
+
+  return info;
 });
+
+// Create the logger
+const logger = winston.createLogger({
+  levels,
+  format: winston.format.combine(
+    winston.format.timestamp({
+      format: 'YYYY-MM-DD HH:mm:ss', // Consistent timestamp format
+    }),
+    winston.format.errors({ stack: true }),
+    minimalFormat(),
+    winston.format.json(),
+  ),
+  transports: [
+    // Error logs
+    new winston.transports.DailyRotateFile({
+      filename: 'logs/error-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      level: 'error',
+      format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+      maxFiles: '7d', // Keep only 7 days of error logs
+      maxSize: '10m', // Rotate when file reaches 10MB
+      compress: true, // Enable gzip compression
+      zippedArchive: true,
+    }),
+
+    // Combined logs
+    new winston.transports.DailyRotateFile({
+      filename: 'logs/combined-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+      maxFiles: '7d', // Keep only 7 days of combined logs
+      maxSize: '20m', // Larger size for combined logs
+      compress: true,
+      zippedArchive: true,
+    }),
+  ],
+});
+
+// Add console transport in development
+if (process.env.NODE_ENV !== 'production') {
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple(),
+        winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`),
+      ),
+    }),
+  );
+}
 
 export default logger;
