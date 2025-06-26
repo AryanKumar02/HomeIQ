@@ -448,3 +448,285 @@ export const searchProperties = catchAsync(async (req, res) => {
     },
   });
 });
+
+// UNIT MANAGEMENT FOR APARTMENTS
+
+// Get all units for a property
+export const getUnits = catchAsync(async (req, res, next) => {
+  const property = await Property.findOne({
+    _id: req.params.id,
+    owner: req.user.id,
+    isActive: true,
+  }).populate('units.occupancy.tenant', 'firstName secondName email');
+
+  if (!property) {
+    return next(new AppError('Property not found', 404));
+  }
+
+  if (property.propertyType !== 'apartment') {
+    return next(new AppError('Units are only available for apartment properties', 400));
+  }
+
+  logger.info(`Retrieved ${property.units.length} units for property ${property._id}`);
+
+  res.status(200).json({
+    status: 'success',
+    results: property.units.length,
+    data: {
+      units: property.units,
+    },
+  });
+});
+
+// Add a new unit to apartment property
+export const addUnit = catchAsync(async (req, res, next) => {
+  const property = await Property.findOne({
+    _id: req.params.id,
+    owner: req.user.id,
+    isActive: true,
+  });
+
+  if (!property) {
+    return next(new AppError('Property not found', 404));
+  }
+
+  if (property.propertyType !== 'apartment') {
+    return next(new AppError('Units can only be added to apartment properties', 400));
+  }
+
+  // Check for duplicate unit numbers
+  const existingUnit = property.units.find(unit => unit.unitNumber === req.body.unitNumber);
+  if (existingUnit) {
+    return next(new AppError('Unit number already exists', 400));
+  }
+
+  // Add the new unit
+  property.units.push(req.body);
+  await property.save();
+
+  const newUnit = property.units[property.units.length - 1];
+
+  logger.info(`Added unit ${newUnit.unitNumber} to property ${property._id}`);
+
+  res.status(201).json({
+    status: 'success',
+    data: {
+      unit: newUnit,
+    },
+  });
+});
+
+// Update a specific unit
+export const updateUnit = catchAsync(async (req, res, next) => {
+  const property = await Property.findOne({
+    _id: req.params.id,
+    owner: req.user.id,
+    isActive: true,
+  });
+
+  if (!property) {
+    return next(new AppError('Property not found', 404));
+  }
+
+  const unit = property.units.id(req.params.unitId);
+  if (!unit) {
+    return next(new AppError('Unit not found', 404));
+  }
+
+  // Check for duplicate unit numbers if unitNumber is being updated
+  if (req.body.unitNumber && req.body.unitNumber !== unit.unitNumber) {
+    const existingUnit = property.units.find(
+      u => u.unitNumber === req.body.unitNumber && u._id.toString() !== req.params.unitId,
+    );
+    if (existingUnit) {
+      return next(new AppError('Unit number already exists', 400));
+    }
+  }
+
+  // Update unit properties
+  Object.keys(req.body).forEach(key => {
+    if (key !== '_id') {
+      unit[key] = req.body[key];
+    }
+  });
+
+  unit.updatedAt = Date.now();
+  await property.save();
+
+  logger.info(`Updated unit ${unit.unitNumber} in property ${property._id}`);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      unit,
+    },
+  });
+});
+
+// Delete a unit
+export const deleteUnit = catchAsync(async (req, res, next) => {
+  const property = await Property.findOne({
+    _id: req.params.id,
+    owner: req.user.id,
+    isActive: true,
+  });
+
+  if (!property) {
+    return next(new AppError('Property not found', 404));
+  }
+
+  const unit = property.units.id(req.params.unitId);
+  if (!unit) {
+    return next(new AppError('Unit not found', 404));
+  }
+
+  // Check if unit is occupied
+  if (unit.occupancy.isOccupied) {
+    return next(new AppError('Cannot delete an occupied unit', 400));
+  }
+
+  property.units.pull(req.params.unitId);
+  await property.save();
+
+  logger.info(`Deleted unit ${unit.unitNumber} from property ${property._id}`);
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
+});
+
+// Assign tenant to a unit
+export const assignTenantToUnit = catchAsync(async (req, res, next) => {
+  const property = await Property.findOne({
+    _id: req.params.id,
+    owner: req.user.id,
+    isActive: true,
+  });
+
+  if (!property) {
+    return next(new AppError('Property not found', 404));
+  }
+
+  const unit = property.units.id(req.params.unitId);
+  if (!unit) {
+    return next(new AppError('Unit not found', 404));
+  }
+
+  if (unit.occupancy.isOccupied) {
+    return next(new AppError('Unit is already occupied', 400));
+  }
+
+  const { occupancy } = req.body;
+  if (!occupancy || !occupancy.tenant) {
+    return next(new AppError('Tenant information is required', 400));
+  }
+
+  // Update unit occupancy
+  Object.keys(occupancy).forEach(key => {
+    unit.occupancy[key] = occupancy[key];
+  });
+
+  unit.occupancy.isOccupied = true;
+  unit.status = 'occupied';
+  unit.updatedAt = Date.now();
+
+  await property.save();
+
+  logger.info(`Assigned tenant ${occupancy.tenant} to unit ${unit.unitNumber}`);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      unit,
+    },
+  });
+});
+
+// Remove tenant from a unit
+export const removeTenantFromUnit = catchAsync(async (req, res, next) => {
+  const property = await Property.findOne({
+    _id: req.params.id,
+    owner: req.user.id,
+    isActive: true,
+  });
+
+  if (!property) {
+    return next(new AppError('Property not found', 404));
+  }
+
+  const unit = property.units.id(req.params.unitId);
+  if (!unit) {
+    return next(new AppError('Unit not found', 404));
+  }
+
+  if (!unit.occupancy.isOccupied) {
+    return next(new AppError('Unit is not currently occupied', 400));
+  }
+
+  // Clear occupancy data
+  unit.occupancy = {
+    isOccupied: false,
+    tenant: null,
+    leaseStart: null,
+    leaseEnd: null,
+    leaseType: null,
+    rentDueDate: 1,
+  };
+
+  unit.status = 'available';
+  unit.updatedAt = Date.now();
+
+  await property.save();
+
+  logger.info(`Removed tenant from unit ${unit.unitNumber}`);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      unit,
+    },
+  });
+});
+
+// Get unit analytics for an apartment property
+export const getUnitAnalytics = catchAsync(async (req, res, next) => {
+  const property = await Property.findOne({
+    _id: req.params.id,
+    owner: req.user.id,
+    isActive: true,
+  });
+
+  if (!property) {
+    return next(new AppError('Property not found', 404));
+  }
+
+  if (property.propertyType !== 'apartment') {
+    return next(new AppError('Unit analytics are only available for apartment properties', 400));
+  }
+
+  const totalUnits = property.units.length;
+  const occupiedUnits = property.units.filter(unit => unit.occupancy.isOccupied).length;
+  const vacantUnits = totalUnits - occupiedUnits;
+  const totalMonthlyRent = property.units.reduce((sum, unit) => sum + (unit.monthlyRent || 0), 0);
+  const averageRent = totalUnits > 0 ? totalMonthlyRent / totalUnits : 0;
+  const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0;
+
+  const analytics = {
+    totalUnits,
+    occupiedUnits,
+    vacantUnits,
+    occupancyRate: Math.round(occupancyRate * 100) / 100,
+    totalMonthlyRent: Math.round(totalMonthlyRent * 100) / 100,
+    averageRent: Math.round(averageRent * 100) / 100,
+  };
+
+  logger.info(`Retrieved unit analytics for property ${property._id}`);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      analytics,
+    },
+  });
+});

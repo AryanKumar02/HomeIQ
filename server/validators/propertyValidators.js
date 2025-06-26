@@ -251,3 +251,112 @@ export const searchPropertiesValidators = [
     .isInt({ min: 1, max: 100 })
     .withMessage('Limit must be between 1 and 100'),
 ];
+
+// Unit validators
+export const addUnitValidators = [
+  body('unitNumber')
+    .trim()
+    .notEmpty()
+    .withMessage('Unit number is required')
+    .isLength({ max: 20 })
+    .withMessage('Unit number cannot exceed 20 characters'),
+
+  body('bedrooms')
+    .optional()
+    .isInt({ min: 0, max: 50 })
+    .withMessage('Bedrooms must be between 0 and 50'),
+
+  body('bathrooms')
+    .optional()
+    .isFloat({ min: 0, max: 50 })
+    .withMessage('Bathrooms must be between 0 and 50'),
+
+  body('squareFootage')
+    .optional()
+    .isInt({ min: 1, max: 10000 })
+    .withMessage('Square footage must be between 1 and 10,000'),
+
+  body('monthlyRent').optional().isFloat({ min: 0 }).withMessage('Monthly rent cannot be negative'),
+
+  body('securityDeposit')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Security deposit cannot be negative'),
+
+  body('status')
+    .optional()
+    .isIn(['available', 'occupied', 'maintenance', 'off-market'])
+    .withMessage('Invalid unit status'),
+
+  body('features.parking')
+    .optional()
+    .isIn(['none', 'assigned', 'shared', 'garage'])
+    .withMessage('Invalid parking type'),
+
+  body('features.balcony').optional().isBoolean().withMessage('Balcony must be a boolean'),
+];
+
+export const updateUnitValidators = [
+  body('unitNumber')
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage('Unit number cannot be empty')
+    .isLength({ max: 20 })
+    .withMessage('Unit number cannot exceed 20 characters'),
+
+  body('bedrooms')
+    .optional()
+    .isInt({ min: 0, max: 50 })
+    .withMessage('Bedrooms must be between 0 and 50'),
+
+  body('bathrooms')
+    .optional()
+    .isFloat({ min: 0, max: 50 })
+    .withMessage('Bathrooms must be between 0 and 50'),
+
+  body('squareFootage')
+    .optional()
+    .isInt({ min: 1, max: 10000 })
+    .withMessage('Square footage must be between 1 and 10,000'),
+
+  body('monthlyRent').optional().isFloat({ min: 0 }).withMessage('Monthly rent cannot be negative'),
+
+  body('securityDeposit')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Security deposit cannot be negative'),
+
+  body('status')
+    .optional()
+    .isIn(['available', 'occupied', 'maintenance', 'off-market'])
+    .withMessage('Invalid unit status'),
+];
+
+export const assignTenantValidators = [
+  body('occupancy.tenant')
+    .notEmpty()
+    .withMessage('Tenant ID is required')
+    .custom(isValidObjectId)
+    .withMessage('Invalid tenant ID format'),
+
+  body('occupancy.leaseStart')
+    .optional()
+    .isISO8601()
+    .withMessage('Lease start date must be a valid date'),
+
+  body('occupancy.leaseEnd')
+    .optional()
+    .isISO8601()
+    .withMessage('Lease end date must be a valid date'),
+
+  body('occupancy.leaseType')
+    .optional()
+    .isIn(['month-to-month', 'fixed-term', 'week-to-week'])
+    .withMessage('Invalid lease type'),
+
+  body('occupancy.rentDueDate')
+    .optional()
+    .isInt({ min: 1, max: 31 })
+    .withMessage('Rent due date must be between 1 and 31'),
+];

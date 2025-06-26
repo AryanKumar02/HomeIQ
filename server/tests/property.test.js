@@ -399,4 +399,138 @@ describe('Property API', () => {
         .expect(404);
     });
   });
+
+  describe('Unit Management for Apartments', () => {
+    let apartmentId;
+    let houseId;
+
+    beforeAll(async () => {
+      // Create an apartment property for unit testing
+      const apartmentData = {
+        title: 'Test Apartment Building',
+        propertyType: 'apartment',
+        address: {
+          street: '123 Apartment Street',
+          city: 'Test City',
+          state: 'TS',
+          zipCode: '12345',
+        },
+        bedrooms: 0, // Building-level data
+        bathrooms: 0,
+        squareFootage: 5000,
+      };
+
+      const apartmentResponse = await request(app)
+        .post('/api/v1/property')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(apartmentData)
+        .expect(201);
+
+      apartmentId = apartmentResponse.body.data.property._id;
+
+      // Create a house property for testing non-apartment unit operations
+      const houseData = {
+        title: 'Test House Property',
+        propertyType: 'house',
+        address: {
+          street: '456 House Street',
+          city: 'Test City',
+          state: 'TS',
+          zipCode: '12345',
+        },
+        bedrooms: 3,
+        bathrooms: 2,
+        squareFootage: 1500,
+      };
+
+      const houseResponse = await request(app)
+        .post('/api/v1/property')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(houseData)
+        .expect(201);
+
+      houseId = houseResponse.body.data.property._id;
+    });
+
+    describe('POST /api/v1/property/:id/units', () => {
+      it('should add a unit to apartment property', async () => {
+        const unitData = {
+          unitNumber: '1A',
+          bedrooms: 2,
+          bathrooms: 1,
+          squareFootage: 800,
+          monthlyRent: 1200,
+          securityDeposit: 1200,
+        };
+
+        const response = await request(app)
+          .post(`/api/v1/property/${apartmentId}/units`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(unitData)
+          .expect(201);
+
+        expect(response.body.status).toBe('success');
+        expect(response.body.data.unit.unitNumber).toBe('1A');
+        expect(response.body.data.unit.monthlyRent).toBe(1200);
+      });
+
+      it('should not add unit to non-apartment property', async () => {
+        await request(app)
+          .post(`/api/v1/property/${houseId}/units`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({ unitNumber: '1A' })
+          .expect(400);
+      });
+
+      it('should not add duplicate unit numbers', async () => {
+        const unitData = {
+          unitNumber: '1A', // Same as previous test
+          bedrooms: 1,
+          bathrooms: 1,
+          squareFootage: 600,
+          monthlyRent: 1000,
+        };
+
+        await request(app)
+          .post(`/api/v1/property/${apartmentId}/units`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(unitData)
+          .expect(400);
+      });
+    });
+
+    describe('GET /api/v1/property/:id/units', () => {
+      it('should get all units for apartment property', async () => {
+        const response = await request(app)
+          .get(`/api/v1/property/${apartmentId}/units`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .expect(200);
+
+        expect(response.body.status).toBe('success');
+        expect(response.body.results).toBeGreaterThan(0);
+        expect(Array.isArray(response.body.data.units)).toBe(true);
+      });
+
+      it('should not get units for non-apartment property', async () => {
+        await request(app)
+          .get(`/api/v1/property/${houseId}/units`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .expect(400);
+      });
+    });
+
+    describe('GET /api/v1/property/:id/units/analytics', () => {
+      it('should get unit analytics for apartment property', async () => {
+        const response = await request(app)
+          .get(`/api/v1/property/${apartmentId}/units/analytics`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .expect(200);
+
+        expect(response.body.status).toBe('success');
+        expect(response.body.data.analytics).toBeDefined();
+        expect(response.body.data.analytics.totalUnits).toBeGreaterThan(0);
+        expect(typeof response.body.data.analytics.occupancyRate).toBe('number');
+      });
+    });
+  });
 });

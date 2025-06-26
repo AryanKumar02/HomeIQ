@@ -166,7 +166,7 @@ const propertySchema = new mongoose.Schema({
     default: 'available',
   },
 
-  // Occupancy Information
+  // Occupancy Information (for single-unit properties)
   occupancy: {
     isOccupied: {
       type: Boolean,
@@ -193,6 +193,105 @@ const propertySchema = new mongoose.Schema({
       default: 1,
     },
   },
+
+  // Units Information (for multi-unit properties like apartments)
+  units: [
+    {
+      unitNumber: {
+        type: String,
+        required: function () {
+          return this.parent().propertyType === 'apartment' && this.parent().units.length > 0;
+        },
+        trim: true,
+        maxlength: [20, 'Unit number cannot exceed 20 characters'],
+      },
+      bedrooms: {
+        type: Number,
+        min: [0, 'Bedrooms cannot be negative'],
+        max: [50, 'Bedrooms cannot exceed 50'],
+      },
+      bathrooms: {
+        type: Number,
+        min: [0, 'Bathrooms cannot be negative'],
+        max: [50, 'Bathrooms cannot exceed 50'],
+      },
+      squareFootage: {
+        type: Number,
+        min: [1, 'Square footage must be at least 1'],
+        max: [10000, 'Unit square footage cannot exceed 10,000'],
+      },
+      monthlyRent: {
+        type: Number,
+        min: [0, 'Monthly rent cannot be negative'],
+      },
+      securityDeposit: {
+        type: Number,
+        min: [0, 'Security deposit cannot be negative'],
+      },
+
+      // Unit-specific occupancy
+      occupancy: {
+        isOccupied: {
+          type: Boolean,
+          default: false,
+        },
+        tenant: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        leaseStart: {
+          type: Date,
+        },
+        leaseEnd: {
+          type: Date,
+        },
+        leaseType: {
+          type: String,
+          enum: ['month-to-month', 'fixed-term', 'week-to-week'],
+        },
+        rentDueDate: {
+          type: Number,
+          min: [1, 'Rent due date must be between 1 and 31'],
+          max: [31, 'Rent due date must be between 1 and 31'],
+          default: 1,
+        },
+      },
+
+      // Unit status
+      status: {
+        type: String,
+        enum: ['available', 'occupied', 'maintenance', 'off-market'],
+        default: 'available',
+      },
+
+      // Unit features (can override property-level features)
+      features: {
+        parking: {
+          type: String,
+          enum: ['none', 'assigned', 'shared', 'garage'],
+        },
+        balcony: {
+          type: Boolean,
+          default: false,
+        },
+        amenities: [
+          {
+            type: String,
+            trim: true,
+          },
+        ],
+      },
+
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
+      updatedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
 
   // Property Features
   features: {

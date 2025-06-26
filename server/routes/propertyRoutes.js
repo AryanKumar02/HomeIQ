@@ -9,6 +9,9 @@ import {
   updateStatusValidators,
   updateOccupancyValidators,
   addImagesValidators,
+  addUnitValidators,
+  updateUnitValidators,
+  assignTenantValidators,
 } from '../validators/propertyValidators.js';
 
 const router = express.Router();
@@ -51,5 +54,26 @@ router.post(
 );
 router.delete('/:id/images/:imageId', propertyController.removePropertyImage);
 router.patch('/:id/images/:imageId/primary', propertyController.setPrimaryImage);
+
+// Unit management (for apartment properties)
+router.get('/:id/units', propertyController.getUnits);
+router.post('/:id/units', addUnitValidators, validateMiddleware, propertyController.addUnit);
+router.get('/:id/units/analytics', propertyController.getUnitAnalytics);
+router.put(
+  '/:id/units/:unitId',
+  updateUnitValidators,
+  validateMiddleware,
+  propertyController.updateUnit,
+);
+router.delete('/:id/units/:unitId', propertyController.deleteUnit);
+
+// Unit tenant management
+router.post(
+  '/:id/units/:unitId/tenant',
+  assignTenantValidators,
+  validateMiddleware,
+  propertyController.assignTenantToUnit,
+);
+router.delete('/:id/units/:unitId/tenant', propertyController.removeTenantFromUnit);
 
 export default router;
