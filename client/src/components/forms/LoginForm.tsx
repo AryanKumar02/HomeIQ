@@ -13,7 +13,7 @@ import {
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
-import { login } from '../../services/auth'
+import { useAuth } from '../../context/AuthContext'
 import gsap from 'gsap'
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useFormGsapAnimation } from '../animation/useFormGsapAnimation'
@@ -36,6 +36,7 @@ const LoginForm: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const theme = useTheme()
+  const { login } = useAuth()
 
   // Memoize refs array to avoid triggering animation on every render
   const fieldRefs = [emailRef, passwordRef]
@@ -92,11 +93,13 @@ const LoginForm: React.FC = () => {
       })
     }
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _authResponse = await login(email, password, rememberMe)
-      // console.log('Login successful', _authResponse); // Optional: for debugging or further use
+      await login(email, password)
+
+      console.log('Login completed, navigating to dashboard...')
+
       // Determine where to redirect after login
       const from = (location.state as { from?: Location })?.from?.pathname || '/dashboard'
+      console.log('Navigating to:', from)
       void navigate(from, { replace: true })
     } catch (err: unknown) {
       setError(getFriendlyErrorMessage(err))
