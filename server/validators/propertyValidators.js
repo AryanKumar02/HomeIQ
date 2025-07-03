@@ -187,19 +187,13 @@ export const updateOccupancyValidators = [
     .withMessage('Rent due date must be between 1 and 31'),
 ];
 
-// Add images validators
+// Add images validators (for file uploads)
 export const addImagesValidators = [
-  body('images').isArray({ min: 1 }).withMessage('At least one image is required'),
-
-  body('images.*.url').isURL().withMessage('Image URL must be valid'),
-
-  body('images.*.caption')
+  body('captions.*')
     .optional()
     .trim()
     .isLength({ max: 200 })
     .withMessage('Image caption cannot exceed 200 characters'),
-
-  body('images.*.isPrimary').optional().isBoolean().withMessage('isPrimary must be a boolean'),
 ];
 
 // Search properties validators

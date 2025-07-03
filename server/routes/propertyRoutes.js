@@ -1,6 +1,7 @@
 import express from 'express';
 
 import * as propertyController from '../controllers/propertyController.js';
+import { upload } from '../config/s3.js';
 import { protect } from '../middleware/authMiddleware.js';
 import validateMiddleware from '../middleware/validateMiddleware.js';
 import {
@@ -23,6 +24,7 @@ router.use(protect);
 router.get('/', propertyController.getMyProperties);
 router.get('/search', propertyController.searchProperties);
 router.get('/analytics', propertyController.getPropertyAnalytics);
+router.get('/storage', propertyController.getUserStorageAnalytics);
 router.post('/', createPropertyValidators, validateMiddleware, propertyController.createProperty);
 
 router.get('/:id', propertyController.getProperty);
@@ -48,6 +50,7 @@ router.patch(
 // Image management
 router.post(
   '/:id/images',
+  upload.array('images', 10), // Allow up to 10 images per upload
   addImagesValidators,
   validateMiddleware,
   propertyController.addPropertyImages,

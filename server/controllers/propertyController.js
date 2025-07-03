@@ -4,6 +4,8 @@ import Property from '../models/Property.js';
 import AppError from '../utils/appError.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import logger from '../utils/logger.js';
+import { deleteS3Object, extractS3KeyFromUrl } from '../utils/s3Utils.js';
+import { deleteAllPropertyImages, getUserStorageStats } from '../utils/multiUserS3.js';
 
 // Get all properties for the authenticated user
 export const getMyProperties = catchAsync(async (req, res) => {
@@ -109,6 +111,12 @@ export const deleteProperty = catchAsync(async (req, res, next) => {
     return next(new AppError('Property not found', 404));
   }
 
+  // Delete all associated images from S3
+  const deletedImages = await deleteAllPropertyImages(req.user.id, req.params.id);
+  if (!deletedImages) {
+    logger.warn(`Failed to delete some images for property ${property._id}`);
+  }
+
   property.isActive = false;
   await property.save();
 
@@ -120,7 +128,7 @@ export const deleteProperty = catchAsync(async (req, res, next) => {
   });
 });
 
-// Add images to a property
+// Add images to a property (with file upload)
 export const addPropertyImages = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
@@ -132,17 +140,33 @@ export const addPropertyImages = catchAsync(async (req, res, next) => {
     return next(new AppError('Property not found', 404));
   }
 
-  const { images } = req.body;
-
-  if (!images || !Array.isArray(images)) {
-    return next(new AppError('Images array is required', 400));
+  // Check if files were uploaded
+  if (!req.files || req.files.length === 0) {
+    return next(new AppError('At least one image file is required', 400));
   }
 
-  // Add new images
-  property.images.push(...images);
+  // Process uploaded files
+  const newImages = req.files.map((file, index) => ({
+    url: file.location, // S3 URL from multer-s3
+    caption: req.body.captions ? req.body.captions[index] || '' : '',
+    isPrimary: property.images.length === 0 && index === 0, // First image of empty property becomes primary
+    uploadedAt: new Date(),
+  }));
+
+  // Add new images to property
+  property.images.push(...newImages);
+
+  // Ensure only one primary image exists
+  const primaryImages = property.images.filter(img => img.isPrimary);
+  if (primaryImages.length > 1) {
+    property.images.forEach((img, index) => {
+      img.isPrimary = index === 0; // Make first image primary
+    });
+  }
+
   await property.save();
 
-  logger.info(`Added ${images.length} images to property ${property._id}`);
+  logger.info(`Added ${newImages.length} images to property ${property._id}`);
 
   res.status(200).json({
     status: 'success',
@@ -171,7 +195,25 @@ export const removePropertyImage = catchAsync(async (req, res, next) => {
     return next(new AppError('Image not found', 404));
   }
 
+  const imageToDelete = property.images[imageIndex];
+
+  // Delete from S3 if it's an S3 URL
+  const s3Key = extractS3KeyFromUrl(imageToDelete.url);
+  if (s3Key) {
+    const deleted = await deleteS3Object(s3Key);
+    if (!deleted) {
+      logger.warn(`Failed to delete S3 object: ${s3Key}`);
+    }
+  }
+
+  // If removing primary image, set another image as primary
+  const wasPrimary = imageToDelete.isPrimary;
   property.images.splice(imageIndex, 1);
+
+  if (wasPrimary && property.images.length > 0) {
+    property.images[0].isPrimary = true;
+  }
+
   await property.save();
 
   logger.info(`Removed image ${imageId} from property ${property._id}`);
@@ -727,6 +769,22 @@ export const getUnitAnalytics = catchAsync(async (req, res, next) => {
     status: 'success',
     data: {
       analytics,
+    },
+  });
+});
+
+// Get user storage analytics
+export const getUserStorageAnalytics = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+
+  const storageStats = await getUserStorageStats(userId);
+
+  logger.info(`Retrieved storage analytics for user ${userId}`);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      storage: storageStats,
     },
   });
 });

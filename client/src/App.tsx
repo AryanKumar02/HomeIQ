@@ -74,6 +74,14 @@ function App() {
               }
             />
             <Route
+              path="/properties/edit/:id"
+              element={
+                <ProtectedRoute>
+                  <EditProperty />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/properties/add"
               element={
                 <ProtectedRoute>
