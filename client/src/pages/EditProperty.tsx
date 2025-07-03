@@ -17,7 +17,7 @@ const EditProperty: React.FC = () => {
   const navigate = useNavigate()
   const theme = useTheme()
   const { id: propertyId } = useParams<{ id: string }>()
-  
+
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -47,11 +47,11 @@ const EditProperty: React.FC = () => {
       setLoading(true)
       setError(null)
       const response = await getProperty(propertyId!)
-      
+
       // Handle both possible response formats
       const isSuccess = response.success === true || response.status === 'success'
       const propertyData = response.property || response.data?.property
-      
+
       if (isSuccess && propertyData) {
         setFormData(propertyData)
       } else {
@@ -357,13 +357,13 @@ const EditProperty: React.FC = () => {
     try {
       const formDataObj = new FormData()
       formDataObj.append('images', file)
-      
+
       const response = await addPropertyImages(propertyId, formDataObj)
-      
+
       // Handle both possible response formats
       const isSuccess = response.success === true || response.status === 'success'
       const propertyData = response.property || response.data?.property
-      
+
       if (isSuccess && propertyData) {
         setFormData(propertyData)
         setSuccess('Image uploaded successfully!')
@@ -378,7 +378,7 @@ const EditProperty: React.FC = () => {
 
   const removeImage = async (index: number) => {
     const imageToRemove = formData.images[index]
-    
+
     if (!isEditMode || !propertyId || !imageToRemove.url.startsWith('http')) {
       // For new properties or local images, just remove from state
       setFormData(prev => {
@@ -399,13 +399,13 @@ const EditProperty: React.FC = () => {
     try {
       // Extract image ID from URL or use index as fallback
       const imageId = imageToRemove.url.split('/').pop() || index.toString()
-      
+
       const response = await removePropertyImage(propertyId, imageId)
-      
+
       // Handle both possible response formats
       const isSuccess = response.success === true || response.status === 'success'
       const propertyData = response.property || response.data?.property
-      
+
       if (isSuccess && propertyData) {
         setFormData(propertyData)
         setSuccess('Image removed successfully!')
@@ -420,7 +420,7 @@ const EditProperty: React.FC = () => {
 
   const setPrimaryImage = async (index: number) => {
     const imageToSetPrimary = formData.images[index]
-    
+
     if (!isEditMode || !propertyId || !imageToSetPrimary.url.startsWith('http')) {
       // For new properties or local images, just update state
       setFormData(prev => ({
@@ -437,13 +437,13 @@ const EditProperty: React.FC = () => {
     try {
       // Extract image ID from URL or use index as fallback
       const imageId = imageToSetPrimary.url.split('/').pop() || index.toString()
-      
+
       const response = await setPrimaryImageAPI(propertyId, imageId)
-      
+
       // Handle both possible response formats
       const isSuccess = response.success === true || response.status === 'success'
       const propertyData = response.property || response.data?.property
-      
+
       if (isSuccess && propertyData) {
         setFormData(propertyData)
         setSuccess('Primary image updated successfully!')
@@ -486,17 +486,17 @@ const EditProperty: React.FC = () => {
         // Fetch the blob data
         const response = await fetch(image.url)
         const blob = await response.blob()
-        
+
         // Create a File object from the blob
         const file = new File([blob], `image-${index}.jpg`, { type: blob.type })
-        
+
         // Create FormData for upload
         const formDataObj = new FormData()
         formDataObj.append('images', file)
         if (image.caption) {
           formDataObj.append('captions', image.caption)
         }
-        
+
         // Upload to S3
         return await addPropertyImages(propertyId, formDataObj)
       } catch (err) {
@@ -504,7 +504,7 @@ const EditProperty: React.FC = () => {
         throw err
       }
     })
-    
+
     await Promise.all(uploadPromises)
   }
 
@@ -516,18 +516,18 @@ const EditProperty: React.FC = () => {
 
       // Validate form data before submission
       const validationErrors: string[] = []
-      
+
       if (!formData.title.trim()) validationErrors.push('Property title is required')
       if (!formData.address.street.trim()) validationErrors.push('Street address is required')
       if (!formData.address.city.trim()) validationErrors.push('City is required')
       if (!formData.address.state.trim()) validationErrors.push('State/County is required')
       if (!formData.address.zipCode.trim()) validationErrors.push('Zip/Post code is required')
-      
+
       const bedrooms = parseFloat(formData.bedrooms as string)
       const bathrooms = parseFloat(formData.bathrooms as string)
       const squareFootage = parseFloat(formData.squareFootage as string)
       const yearBuilt = parseFloat(formData.yearBuilt as string)
-      
+
       if (isNaN(bedrooms) || bedrooms < 0 || bedrooms > 50) validationErrors.push('Bedrooms must be between 0 and 50')
       if (isNaN(bathrooms) || bathrooms < 0 || bathrooms > 50) validationErrors.push('Bathrooms must be between 0 and 50')
       if (isNaN(squareFootage) || squareFootage < 1 || squareFootage > 1000000) validationErrors.push('Square footage must be between 1 and 1,000,000')
@@ -543,7 +543,7 @@ const EditProperty: React.FC = () => {
 
       // Store local images for later upload (for new properties)
       const localImages = formData.images.filter(img => img.url.startsWith('blob:'))
-      
+
       // Convert string numeric fields to numbers for server validation
       const processedData: FormData = {
         ...formData,
@@ -604,10 +604,10 @@ const EditProperty: React.FC = () => {
       // Handle both possible response formats
       const isSuccess = response.success === true || response.status === 'success'
       const propertyData = response.property || response.data?.property
-      
+
       if (isSuccess) {
         setSuccess(isEditMode ? 'Property updated successfully!' : 'Property created successfully!')
-        
+
         // If creating new property and there are local images, upload them
         if (!isEditMode && propertyData?._id && localImages.length > 0) {
           try {
@@ -618,7 +618,7 @@ const EditProperty: React.FC = () => {
             setError('Property created but failed to upload some images')
           }
         }
-        
+
         if (!isEditMode && propertyData?._id) {
           // Small delay before redirect to show success message
           setTimeout(() => {
@@ -630,7 +630,7 @@ const EditProperty: React.FC = () => {
       }
     } catch (err: unknown) {
       console.error('Error saving property:', err)
-      
+
       // Handle server validation errors
       if (err && typeof err === 'object' && 'response' in err) {
         const response = err.response as { data?: { errors?: Array<{ msg: string }> } }
@@ -713,8 +713,8 @@ const EditProperty: React.FC = () => {
 
             {/* Error Alert */}
             {error && (
-              <Alert 
-                severity="error" 
+              <Alert
+                severity="error"
                 onClose={() => setError(null)}
                 sx={{ mb: 3 }}
               >
@@ -724,8 +724,8 @@ const EditProperty: React.FC = () => {
 
             {/* Success Alert */}
             {success && (
-              <Alert 
-                severity="success" 
+              <Alert
+                severity="success"
                 onClose={() => setSuccess(null)}
                 sx={{ mb: 3 }}
               >
