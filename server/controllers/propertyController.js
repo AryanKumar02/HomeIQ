@@ -11,7 +11,6 @@ import { deleteAllPropertyImages, getUserStorageStats } from '../utils/multiUser
 export const getMyProperties = catchAsync(async (req, res) => {
   const properties = await Property.find({
     owner: req.user.id,
-    isActive: true,
   }).sort({ createdAt: -1 });
 
   logger.info(`Retrieved ${properties.length} properties for user ${req.user.id}`);
@@ -30,7 +29,6 @@ export const getProperty = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   }).populate('occupancy.tenant', 'firstName secondName email');
 
   if (!property) {
@@ -72,7 +70,6 @@ export const updateProperty = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   });
 
   if (!property) {
@@ -99,12 +96,12 @@ export const updateProperty = catchAsync(async (req, res, next) => {
   });
 });
 
-// Soft delete a property
+// Delete a property permanently
 export const deleteProperty = catchAsync(async (req, res, next) => {
+  // Find the property to delete
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   });
 
   if (!property) {
@@ -117,10 +114,10 @@ export const deleteProperty = catchAsync(async (req, res, next) => {
     logger.warn(`Failed to delete some images for property ${property._id}`);
   }
 
-  property.isActive = false;
-  await property.save();
+  // Actually delete the property from MongoDB
+  await Property.findByIdAndDelete(req.params.id);
 
-  logger.info(`Deleted property ${property._id} for user ${req.user.id}`);
+  logger.info(`Permanently deleted property ${property._id} for user ${req.user.id}`);
 
   res.status(204).json({
     status: 'success',
@@ -133,7 +130,6 @@ export const addPropertyImages = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   });
 
   if (!property) {
@@ -181,7 +177,6 @@ export const removePropertyImage = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   });
 
   if (!property) {
@@ -231,7 +226,6 @@ export const setPrimaryImage = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   });
 
   if (!property) {
@@ -269,7 +263,6 @@ export const updatePropertyStatus = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   });
 
   if (!property) {
@@ -300,7 +293,6 @@ export const updateOccupancy = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   });
 
   if (!property) {
@@ -338,7 +330,6 @@ export const getPropertyAnalytics = catchAsync(async (req, res) => {
     {
       $match: {
         owner: new mongoose.Types.ObjectId(userId),
-        isActive: true,
       },
     },
     {
@@ -418,7 +409,6 @@ export const searchProperties = catchAsync(async (req, res) => {
   // Build filter object
   const filter = {
     owner: req.user.id,
-    isActive: true,
   };
 
   if (propertyType) {
@@ -498,7 +488,6 @@ export const getUnits = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   }).populate('units.occupancy.tenant', 'firstName secondName email');
 
   if (!property) {
@@ -525,7 +514,6 @@ export const addUnit = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   });
 
   if (!property) {
@@ -563,7 +551,6 @@ export const updateUnit = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   });
 
   if (!property) {
@@ -592,7 +579,7 @@ export const updateUnit = catchAsync(async (req, res, next) => {
     }
   });
 
-  unit.updatedAt = Date.now();
+  unit.updatedAt = new Date();
   await property.save();
 
   logger.info(`Updated unit ${unit.unitNumber} in property ${property._id}`);
@@ -610,7 +597,6 @@ export const deleteUnit = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   });
 
   if (!property) {
@@ -643,7 +629,6 @@ export const assignTenantToUnit = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   });
 
   if (!property) {
@@ -690,7 +675,6 @@ export const removeTenantFromUnit = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   });
 
   if (!property) {
@@ -736,7 +720,6 @@ export const getUnitAnalytics = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-    isActive: true,
   });
 
   if (!property) {

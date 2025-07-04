@@ -104,16 +104,23 @@ export interface PropertyResponse {
   }
 }
 
+// Get auth token from localStorage
+const getAuthToken = () => {
+  return localStorage.getItem('authToken')
+}
+
 // Property CRUD operations
 export async function createProperty(propertyData: Omit<Property, '_id'>): Promise<PropertyResponse> {
   try {
     console.log('CREATE PROPERTY API CALL:', '/api/v1/property')
     console.log('CREATE PROPERTY API DATA:', JSON.stringify(propertyData, null, 2))
+    const token = getAuthToken()
     const res = await axios.post<PropertyResponse>(
       '/api/v1/property',
       propertyData,
       {
         withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     )
     console.log('CREATE PROPERTY API RESPONSE:', res)
@@ -135,10 +142,12 @@ export async function createProperty(propertyData: Omit<Property, '_id'>): Promi
 export async function getProperty(propertyId: string): Promise<PropertyResponse> {
   try {
     console.log('GET PROPERTY API CALL:', `/api/v1/property/${propertyId}`)
+    const token = getAuthToken()
     const res = await axios.get<PropertyResponse>(
       `/api/v1/property/${propertyId}`,
       {
         withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     )
     console.log('GET PROPERTY API RESPONSE:', res)
@@ -152,11 +161,13 @@ export async function getProperty(propertyId: string): Promise<PropertyResponse>
 export async function updateProperty(propertyId: string, propertyData: Partial<Property>): Promise<PropertyResponse> {
   try {
     console.log('UPDATE PROPERTY API CALL:', `/api/v1/property/${propertyId}`, propertyData)
+    const token = getAuthToken()
     const res = await axios.put<PropertyResponse>(
       `/api/v1/property/${propertyId}`,
       propertyData,
       {
         withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     )
     console.log('UPDATE PROPERTY API RESPONSE:', res)
@@ -170,16 +181,32 @@ export async function updateProperty(propertyId: string, propertyData: Partial<P
 export async function deleteProperty(propertyId: string): Promise<PropertyResponse> {
   try {
     console.log('DELETE PROPERTY API CALL:', `/api/v1/property/${propertyId}`)
+    console.log('Property ID:', propertyId)
+    const token = getAuthToken()
+    console.log('Auth token present:', !!token)
+    
     const res = await axios.delete<PropertyResponse>(
       `/api/v1/property/${propertyId}`,
       {
         withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     )
     console.log('DELETE PROPERTY API RESPONSE:', res)
+    
+    // For DELETE requests that return 204 No Content, create a success response
+    if (res.status === 204) {
+      return { success: true, message: 'Property deleted successfully' }
+    }
+    
     return res.data
   } catch (err) {
     console.error('DELETE PROPERTY API ERROR:', err)
+    if (err && typeof err === 'object' && 'response' in err) {
+      const axiosError = err as { response?: { status?: number, data?: any } }
+      console.error('DELETE PROPERTY ERROR STATUS:', axiosError.response?.status)
+      console.error('DELETE PROPERTY ERROR DATA:', axiosError.response?.data)
+    }
     throw err
   }
 }
@@ -187,10 +214,12 @@ export async function deleteProperty(propertyId: string): Promise<PropertyRespon
 export async function getAllProperties(): Promise<PropertyResponse> {
   try {
     console.log('GET ALL PROPERTIES API CALL:', '/api/v1/property')
+    const token = getAuthToken()
     const res = await axios.get<PropertyResponse>(
       '/api/v1/property',
       {
         withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     )
     console.log('GET ALL PROPERTIES API RESPONSE:', res)
@@ -205,11 +234,13 @@ export async function getAllProperties(): Promise<PropertyResponse> {
 export async function updatePropertyStatus(propertyId: string, status: Property['status']): Promise<PropertyResponse> {
   try {
     console.log('UPDATE PROPERTY STATUS API CALL:', `/api/v1/property/${propertyId}/status`, { status })
+    const token = getAuthToken()
     const res = await axios.patch<PropertyResponse>(
       `/api/v1/property/${propertyId}/status`,
       { status },
       {
         withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     )
     console.log('UPDATE PROPERTY STATUS API RESPONSE:', res)
@@ -223,11 +254,13 @@ export async function updatePropertyStatus(propertyId: string, status: Property[
 export async function updatePropertyOccupancy(propertyId: string, occupancy: Property['occupancy']): Promise<PropertyResponse> {
   try {
     console.log('UPDATE PROPERTY OCCUPANCY API CALL:', `/api/v1/property/${propertyId}/occupancy`, occupancy)
+    const token = getAuthToken()
     const res = await axios.patch<PropertyResponse>(
       `/api/v1/property/${propertyId}/occupancy`,
       occupancy,
       {
         withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     )
     console.log('UPDATE PROPERTY OCCUPANCY API RESPONSE:', res)
@@ -242,6 +275,7 @@ export async function updatePropertyOccupancy(propertyId: string, occupancy: Pro
 export async function addPropertyImages(propertyId: string, images: FormData): Promise<PropertyResponse> {
   try {
     console.log('ADD PROPERTY IMAGES API CALL:', `/api/v1/property/${propertyId}/images`)
+    const token = getAuthToken()
     const res = await axios.post<PropertyResponse>(
       `/api/v1/property/${propertyId}/images`,
       images,
@@ -249,6 +283,7 @@ export async function addPropertyImages(propertyId: string, images: FormData): P
         withCredentials: true,
         headers: {
           'Content-Type': 'multipart/form-data',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       }
     )
@@ -263,10 +298,12 @@ export async function addPropertyImages(propertyId: string, images: FormData): P
 export async function removePropertyImage(propertyId: string, imageId: string): Promise<PropertyResponse> {
   try {
     console.log('REMOVE PROPERTY IMAGE API CALL:', `/api/v1/property/${propertyId}/images/${imageId}`)
+    const token = getAuthToken()
     const res = await axios.delete<PropertyResponse>(
       `/api/v1/property/${propertyId}/images/${imageId}`,
       {
         withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     )
     console.log('REMOVE PROPERTY IMAGE API RESPONSE:', res)
@@ -280,11 +317,13 @@ export async function removePropertyImage(propertyId: string, imageId: string): 
 export async function setPrimaryImage(propertyId: string, imageId: string): Promise<PropertyResponse> {
   try {
     console.log('SET PRIMARY IMAGE API CALL:', `/api/v1/property/${propertyId}/images/${imageId}/primary`)
+    const token = getAuthToken()
     const res = await axios.patch<PropertyResponse>(
       `/api/v1/property/${propertyId}/images/${imageId}/primary`,
       {},
       {
         withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     )
     console.log('SET PRIMARY IMAGE API RESPONSE:', res)
@@ -299,10 +338,12 @@ export async function setPrimaryImage(propertyId: string, imageId: string): Prom
 export async function getUnits(propertyId: string): Promise<PropertyResponse> {
   try {
     console.log('GET UNITS API CALL:', `/api/v1/property/${propertyId}/units`)
+    const token = getAuthToken()
     const res = await axios.get<PropertyResponse>(
       `/api/v1/property/${propertyId}/units`,
       {
         withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     )
     console.log('GET UNITS API RESPONSE:', res)
@@ -316,11 +357,13 @@ export async function getUnits(propertyId: string): Promise<PropertyResponse> {
 export async function addUnit(propertyId: string, unitData: Omit<Unit, '_id'>): Promise<PropertyResponse> {
   try {
     console.log('ADD UNIT API CALL:', `/api/v1/property/${propertyId}/units`, unitData)
+    const token = getAuthToken()
     const res = await axios.post<PropertyResponse>(
       `/api/v1/property/${propertyId}/units`,
       unitData,
       {
         withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     )
     console.log('ADD UNIT API RESPONSE:', res)
@@ -334,11 +377,13 @@ export async function addUnit(propertyId: string, unitData: Omit<Unit, '_id'>): 
 export async function updateUnit(propertyId: string, unitId: string, unitData: Partial<Unit>): Promise<PropertyResponse> {
   try {
     console.log('UPDATE UNIT API CALL:', `/api/v1/property/${propertyId}/units/${unitId}`, unitData)
+    const token = getAuthToken()
     const res = await axios.put<PropertyResponse>(
       `/api/v1/property/${propertyId}/units/${unitId}`,
       unitData,
       {
         withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     )
     console.log('UPDATE UNIT API RESPONSE:', res)
@@ -352,10 +397,12 @@ export async function updateUnit(propertyId: string, unitId: string, unitData: P
 export async function deleteUnit(propertyId: string, unitId: string): Promise<PropertyResponse> {
   try {
     console.log('DELETE UNIT API CALL:', `/api/v1/property/${propertyId}/units/${unitId}`)
+    const token = getAuthToken()
     const res = await axios.delete<PropertyResponse>(
       `/api/v1/property/${propertyId}/units/${unitId}`,
       {
         withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
     )
     console.log('DELETE UNIT API RESPONSE:', res)

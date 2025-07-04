@@ -4,6 +4,7 @@ import Grid from '@mui/material/Grid'
 import { Add as AddIcon, Remove as RemoveIcon, CloudUpload as CloudUploadIcon, Delete as DeleteIcon, Star as StarIcon, StarBorder as StarBorderIcon } from '@mui/icons-material'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
+import { useCurrency, CURRENCY_CONFIG } from '../hooks/useCurrency'
 import Sidebar from '../components/properties/Sidebar'
 import Titlebar from '../components/properties/Titlebar'
 import CustomButton from '../components/properties/CustomButton'
@@ -16,6 +17,8 @@ type FormData = Property
 const EditProperty: React.FC = () => {
   const navigate = useNavigate()
   const theme = useTheme()
+  const { currency } = useCurrency()
+  const currencySymbol = CURRENCY_CONFIG[currency].symbol
   const { id: propertyId } = useParams<{ id: string }>()
 
   const [loading, setLoading] = useState(false)
@@ -1683,6 +1686,73 @@ const EditProperty: React.FC = () => {
                     slotProps={{
                       inputLabel: { shrink: true }
                     }}
+                  />
+                </Grid>
+              </Grid>
+
+              {/* Divider */}
+              <Divider sx={{ my: 4 }} />
+
+              {/* Rental Income Section */}
+              <Typography
+                variant="h6"
+                sx={{
+                  mb: 3,
+                  fontWeight: 600,
+                  fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.25rem' },
+                  color: 'text.primary'
+                }}
+              >
+                Rental Income
+              </Typography>
+
+              <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    label="Monthly Rent"
+                    type="number"
+                    value={formData.financials.monthlyRent}
+                    onChange={(e) => handleInputChange('financials.monthlyRent', e.target.value)}
+                    placeholder="2500"
+                    fullWidth
+                    slotProps={{
+                      input: {
+                        startAdornment: <Box sx={{ mr: 1, color: 'text.secondary' }}>{currencySymbol}</Box>,
+                      }
+                    }}
+                    sx={textFieldStyles}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    label="Security Deposit"
+                    type="number"
+                    value={formData.financials.securityDeposit}
+                    onChange={(e) => handleInputChange('financials.securityDeposit', e.target.value)}
+                    placeholder="2500"
+                    fullWidth
+                    slotProps={{
+                      input: {
+                        startAdornment: <Box sx={{ mr: 1, color: 'text.secondary' }}>{currencySymbol}</Box>,
+                      }
+                    }}
+                    sx={textFieldStyles}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    label="Pet Deposit"
+                    type="number"
+                    value={formData.financials.petDeposit}
+                    onChange={(e) => handleInputChange('financials.petDeposit', e.target.value)}
+                    placeholder="500"
+                    fullWidth
+                    slotProps={{
+                      input: {
+                        startAdornment: <Box sx={{ mr: 1, color: 'text.secondary' }}>{currencySymbol}</Box>,
+                      }
+                    }}
+                    sx={textFieldStyles}
                   />
                 </Grid>
               </Grid>
