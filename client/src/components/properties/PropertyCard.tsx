@@ -24,6 +24,14 @@ import {
   Delete as DeleteIcon,
   Edit as EditIcon,
 } from '@mui/icons-material'
+import {
+  Home as HomeIcon,
+  Apartment as ApartmentIcon,
+  Business as BusinessIcon,
+  Landscape as LandIcon,
+  SquareFoot as SquareFootIcon,
+  CalendarToday as CalendarIcon,
+} from '@mui/icons-material'
 import type { Property } from '../../types/property'
 import { useCurrency } from '../../hooks/useCurrency'
 
@@ -126,6 +134,31 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
 
   const statusConfig = getStatusConfig()
 
+  // Get property type icon and label
+  const getPropertyTypeConfig = () => {
+    switch (property.propertyType) {
+      case 'house':
+        return { icon: HomeIcon, label: 'House' }
+      case 'apartment':
+        return { icon: ApartmentIcon, label: 'Apartment' }
+      case 'condo':
+        return { icon: ApartmentIcon, label: 'Condo' }
+      case 'townhouse':
+        return { icon: HomeIcon, label: 'Townhouse' }
+      case 'duplex':
+        return { icon: HomeIcon, label: 'Duplex' }
+      case 'commercial':
+        return { icon: BusinessIcon, label: 'Commercial' }
+      case 'land':
+        return { icon: LandIcon, label: 'Land' }
+      default:
+        return { icon: HomeIcon, label: property.propertyType }
+    }
+  }
+
+  const propertyTypeConfig = getPropertyTypeConfig()
+  const PropertyTypeIcon = propertyTypeConfig.icon
+
   const handleViewDetails = () => {
     if (onViewDetails && property._id) {
       onViewDetails(property._id)
@@ -199,12 +232,12 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           }}
         />
         
-        {/* Status Badge */}
+        {/* Status Badge - Bottom Right */}
         <Chip
           label={statusConfig.label}
           sx={{
             position: 'absolute',
-            top: 12,
+            bottom: 12,
             right: 12,
             backgroundColor: statusConfig.color,
             color: 'white',
@@ -213,9 +246,38 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             height: 24,
             '& .MuiChip-label': {
               px: 1,
+              color: 'white',
             },
           }}
         />
+
+        {/* Property Type Badge - Bottom Left */}
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 12,
+            left: 12,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(4px)',
+            borderRadius: 1,
+            px: 1,
+            py: 0.5,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+          }}
+        >
+          <PropertyTypeIcon sx={{ fontSize: '0.8rem', color: theme.palette.grey[600] }} />
+          <Typography
+            sx={{
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              color: theme.palette.grey[700],
+            }}
+          >
+            {propertyTypeConfig.label}
+          </Typography>
+        </Box>
 
         {/* Menu Button */}
         <IconButton
@@ -288,57 +350,160 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           {property.propertyType === 'apartment' ? (
             // Apartment: Show Units Information
             <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: theme.palette.grey[600],
-                  fontSize: '0.85rem',
-                  mb: 1,
-                  fontWeight: 600,
-                }}
-              >
-                {property.units?.length || 0} Units Available
-              </Typography>
-              
-              {/* Show first 2-3 units with pricing */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                {property.units?.slice(0, 2).map((unit, index) => (
-                  <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {property.units && property.units.length > 0 ? (
+                <>
+                  {/* Unit Summary */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                     <Typography
                       variant="body2"
                       sx={{
-                        color: theme.palette.grey[700],
-                        fontSize: '0.8rem',
+                        color: theme.palette.grey[600],
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
                       }}
                     >
-                      Unit {unit.unitNumber}: {unit.bedrooms}BR/{unit.bathrooms}BA
+                      {property.units.length} Unit{property.units.length !== 1 ? 's' : ''}
                     </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: theme.palette.success.main,
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {property.units.filter(unit => unit.status === 'available').length} Available
+                    </Typography>
+                  </Box>
+                  
+                  {/* Total Revenue Potential */}
+                  <Box sx={{ mb: 1 }}>
                     <Typography
                       variant="body2"
                       sx={{
                         color: theme.palette.secondary.main,
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
                       }}
                     >
-                      {formatPropertyPrice(unit.monthlyRent)} /mo
+                      Total Revenue: {formatPropertyPrice(
+                        property.units.reduce((total, unit) => {
+                          const rent = typeof unit.monthlyRent === 'string' ? parseFloat(unit.monthlyRent) : unit.monthlyRent
+                          return total + (isNaN(rent) ? 0 : rent)
+                        }, 0)
+                      )} /month
                     </Typography>
                   </Box>
-                ))}
-                
-                {property.units && property.units.length > 2 && (
+                  
+                  {/* Show first 2 units with status and pricing */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    {property.units
+                      .sort((a, b) => {
+                        // Sort by status: available first, then occupied, then others
+                        const statusPriority = { available: 0, occupied: 1, maintenance: 2, 'off-market': 3 }
+                        return statusPriority[a.status] - statusPriority[b.status]
+                      })
+                      .slice(0, 2)
+                      .map((unit, index) => {
+                        // Get status color and label
+                        const getUnitStatusConfig = (status: string) => {
+                          switch (status) {
+                            case 'available':
+                              return { color: theme.palette.success.main, label: 'Available', bgColor: theme.palette.success.light }
+                            case 'occupied':
+                              return { color: theme.palette.primary.main, label: 'Occupied', bgColor: theme.palette.primary.light }
+                            case 'maintenance':
+                              return { color: theme.palette.warning.main, label: 'Maintenance', bgColor: theme.palette.warning.light }
+                            case 'off-market':
+                              return { color: theme.palette.grey[600], label: 'Off Market', bgColor: theme.palette.grey[300] }
+                            default:
+                              return { color: theme.palette.grey[600], label: status, bgColor: theme.palette.grey[300] }
+                          }
+                        }
+                        
+                        const statusConfig = getUnitStatusConfig(unit.status)
+                        
+                        return (
+                          <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.25 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: theme.palette.grey[700],
+                                  fontSize: '0.8rem',
+                                }}
+                              >
+                                Unit {unit.unitNumber}: {unit.bedrooms}BR/{unit.bathrooms}BA
+                              </Typography>
+                              <Box
+                                sx={{
+                                  backgroundColor: statusConfig.color,
+                                  color: 'white',
+                                  px: 0.5,
+                                  py: 0.125,
+                                  borderRadius: 0.5,
+                                  fontSize: '0.65rem',
+                                  fontWeight: 600,
+                                  textTransform: 'uppercase',
+                                }}
+                              >
+                                {statusConfig.label}
+                              </Box>
+                            </Box>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: unit.status === 'available' ? theme.palette.secondary.main : theme.palette.grey[500],
+                                fontSize: '0.8rem',
+                                fontWeight: 600,
+                              }}
+                            >
+                              {unit.status === 'available' ? formatPropertyPrice(unit.monthlyRent) : '--'} /mo
+                            </Typography>
+                          </Box>
+                        )
+                      })}
+                    
+                    {property.units.length > 2 && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: theme.palette.grey[500],
+                          fontSize: '0.75rem',
+                          fontStyle: 'italic',
+                          textAlign: 'center',
+                          mt: 0.5,
+                        }}
+                      >
+                        +{property.units.length - 2} more unit{property.units.length - 2 !== 1 ? 's' : ''}
+                      </Typography>
+                    )}
+                  </Box>
+                </>
+              ) : (
+                // Empty apartment state
+                <Box sx={{ textAlign: 'center', py: 1 }}>
                   <Typography
                     variant="body2"
                     sx={{
                       color: theme.palette.grey[500],
-                      fontSize: '0.75rem',
+                      fontSize: '0.8rem',
                       fontStyle: 'italic',
                     }}
                   >
-                    +{property.units.length - 2} more units
+                    No units configured
                   </Typography>
-                )}
-              </Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: theme.palette.grey[400],
+                      fontSize: '0.75rem',
+                    }}
+                  >
+                    Add units to get started
+                  </Typography>
+                </Box>
+              )}
             </Box>
           ) : (
             // Non-Apartment: Show Traditional Property Information
@@ -387,6 +552,53 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                     {property.bathrooms} bath
                   </Typography>
                 </Box>
+              </Box>
+
+              {/* Additional Property Metadata */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                {/* Square Footage */}
+                {property.squareFootage && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <SquareFootIcon sx={{ fontSize: '0.9rem', color: theme.palette.grey[600] }} />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: theme.palette.grey[600],
+                        fontSize: '0.8rem',
+                      }}
+                    >
+                      {typeof property.squareFootage === 'string' 
+                        ? parseFloat(property.squareFootage).toLocaleString() 
+                        : property.squareFootage.toLocaleString()} sq ft
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Year Built */}
+                {property.yearBuilt && (
+                  <>
+                    {property.squareFootage && (
+                      <Typography
+                        variant="body2"
+                        sx={{ color: theme.palette.grey[400], fontSize: '0.8rem' }}
+                      >
+                        •
+                      </Typography>
+                    )}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <CalendarIcon sx={{ fontSize: '0.9rem', color: theme.palette.grey[600] }} />
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: theme.palette.grey[600],
+                          fontSize: '0.8rem',
+                        }}
+                      >
+                        Built {property.yearBuilt}
+                      </Typography>
+                    </Box>
+                  </>
+                )}
               </Box>
             </>
           )}
