@@ -134,7 +134,7 @@ export async function createProperty(
   } catch (err) {
     console.error('CREATE PROPERTY API ERROR:', err)
     if (err && typeof err === 'object' && 'response' in err) {
-      const axiosError = err as { response?: { data?: any } }
+      const axiosError = err as { response?: { data?: { errors?: Array<{ msg: string }> } } }
       console.error('CREATE PROPERTY API ERROR RESPONSE:', axiosError.response)
       console.error('CREATE PROPERTY API ERROR DATA:', axiosError.response?.data)
       if (axiosError.response?.data?.errors) {
@@ -202,7 +202,7 @@ export async function deleteProperty(propertyId: string): Promise<PropertyRespon
   } catch (err) {
     console.error('DELETE PROPERTY API ERROR:', err)
     if (err && typeof err === 'object' && 'response' in err) {
-      const axiosError = err as { response?: { status?: number; data?: any } }
+      const axiosError = err as { response?: { status?: number; data?: unknown } }
       console.error('DELETE PROPERTY ERROR STATUS:', axiosError.response?.status)
       console.error('DELETE PROPERTY ERROR DATA:', axiosError.response?.data)
     }
