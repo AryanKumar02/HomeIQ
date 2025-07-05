@@ -4,17 +4,17 @@ import Grid from '@mui/material/Grid'
 import { Add as AddIcon, Remove as RemoveIcon, CloudUpload as CloudUploadIcon, Delete as DeleteIcon, Star as StarIcon, StarBorder as StarBorderIcon } from '@mui/icons-material'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
-import { useCurrency, CURRENCY_CONFIG } from '../hooks/useCurrency'
-import Sidebar from '../components/properties/Sidebar'
-import Titlebar from '../components/properties/Titlebar'
-import CustomButton from '../components/properties/CustomButton'
-import Card from '../components/properties/Card'
-import { createProperty, updateProperty, getProperty, addPropertyImages, removePropertyImage, setPrimaryImage as setPrimaryImageAPI, type Property, type Unit } from '../services/property'
+import { useCurrency, CURRENCY_CONFIG } from '../../hooks/useCurrency'
+import Sidebar from '../../components/properties/Sidebar'
+import Titlebar from '../../components/properties/Titlebar'
+import CustomButton from '../../components/properties/CustomButton'
+import Card from '../../components/properties/Card'
+import { createProperty, updateProperty, getProperty, addPropertyImages, removePropertyImage, setPrimaryImage as setPrimaryImageAPI, type Property, type Unit } from '../../services/property'
 
 // Use Property type from service
 type FormData = Property
 
-const EditProperty: React.FC = () => {
+const CreateProperty: React.FC = () => {
   const navigate = useNavigate()
   const theme = useTheme()
   const { currency } = useCurrency()
@@ -43,6 +43,25 @@ const EditProperty: React.FC = () => {
     return defaultMessage
   }
 
+  // Type guard to check if an object is a Property
+  const isProperty = (obj: unknown): obj is Property => {
+    return obj !== null && 
+           typeof obj === 'object' && 
+           'title' in obj && 
+           'description' in obj && 
+           'propertyType' in obj && 
+           'address' in obj && 
+           'bedrooms' in obj && 
+           'bathrooms' in obj && 
+           'squareFootage' in obj && 
+           'status' in obj && 
+           'occupancy' in obj && 
+           'financials' in obj && 
+           'features' in obj && 
+           'images' in obj && 
+           'units' in obj
+  }
+
   // Load property data if editing
   useEffect(() => {
     if (propertyId) {
@@ -60,7 +79,7 @@ const EditProperty: React.FC = () => {
       const isSuccess = response.success === true || response.status === 'success'
       const propertyData = response.property || response.data?.property
 
-      if (isSuccess && propertyData) {
+      if (isSuccess && isProperty(propertyData)) {
         setFormData(propertyData)
       } else {
         setError('Failed to load property data')
@@ -372,7 +391,7 @@ const EditProperty: React.FC = () => {
       const isSuccess = response.success === true || response.status === 'success'
       const propertyData = response.property || response.data?.property
 
-      if (isSuccess && propertyData) {
+      if (isSuccess && isProperty(propertyData)) {
         setFormData(propertyData)
         setSuccess('Image uploaded successfully!')
       } else {
@@ -414,7 +433,7 @@ const EditProperty: React.FC = () => {
       const isSuccess = response.success === true || response.status === 'success'
       const propertyData = response.property || response.data?.property
 
-      if (isSuccess && propertyData) {
+      if (isSuccess && isProperty(propertyData)) {
         setFormData(propertyData)
         setSuccess('Image removed successfully!')
       } else {
@@ -452,7 +471,7 @@ const EditProperty: React.FC = () => {
       const isSuccess = response.success === true || response.status === 'success'
       const propertyData = response.property || response.data?.property
 
-      if (isSuccess && propertyData) {
+      if (isSuccess && isProperty(propertyData)) {
         setFormData(propertyData)
         setSuccess('Primary image updated successfully!')
       } else {
@@ -617,7 +636,7 @@ const EditProperty: React.FC = () => {
         setSuccess(isEditMode ? 'Property updated successfully!' : 'Property created successfully!')
 
         // If creating new property and there are local images, upload them
-        if (!isEditMode && propertyData?._id && localImages.length > 0) {
+        if (!isEditMode && propertyData && typeof propertyData === 'object' && propertyData !== null && '_id' in propertyData && propertyData._id && typeof propertyData._id === 'string' && localImages.length > 0) {
           try {
             await uploadLocalImages(propertyData._id, localImages)
             setSuccess('Property created and images uploaded successfully!')
@@ -627,7 +646,7 @@ const EditProperty: React.FC = () => {
           }
         }
 
-        if (!isEditMode && propertyData?._id) {
+        if (!isEditMode && propertyData && typeof propertyData === 'object' && propertyData !== null && '_id' in propertyData && propertyData._id) {
           // Small delay before redirect to show success message
           setTimeout(() => {
             void navigate('/properties')
@@ -1500,7 +1519,7 @@ const EditProperty: React.FC = () => {
                           <FormControlLabel
                             control={
                               <Switch
-                                checked={unit.occupancy.isOccupied}
+                                checked={unit.occupancy?.isOccupied ?? false}
                                 onChange={(e) => handleInputChange(`units.${index}.occupancy.isOccupied`, e.target.checked)}
                                 sx={{
                                   '& .MuiSwitch-switchBase.Mui-checked': {
@@ -1516,14 +1535,14 @@ const EditProperty: React.FC = () => {
                           />
                         </Grid>
 
-                    {unit.occupancy.isOccupied && (
+                    {unit.occupancy?.isOccupied && (
                       <>
                         <Grid size={{ xs: 12, md: 6 }}>
                           <TextField
                             fullWidth
                             label="Lease Start Date"
                             type="date"
-                            value={unit.occupancy.leaseStart}
+                            value={unit.occupancy?.leaseStart ?? ''}
                             onChange={(e) => handleInputChange(`units.${index}.occupancy.leaseStart`, e.target.value)}
                             variant="outlined"
                             sx={textFieldStyles}
@@ -1538,7 +1557,7 @@ const EditProperty: React.FC = () => {
                             fullWidth
                             label="Lease End Date"
                             type="date"
-                            value={unit.occupancy.leaseEnd}
+                            value={unit.occupancy?.leaseEnd ?? ''}
                             onChange={(e) => handleInputChange(`units.${index}.occupancy.leaseEnd`, e.target.value)}
                             variant="outlined"
                             sx={textFieldStyles}
@@ -1553,7 +1572,7 @@ const EditProperty: React.FC = () => {
                             fullWidth
                             select
                             label="Lease Type"
-                            value={unit.occupancy.leaseType}
+                            value={unit.occupancy?.leaseType ?? 'month-to-month'}
                             onChange={(e) => handleInputChange(`units.${index}.occupancy.leaseType`, e.target.value)}
                             variant="outlined"
                             sx={textFieldStyles}
@@ -1571,7 +1590,7 @@ const EditProperty: React.FC = () => {
                             fullWidth
                             label="Rent Due Date"
                             type="number"
-                            value={unit.occupancy.rentDueDate}
+                            value={unit.occupancy?.rentDueDate ?? '1'}
                             onChange={(e) => handleInputChange(`units.${index}.occupancy.rentDueDate`, e.target.value)}
                             placeholder="1"
                             variant="outlined"
@@ -1888,4 +1907,4 @@ const EditProperty: React.FC = () => {
   )
 }
 
-export default EditProperty
+export default CreateProperty

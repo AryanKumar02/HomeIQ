@@ -1,16 +1,17 @@
-import React from 'react'
-import { Box } from '@mui/material'
+import Box from '@mui/material/Box'
+import SignupForm from '../../components/forms/SignupForm'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
-import { useParams } from 'react-router-dom'
-import VerifyEmailForm from '../components/forms/VerifyEmailForm'
 
-const VerifyEmail: React.FC = () => {
+const Signup = () => {
   const theme = useTheme()
-  const { token } = useParams<{ token: string }>()
+  /**
+   * Show the hero image only on large (lg >= 1200 px) screens.
+   * On smaller viewports we collapse to a single, centred form.
+   */
   const showImage = useMediaQuery(theme.breakpoints.up('lg'))
-
   return showImage ? (
+    /* ─────────── Large screens: two‑column layout ─────────── */
     <Box
       sx={{
         display: 'flex',
@@ -32,17 +33,18 @@ const VerifyEmail: React.FC = () => {
       >
         <Box
           component="img"
-          src="/assets/splashes/verifyemailsplash.png"
-          alt="Verify email splash"
+          src="/assets/splashes/signinsplash2.png"
+          alt="Signup splash"
           sx={{
             width: '100%',
             height: '100vh',
-            objectPosition: '50%',
+            objectPosition: '49%',
             objectFit: 'cover',
             borderRadius: '0 16px 16px 0',
           }}
         />
       </Box>
+
       {/* Right: form */}
       <Box
         sx={{
@@ -55,12 +57,13 @@ const VerifyEmail: React.FC = () => {
           px: 2,
         }}
       >
-        <Box sx={{ maxWidth: 500, width: '100%' }}>
-          <VerifyEmailForm token={token} />
+        <Box sx={{ maxWidth: 380, width: '100%' }}>
+          <SignupForm />
         </Box>
       </Box>
     </Box>
   ) : (
+    /* ─────────── Small screens: centred form only ─────────── */
     <Box
       sx={{
         display: 'flex',
@@ -72,11 +75,11 @@ const VerifyEmail: React.FC = () => {
         backgroundColor: 'background.default',
       }}
     >
-      <Box sx={{ width: '100%', maxWidth: 500, mx: 'auto' }}>
-        <VerifyEmailForm token={token} />
+      <Box sx={{ width: '100%', maxWidth: 380, mx: 'auto' }}>
+        <SignupForm />
       </Box>
     </Box>
   )
 }
 
-export default VerifyEmail
+export default Signup

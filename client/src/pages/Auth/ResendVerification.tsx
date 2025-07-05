@@ -1,15 +1,27 @@
+import React from 'react'
 import Box from '@mui/material/Box'
-import SignupForm from '../components/forms/SignupForm'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
+import ResendVerificationForm from '../../components/forms/ResendVerificationForm'
 
-const Signup = () => {
+const ResendVerification: React.FC = () => {
   const theme = useTheme()
   /**
-   * Show the hero image only on large (lg >= 1200 px) screens.
+   * Show the hero image only on large (lg ≥ 1200 px) screens.
    * On smaller viewports we collapse to a single, centred form.
    */
   const showImage = useMediaQuery(theme.breakpoints.up('lg'))
+
+  const handleSuccess = () => {
+    // Optional: Add any additional success handling here
+    console.log('Verification email sent successfully')
+  }
+
+  const handleError = (error: string) => {
+    // Optional: Add any additional error handling here
+    console.error('Resend verification error:', error)
+  }
+
   return showImage ? (
     /* ─────────── Large screens: two‑column layout ─────────── */
     <Box
@@ -33,12 +45,12 @@ const Signup = () => {
       >
         <Box
           component="img"
-          src="/assets/splashes/signinsplash2.png"
-          alt="Signup splash"
+          src="/assets/splashes/resendverificationsplash.png"
+          alt="Verification splash"
           sx={{
             width: '100%',
             height: '100vh',
-            objectPosition: '49%',
+            objectPosition: '50%',
             objectFit: 'cover',
             borderRadius: '0 16px 16px 0',
           }}
@@ -58,7 +70,7 @@ const Signup = () => {
         }}
       >
         <Box sx={{ maxWidth: 380, width: '100%' }}>
-          <SignupForm />
+          <ResendVerificationForm onSuccess={handleSuccess} onError={handleError} />
         </Box>
       </Box>
     </Box>
@@ -76,10 +88,10 @@ const Signup = () => {
       }}
     >
       <Box sx={{ width: '100%', maxWidth: 380, mx: 'auto' }}>
-        <SignupForm />
+        <ResendVerificationForm onSuccess={handleSuccess} onError={handleError} />
       </Box>
     </Box>
   )
 }
 
-export default Signup
+export default ResendVerification

@@ -1,11 +1,11 @@
-import { useEffect, useRef, RefObject } from 'react'
+import { useEffect, RefObject } from 'react'
 import gsap from 'gsap'
 
 interface SidebarAnimationRefs {
   headerRef: RefObject<HTMLDivElement | null>
   logoRef: RefObject<HTMLImageElement | null>
   navigationRef: RefObject<HTMLDivElement | null>
-  menuItemsRef: RefObject<(HTMLLIElement | null)[]>
+  menuItemsRef: RefObject<HTMLLIElement[]>
   profileRef: RefObject<HTMLDivElement | null>
 }
 
@@ -13,6 +13,17 @@ interface SidebarAnimationOptions {
   isLoaded: boolean
   selectedIndex: number
   onLoadComplete: () => void
+}
+
+interface ThemeType {
+  palette: {
+    error: {
+      light: string
+    }
+    grey: {
+      100: string
+    }
+  }
 }
 
 export const useSidebarGsapAnimation = (
@@ -28,49 +39,59 @@ export const useSidebarGsapAnimation = (
       const tl = gsap.timeline()
 
       // Animate header
-      tl.fromTo(
-        headerRef.current,
-        { y: -100, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, ease: 'back.out(1.7)' }
-      )
+      if (headerRef.current) {
+        tl.fromTo(
+          headerRef.current,
+          { y: -100, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.8, ease: 'back.out(1.7)' }
+        )
+      }
 
       // Animate logo with rotation
-      tl.fromTo(
-        logoRef.current,
-        { scale: 0, rotation: -180 },
-        { scale: 1, rotation: 0, duration: 0.6, ease: 'back.out(1.7)' },
-        '-=0.4'
-      )
+      if (logoRef.current) {
+        tl.fromTo(
+          logoRef.current,
+          { scale: 0, rotation: -180 },
+          { scale: 1, rotation: 0, duration: 0.6, ease: 'back.out(1.7)' },
+          '-=0.4'
+        )
+      }
 
       // Animate navigation section
-      tl.fromTo(
-        navigationRef.current,
-        { x: -50, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.6, ease: 'power2.out' },
-        '-=0.3'
-      )
+      if (navigationRef.current) {
+        tl.fromTo(
+          navigationRef.current,
+          { x: -50, opacity: 0 },
+          { x: 0, opacity: 1, duration: 0.6, ease: 'power2.out' },
+          '-=0.3'
+        )
+      }
 
       // Animate menu items with stagger
-      tl.fromTo(
-        menuItemsRef.current?.current || [],
-        { x: -30, opacity: 0 },
-        {
-          x: 0,
-          opacity: 1,
-          duration: 0.4,
-          stagger: 0.1,
-          ease: 'power2.out',
-        },
-        '-=0.2'
-      )
+      if (menuItemsRef.current && menuItemsRef.current.length > 0) {
+        tl.fromTo(
+          menuItemsRef.current,
+          { x: -30, opacity: 0 },
+          {
+            x: 0,
+            opacity: 1,
+            duration: 0.4,
+            stagger: 0.1,
+            ease: 'power2.out',
+          },
+          '-=0.2'
+        )
+      }
 
       // Animate profile section
-      tl.fromTo(
-        profileRef.current,
-        { y: 50, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, ease: 'back.out(1.7)' },
-        '-=0.1'
-      )
+      if (profileRef.current) {
+        tl.fromTo(
+          profileRef.current,
+          { y: 50, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.6, ease: 'back.out(1.7)' },
+          '-=0.1'
+        )
+      }
 
       // Call completion callback
       tl.call(onLoadComplete)
@@ -79,8 +100,8 @@ export const useSidebarGsapAnimation = (
 
   // Reset animations when selection changes
   useEffect(() => {
-    if (menuItemsRef.current?.current) {
-      menuItemsRef.current.current.forEach((item, i) => {
+    if (menuItemsRef.current) {
+      menuItemsRef.current.forEach((item, i) => {
         if (item && i !== selectedIndex) {
           gsap.killTweensOf(item)
           gsap.set(item, {
@@ -95,8 +116,8 @@ export const useSidebarGsapAnimation = (
 
   // Menu item hover animation
   const handleMenuItemHover = (index: number, isHovering: boolean) => {
-    if (menuItemsRef.current?.current) {
-      const item = menuItemsRef.current.current[index]
+    if (menuItemsRef.current && menuItemsRef.current[index]) {
+      const item = menuItemsRef.current[index]
       if (item && index !== selectedIndex) {
         // Kill any existing animations on this item
         gsap.killTweensOf(item)
@@ -115,9 +136,9 @@ export const useSidebarGsapAnimation = (
   const handleMenuItemClick = (index: number, onSelectionChange: (index: number) => void) => {
     if (index === selectedIndex) return
 
-    if (menuItemsRef.current?.current) {
+    if (menuItemsRef.current) {
       // Reset all menu items to default state first
-      menuItemsRef.current.current.forEach((item) => {
+      menuItemsRef.current.forEach((item) => {
         if (item) {
           gsap.set(item, {
             x: 0,
@@ -128,8 +149,8 @@ export const useSidebarGsapAnimation = (
       })
 
       // GSAP animation for menu selection
-      const currentItem = menuItemsRef.current.current[selectedIndex]
-      const newItem = menuItemsRef.current.current[index]
+      const currentItem = menuItemsRef.current[selectedIndex]
+      const newItem = menuItemsRef.current[index]
 
       if (currentItem && newItem) {
         // Animate current item out
@@ -156,8 +177,8 @@ export const useSidebarGsapAnimation = (
 
   // Menu item mouse down reset
   const handleMenuItemMouseDown = (index: number) => {
-    if (menuItemsRef.current?.current) {
-      const item = menuItemsRef.current.current[index]
+    if (menuItemsRef.current && menuItemsRef.current[index]) {
+      const item = menuItemsRef.current[index]
       if (item) {
         gsap.killTweensOf(item)
       }
@@ -192,7 +213,7 @@ export const useSidebarGsapAnimation = (
   }
 
   // Logout button hover animation
-  const handleLogoutButtonHover = (element: HTMLElement, isHovering: boolean, theme: any) => {
+  const handleLogoutButtonHover = (element: HTMLElement, isHovering: boolean, theme: ThemeType) => {
     gsap.to(element, {
       scale: isHovering ? 1.05 : 1,
       backgroundColor: isHovering ? theme.palette.error.light : theme.palette.grey[100],

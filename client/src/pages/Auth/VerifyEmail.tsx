@@ -1,29 +1,16 @@
 import React from 'react'
-import Box from '@mui/material/Box'
+import { Box } from '@mui/material'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
-import ResendVerificationForm from '../components/forms/ResendVerificationForm'
+import { useParams } from 'react-router-dom'
+import VerifyEmailForm from '../../components/forms/VerifyEmailForm'
 
-const ResendVerification: React.FC = () => {
+const VerifyEmail: React.FC = () => {
   const theme = useTheme()
-  /**
-   * Show the hero image only on large (lg ≥ 1200 px) screens.
-   * On smaller viewports we collapse to a single, centred form.
-   */
+  const { token } = useParams<{ token: string }>()
   const showImage = useMediaQuery(theme.breakpoints.up('lg'))
 
-  const handleSuccess = () => {
-    // Optional: Add any additional success handling here
-    console.log('Verification email sent successfully')
-  }
-
-  const handleError = (error: string) => {
-    // Optional: Add any additional error handling here
-    console.error('Resend verification error:', error)
-  }
-
   return showImage ? (
-    /* ─────────── Large screens: two‑column layout ─────────── */
     <Box
       sx={{
         display: 'flex',
@@ -45,8 +32,8 @@ const ResendVerification: React.FC = () => {
       >
         <Box
           component="img"
-          src="/assets/splashes/resendverificationsplash.png"
-          alt="Verification splash"
+          src="/assets/splashes/verifyemailsplash.png"
+          alt="Verify email splash"
           sx={{
             width: '100%',
             height: '100vh',
@@ -56,7 +43,6 @@ const ResendVerification: React.FC = () => {
           }}
         />
       </Box>
-
       {/* Right: form */}
       <Box
         sx={{
@@ -69,13 +55,12 @@ const ResendVerification: React.FC = () => {
           px: 2,
         }}
       >
-        <Box sx={{ maxWidth: 380, width: '100%' }}>
-          <ResendVerificationForm onSuccess={handleSuccess} onError={handleError} />
+        <Box sx={{ maxWidth: 500, width: '100%' }}>
+          <VerifyEmailForm token={token} />
         </Box>
       </Box>
     </Box>
   ) : (
-    /* ─────────── Small screens: centred form only ─────────── */
     <Box
       sx={{
         display: 'flex',
@@ -87,11 +72,11 @@ const ResendVerification: React.FC = () => {
         backgroundColor: 'background.default',
       }}
     >
-      <Box sx={{ width: '100%', maxWidth: 380, mx: 'auto' }}>
-        <ResendVerificationForm onSuccess={handleSuccess} onError={handleError} />
+      <Box sx={{ width: '100%', maxWidth: 500, mx: 'auto' }}>
+        <VerifyEmailForm token={token} />
       </Box>
     </Box>
   )
 }
 
-export default ResendVerification
+export default VerifyEmail

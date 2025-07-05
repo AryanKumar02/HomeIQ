@@ -2,19 +2,20 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { ThemeProvider, CssBaseline } from '@mui/material'
 import theme from './theme'
 import { AuthProvider } from './context/AuthContext.tsx'
-import Login from './pages/Login'
-import Signup from './pages/Signup'
-import ForgotPassword from './pages/ForgotPassword'
-import ResetPassword from './pages/ResetPassword'
-import VerifyEmail from './pages/VerifyEmail'
-import ResendVerification from './pages/ResendVerification'
-import TermsOfService from './pages/TermsOfService'
-import PrivacyPolicy from './pages/PrivacyPolicy'
+import Login from './pages/Auth/Login.tsx'
+import Signup from './pages/Auth/Signup.tsx'
+import ForgotPassword from './pages/Auth/ForgotPassword.tsx'
+import ResetPassword from './pages/Auth/ResetPassword.tsx'
+import VerifyEmail from './pages/Auth/VerifyEmail'
+import ResendVerification from './pages/Auth/ResendVerification.tsx'
+import TermsOfService from './pages/Legal/TermsOfService.tsx'
+import PrivacyPolicy from './pages/Legal/PrivacyPolicy.tsx'
 import LandingPage from './pages/LandingPage'
-import PropertyDetails from './pages/Property.tsx'
+import PropertyDetails from './pages/Properties/Property.tsx'
 import Dashboard from './pages/Dashboard'
-import EditProperty from './pages/CreateProperty.tsx'
+import EditProperty from './pages/Properties/CreateProperty.tsx'
 import ProtectedRoute from './components/ProtectedRoute.tsx'
+import ErrorBoundary from './components/ErrorBoundary.tsx'
 
 // Temporary placeholder components - replace with actual pages
 const TenantsPage = () => <div>Tenants Page</div>
@@ -26,9 +27,10 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
-        <Router>
-          <Routes>
+      <ErrorBoundary>
+        <AuthProvider>
+          <Router>
+            <Routes>
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
@@ -124,6 +126,7 @@ function App() {
           </Routes>
         </Router>
       </AuthProvider>
+    </ErrorBoundary>
     </ThemeProvider>
   )
 }

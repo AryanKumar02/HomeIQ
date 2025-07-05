@@ -10,15 +10,18 @@ import logger from './logger.js';
  */
 export const startScheduledTasks = () => {
   // Clean up temporary uploads every 24 hours
-  setInterval(async () => {
-    try {
-      logger.info('Starting scheduled S3 cleanup...');
-      await cleanupTempUploads();
-      logger.info('Scheduled S3 cleanup completed');
-    } catch (error) {
-      logger.error('Scheduled S3 cleanup failed:', error);
-    }
-  }, 24 * 60 * 60 * 1000); // 24 hours
+  setInterval(
+    async () => {
+      try {
+        logger.info('Starting scheduled S3 cleanup...');
+        await cleanupTempUploads();
+        logger.info('Scheduled S3 cleanup completed');
+      } catch (error) {
+        logger.error('Scheduled S3 cleanup failed:', error);
+      }
+    },
+    24 * 60 * 60 * 1000,
+  ); // 24 hours
 
   logger.info('Scheduled tasks started');
 };

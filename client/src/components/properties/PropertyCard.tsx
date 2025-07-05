@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import {
   Card,
-  CardMedia,
   CardContent,
   Box,
   Typography,
@@ -34,14 +33,37 @@ import {
 } from '@mui/icons-material'
 import type { Property } from '../../types/property'
 import { useCurrency } from '../../hooks/useCurrency'
+import { PropertyImage } from '../common'
 
+/**
+ * Props for the PropertyCard component
+ */
 interface PropertyCardProps {
+  /** The property data to display */
   property: Property
+  /** Callback function called when the user wants to view property details */
   onViewDetails?: (propertyId: string) => void
+  /** Callback function called when the user wants to edit the property */
   onEdit?: (propertyId: string) => void
+  /** Callback function called when the user wants to delete the property */
   onDelete?: (propertyId: string) => void
 }
 
+/**
+ * PropertyCard component displays a property in a card format with image, details, and actions.
+ * 
+ * Features:
+ * - Displays property image with fallback placeholder
+ * - Shows property status, type, and key details (bedrooms, bathrooms, etc.)
+ * - Different layouts for apartments (shows unit information) vs other property types
+ * - Interactive menu with edit/delete options
+ * - Delete confirmation dialog
+ * - Fully accessible with ARIA labels and keyboard navigation
+ * - Responsive design that works on all screen sizes
+ * 
+ * @param props - The component props
+ * @returns A card component displaying property information
+ */
 const PropertyCard: React.FC<PropertyCardProps> = ({
   property,
   onViewDetails,
@@ -55,51 +77,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   
   const menuOpen = Boolean(anchorEl)
 
-  // Get primary image or use placeholder
-  const primaryImage = property.images?.find(img => img.isPrimary)
-  const hasImage = primaryImage?.url || property.images?.[0]?.url
-  
-  // Debug logging
-  React.useEffect(() => {
-    if (hasImage) {
-      console.log('Property:', property.title, 'Image URL:', hasImage)
-    }
-  }, [hasImage, property.title])
-  
-  // Create a data URL placeholder
-  const createPlaceholder = () => {
-    const canvas = document.createElement('canvas')
-    canvas.width = 400
-    canvas.height = 200
-    const ctx = canvas.getContext('2d')
-    if (ctx) {
-      ctx.fillStyle = '#f5f5f5'
-      ctx.fillRect(0, 0, 400, 200)
-      ctx.fillStyle = '#9e9e9e'
-      ctx.font = '16px Arial'
-      ctx.textAlign = 'center'
-      ctx.fillText('Property Image', 200, 100)
-    }
-    return canvas.toDataURL()
-  }
-
-  const placeholderUrl = React.useMemo(() => createPlaceholder(), [])
-  const imageUrl = hasImage || placeholderUrl
-
-  // Handle image error
-  const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
-    // Prevent infinite loop by checking if we're already showing placeholder
-    if (event.currentTarget.src !== placeholderUrl) {
-      console.log('Image failed to load:', event.currentTarget.src)
-      console.log('Error details:', event)
-      
-      // Test if it's a CORS issue by trying to fetch the URL
-      fetch(event.currentTarget.src, { mode: 'no-cors' })
-        .then(() => console.log('Image exists but CORS issue'))
-        .catch(err => console.log('Image fetch error:', err))
-      
-      event.currentTarget.src = placeholderUrl
-    }
+  // Handle image error (PropertyImage component handles its own errors)
+  const handleImageError = () => {
+    // PropertyImage component handles its own error states
+    console.warn('Image error in PropertyCard - handled by PropertyImage component')
   }
 
   // Format price using localized currency
@@ -201,12 +182,20 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
 
   return (
     <Card
+      component="article"
+      role="button"
+      tabIndex={0}
+      aria-label={`Property: ${property.title}. Click to view details.`}
       sx={{
         borderRadius: 2,
         boxShadow: '0 2px 8px 0 rgba(0, 0, 0, 0.1)',
         transition: 'box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         '&:hover': {
           boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.15)',
+        },
+        '&:focus': {
+          outline: `2px solid ${theme.palette.secondary.main}`,
+          outlineOffset: '2px',
         },
         cursor: 'pointer',
         width: '320px',
@@ -218,25 +207,28 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         flexShrink: 0,
       }}
       onClick={handleViewDetails}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          handleViewDetails()
+        }
+      }}
     >
       {/* Image Section - 50% of card height */}
       <Box sx={{ position: 'relative', height: '160px', flex: '0 0 auto' }}>
-        <CardMedia
-          component="img"
-          height="160"
-          image={imageUrl}
-          alt={property.title}
+        <PropertyImage
+          images={property.images?.map(img => img.url) || []}
+          title={property.title}
+          width="100%"
+          height={160}
+          interactive={true}
           onError={handleImageError}
-          sx={{
-            objectFit: 'cover',
-            borderTopLeftRadius: 2,
-            borderTopRightRadius: 2,
-          }}
         />
         
         {/* Status Badge - Bottom Right */}
         <Chip
           label={statusConfig.label}
+          aria-label={`Property status: ${statusConfig.label}`}
           sx={{
             position: 'absolute',
             bottom: 12,
@@ -284,6 +276,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Menu Button */}
         <IconButton
           onClick={handleMenuClick}
+          aria-label={`Property options for ${property.title}`}
+          aria-haspopup="true"
+          aria-expanded={menuOpen}
           sx={{
             position: 'absolute',
             top: 8,
@@ -292,6 +287,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             backdropFilter: 'blur(4px)',
             '&:hover': {
               backgroundColor: 'rgba(255, 255, 255, 1)',
+            },
+            '&:focus': {
+              outline: `2px solid ${theme.palette.secondary.main}`,
+              outlineOffset: '2px',
             },
             width: 32,
             height: 32,
@@ -614,6 +613,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           variant="contained"
           fullWidth
           onClick={handleViewDetails}
+          aria-label={`View details of ${property.title}`}
           sx={{
             backgroundColor: theme.palette.secondary.main,
             borderRadius: 2,
@@ -625,6 +625,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             height: '36px',
             '&:hover': {
               backgroundColor: theme.palette.secondary.dark,
+            },
+            '&:focus': {
+              outline: `2px solid ${theme.palette.secondary.main}`,
+              outlineOffset: '2px',
             },
           }}
         >
@@ -645,6 +649,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           vertical: 'top',
           horizontal: 'left',
         }}
+        MenuListProps={{
+          'aria-labelledby': 'property-options-button',
+          role: 'menu',
+        }}
         sx={{
           '& .MuiPaper-root': {
             borderRadius: 2,
@@ -653,12 +661,19 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           },
         }}
       >
-        <MenuItem onClick={handleEdit} sx={{ py: 1, px: 2 }}>
+        <MenuItem 
+          onClick={handleEdit} 
+          role="menuitem"
+          aria-label={`Edit ${property.title}`}
+          sx={{ py: 1, px: 2 }}
+        >
           <EditIcon sx={{ mr: 1, fontSize: '1.1rem' }} />
           Edit Property
         </MenuItem>
         <MenuItem 
-          onClick={handleDeleteClick} 
+          onClick={handleDeleteClick}
+          role="menuitem"
+          aria-label={`Delete ${property.title}`}
           sx={{ 
             py: 1, 
             px: 2,
@@ -680,23 +695,26 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         onClose={handleDeleteCancel}
         maxWidth="sm"
         fullWidth
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
         sx={{
           '& .MuiDialog-paper': {
             borderRadius: 2,
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 600 }}>
+        <DialogTitle id="delete-dialog-title" sx={{ fontWeight: 600 }}>
           Delete Property
         </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ fontSize: '1rem' }}>
+          <DialogContentText id="delete-dialog-description" sx={{ fontSize: '1rem' }}>
             Are you sure you want to delete &ldquo;{property.title}&rdquo;? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 1 }}>
           <Button 
             onClick={handleDeleteCancel}
+            aria-label="Cancel deletion"
             sx={{ 
               borderRadius: 2,
               textTransform: 'none',
@@ -709,6 +727,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             onClick={handleDeleteConfirm}
             variant="contained"
             color="error"
+            aria-label={`Confirm deletion of ${property.title}`}
             sx={{ 
               borderRadius: 2,
               textTransform: 'none',

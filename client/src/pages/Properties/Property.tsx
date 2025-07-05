@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Typography, CircularProgress, Alert } from '@mui/material'
+import { Box, Typography, Alert } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import Sidebar from '../components/properties/Sidebar'
-import Titlebar from '../components/properties/Titlebar'
-import PropertyCard from '../components/properties/PropertyCard'
-import { Pagination } from '../components/common'
-import { getAllProperties, deleteProperty } from '../services/property'
-import type { Property } from '../services/property'
+import Sidebar from '../../components/properties/Sidebar'
+import Titlebar from '../../components/properties/Titlebar'
+import PropertyCard from '../../components/properties/PropertyCard'
+import ErrorBoundary from '../../components/ErrorBoundary'
+import { Pagination, PropertyCardSkeletonGrid, SkipLink } from '../../components/common'
+import { getAllProperties, deleteProperty } from '../../services/property'
+import type { Property } from '../../services/property'
 
 const PropertyDetails: React.FC = () => {
   const navigate = useNavigate()
@@ -130,6 +131,10 @@ const PropertyDetails: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* Skip Links for Accessibility */}
+      <SkipLink href="#main-content">Skip to main content</SkipLink>
+      <SkipLink href="#properties-list">Skip to properties</SkipLink>
+
       {/* Titlebar at the top */}
       <Box
         sx={{
@@ -155,48 +160,12 @@ const PropertyDetails: React.FC = () => {
       {/* Main layout with sidebar and content */}
       <Box sx={{ display: 'flex', flexGrow: 1, pt: { xs: '80px', md: '100px' } }}>
         <Sidebar />
-        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        <Box component="main" id="main-content" tabIndex={-1} sx={{ flexGrow: 1, p: 3 }}>
           {/* Properties content */}
-          <Box sx={{ mb: 3 }}>
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 700,
-                mb: 1,
-                fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
-              }}
-            >
-              Properties
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: 'grey.600',
-                mb: 2,
-              }}
-            >
-              {loading ? (
-                'Loading properties...'
-              ) : error ? (
-                `Error loading properties`
-              ) : (
-                `You have ${filteredProperties.length} ${filteredProperties.length === 1 ? 'property' : 'properties'}${searchTerm ? ` matching "${searchTerm}"` : ''}`
-              )}
-            </Typography>
-          </Box>
 
           {/* Loading State */}
           {loading && (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                py: 8,
-              }}
-            >
-              <CircularProgress />
-            </Box>
+            <PropertyCardSkeletonGrid count={propertiesPerPage} />
           )}
 
           {/* Error State */}
@@ -211,6 +180,8 @@ const PropertyDetails: React.FC = () => {
             <>
               {filteredProperties.length === 0 ? (
                 <Box
+                  role="status"
+                  aria-live="polite"
                   sx={{
                     textAlign: 'center',
                     py: 8,
@@ -233,6 +204,10 @@ const PropertyDetails: React.FC = () => {
                 <>
                   {/* Properties Grid - Flexbox layout */}
                   <Box
+                    component="section"
+                    id="properties-list"
+                    aria-label="Properties list"
+                    tabIndex={-1}
                     sx={{
                       display: 'flex',
                       flexWrap: 'wrap',
@@ -242,13 +217,14 @@ const PropertyDetails: React.FC = () => {
                     }}
                   >
                     {currentProperties.map((property) => (
-                      <PropertyCard
-                        key={property._id}
-                        property={property}
-                        onViewDetails={handleViewDetails}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                      />
+                      <ErrorBoundary key={property._id}>
+                        <PropertyCard
+                          property={property}
+                          onViewDetails={handleViewDetails}
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
+                        />
+                      </ErrorBoundary>
                     ))}
                   </Box>
 

@@ -16,19 +16,19 @@ import { s3Client } from '../config/s3.js';
 export const deleteAllPropertyImages = async (userId, propertyId) => {
   try {
     const prefix = `users/${userId}/properties/${propertyId}/`;
-    
+
     // List all objects with this prefix
     const listCommand = new ListObjectsV2Command({
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Prefix: prefix,
     });
-    
+
     const listedObjects = await s3Client.send(listCommand);
-    
+
     if (!listedObjects.Contents || listedObjects.Contents.length === 0) {
       return true; // No objects to delete
     }
-    
+
     // Delete all objects
     const deletePromises = listedObjects.Contents.map(object => {
       const deleteCommand = new DeleteObjectCommand({
@@ -37,9 +37,9 @@ export const deleteAllPropertyImages = async (userId, propertyId) => {
       });
       return s3Client.send(deleteCommand);
     });
-    
+
     await Promise.all(deletePromises);
-    
+
     console.log(`Deleted ${listedObjects.Contents.length} images for property ${propertyId}`);
     return true;
   } catch (error) {
@@ -53,22 +53,22 @@ export const deleteAllPropertyImages = async (userId, propertyId) => {
  * @param {string} userId - The user ID
  * @returns {Promise<boolean>} - Success status
  */
-export const deleteAllUserData = async (userId) => {
+export const deleteAllUserData = async userId => {
   try {
     const prefix = `users/${userId}/`;
-    
+
     // List all objects for this user
     const listCommand = new ListObjectsV2Command({
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Prefix: prefix,
     });
-    
+
     const listedObjects = await s3Client.send(listCommand);
-    
+
     if (!listedObjects.Contents || listedObjects.Contents.length === 0) {
       return true; // No objects to delete
     }
-    
+
     // Delete all objects in batches (S3 has a 1000 object limit per delete request)
     const deletePromises = listedObjects.Contents.map(object => {
       const deleteCommand = new DeleteObjectCommand({
@@ -77,9 +77,9 @@ export const deleteAllUserData = async (userId) => {
       });
       return s3Client.send(deleteCommand);
     });
-    
+
     await Promise.all(deletePromises);
-    
+
     console.log(`Deleted all data for user ${userId} (${listedObjects.Contents.length} objects)`);
     return true;
   } catch (error) {
@@ -93,17 +93,17 @@ export const deleteAllUserData = async (userId) => {
  * @param {string} userId - The user ID
  * @returns {Promise<Object>} - Storage statistics
  */
-export const getUserStorageStats = async (userId) => {
+export const getUserStorageStats = async userId => {
   try {
     const prefix = `users/${userId}/`;
-    
+
     const listCommand = new ListObjectsV2Command({
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Prefix: prefix,
     });
-    
+
     const listedObjects = await s3Client.send(listCommand);
-    
+
     if (!listedObjects.Contents || listedObjects.Contents.length === 0) {
       return {
         totalFiles: 0,
@@ -112,10 +112,10 @@ export const getUserStorageStats = async (userId) => {
         properties: 0,
       };
     }
-    
+
     const totalSizeBytes = listedObjects.Contents.reduce((sum, obj) => sum + (obj.Size || 0), 0);
     const totalSizeMB = Math.round((totalSizeBytes / (1024 * 1024)) * 100) / 100;
-    
+
     // Count unique properties
     const propertyIds = new Set();
     listedObjects.Contents.forEach(obj => {
@@ -124,7 +124,7 @@ export const getUserStorageStats = async (userId) => {
         propertyIds.add(pathParts[3]);
       }
     });
-    
+
     return {
       totalFiles: listedObjects.Contents.length,
       totalSizeBytes,
@@ -164,27 +164,27 @@ export const cleanupTempUploads = async () => {
   try {
     const tempPrefix = 'temp/';
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    
+
     const listCommand = new ListObjectsV2Command({
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Prefix: tempPrefix,
     });
-    
+
     const listedObjects = await s3Client.send(listCommand);
-    
+
     if (!listedObjects.Contents || listedObjects.Contents.length === 0) {
       return true;
     }
-    
+
     // Filter objects older than 24 hours
-    const oldObjects = listedObjects.Contents.filter(obj => 
-      obj.LastModified && obj.LastModified < oneDayAgo
+    const oldObjects = listedObjects.Contents.filter(
+      obj => obj.LastModified && obj.LastModified < oneDayAgo,
     );
-    
+
     if (oldObjects.length === 0) {
       return true;
     }
-    
+
     // Delete old objects
     const deletePromises = oldObjects.map(object => {
       const deleteCommand = new DeleteObjectCommand({
@@ -193,9 +193,9 @@ export const cleanupTempUploads = async () => {
       });
       return s3Client.send(deleteCommand);
     });
-    
+
     await Promise.all(deletePromises);
-    
+
     console.log(`Cleaned up ${oldObjects.length} temporary files`);
     return true;
   } catch (error) {
