@@ -21,6 +21,11 @@ const EditProperty: React.FC = () => {
   const currencySymbol = CURRENCY_CONFIG[currency].symbol
   const { id: propertyId } = useParams<{ id: string }>()
 
+  // Helper function to determine if rental fields should be shown
+  const shouldShowRentalFields = (status: string) => {
+    return status === 'occupied' || status === 'pending'
+  }
+
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -1213,28 +1218,30 @@ const EditProperty: React.FC = () => {
                     Current status and occupancy information
                   </Typography>
                 </Box>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={formData.occupancy.isOccupied}
-                      onChange={(e) => handleInputChange('occupancy.isOccupied', e.target.checked)}
-                      sx={{
-                        '& .MuiSwitch-switchBase.Mui-checked': {
-                          color: theme.palette.secondary.main,
-                        },
-                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                          backgroundColor: theme.palette.secondary.main,
-                        },
-                      }}
-                    />
-                  }
-                  label="Currently Occupied"
-                  labelPlacement="start"
-                  sx={{ m: 0 }}
-                />
+                {shouldShowRentalFields(formData.status) && (
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={formData.occupancy.isOccupied}
+                        onChange={(e) => handleInputChange('occupancy.isOccupied', e.target.checked)}
+                        sx={{
+                          '& .MuiSwitch-switchBase.Mui-checked': {
+                            color: theme.palette.secondary.main,
+                          },
+                          '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                            backgroundColor: theme.palette.secondary.main,
+                          },
+                        }}
+                      />
+                    }
+                    label="Currently Occupied"
+                    labelPlacement="start"
+                    sx={{ m: 0 }}
+                  />
+                )}
               </Box>
 
-              {formData.occupancy.isOccupied && (
+              {shouldShowRentalFields(formData.status) && formData.occupancy.isOccupied && (
                 <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
                   {/* Lease Start Date - Left Column */}
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -1440,68 +1447,74 @@ const EditProperty: React.FC = () => {
                     </Grid>
                   </Grid>
 
-                  {/* Rental Information */}
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
-                    Rental Information
-                  </Typography>
-                  <Grid container spacing={3} sx={{ mb: 3 }}>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <TextField
-                        fullWidth
-                        label="Monthly Rent"
-                        type="number"
-                        value={unit.monthlyRent}
-                        onChange={(e) => handleInputChange(`units.${index}.monthlyRent`, e.target.value)}
-                        placeholder="e.g., 1200"
-                        variant="outlined"
-                        sx={textFieldStyles}
-                        slotProps={{
-                          htmlInput: { min: 0 }
-                        }}
-                      />
-                    </Grid>
-
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <TextField
-                        fullWidth
-                        label="Security Deposit"
-                        type="number"
-                        value={unit.securityDeposit}
-                        onChange={(e) => handleInputChange(`units.${index}.securityDeposit`, e.target.value)}
-                        placeholder="e.g., 1200"
-                        variant="outlined"
-                        sx={textFieldStyles}
-                        slotProps={{
-                          htmlInput: { min: 0 }
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-
-                  {/* Occupancy Information */}
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
-                    Occupancy Information
-                  </Typography>
-                  <Grid container spacing={3} sx={{ mb: 3 }}>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={unit.occupancy.isOccupied}
-                            onChange={(e) => handleInputChange(`units.${index}.occupancy.isOccupied`, e.target.checked)}
-                            sx={{
-                              '& .MuiSwitch-switchBase.Mui-checked': {
-                                color: theme.palette.secondary.main,
-                              },
-                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                backgroundColor: theme.palette.secondary.main,
-                              },
+                  {/* Rental Information - only show when unit is occupied/pending */}
+                  {shouldShowRentalFields(unit.status) && (
+                    <>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
+                        Rental Information
+                      </Typography>
+                      <Grid container spacing={3} sx={{ mb: 3 }}>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                          <TextField
+                            fullWidth
+                            label="Monthly Rent"
+                            type="number"
+                            value={unit.monthlyRent}
+                            onChange={(e) => handleInputChange(`units.${index}.monthlyRent`, e.target.value)}
+                            placeholder="e.g., 1200"
+                            variant="outlined"
+                            sx={textFieldStyles}
+                            slotProps={{
+                              htmlInput: { min: 0 }
                             }}
                           />
-                        }
-                        label="Currently Occupied"
-                      />
-                    </Grid>
+                        </Grid>
+
+                        <Grid size={{ xs: 12, md: 6 }}>
+                          <TextField
+                            fullWidth
+                            label="Security Deposit"
+                            type="number"
+                            value={unit.securityDeposit}
+                            onChange={(e) => handleInputChange(`units.${index}.securityDeposit`, e.target.value)}
+                            placeholder="e.g., 1200"
+                            variant="outlined"
+                            sx={textFieldStyles}
+                            slotProps={{
+                              htmlInput: { min: 0 }
+                            }}
+                          />
+                        </Grid>
+                      </Grid>
+                    </>
+                  )}
+
+                  {/* Occupancy Information - only show when unit is occupied/pending */}
+                  {shouldShowRentalFields(unit.status) && (
+                    <>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
+                        Occupancy Information
+                      </Typography>
+                      <Grid container spacing={3} sx={{ mb: 3 }}>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                checked={unit.occupancy.isOccupied}
+                                onChange={(e) => handleInputChange(`units.${index}.occupancy.isOccupied`, e.target.checked)}
+                                sx={{
+                                  '& .MuiSwitch-switchBase.Mui-checked': {
+                                    color: theme.palette.secondary.main,
+                                  },
+                                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                    backgroundColor: theme.palette.secondary.main,
+                                  },
+                                }}
+                              />
+                            }
+                            label="Currently Occupied"
+                          />
+                        </Grid>
 
                     {unit.occupancy.isOccupied && (
                       <>
@@ -1570,7 +1583,9 @@ const EditProperty: React.FC = () => {
                         </Grid>
                       </>
                     )}
-                  </Grid>
+                      </Grid>
+                    </>
+                  )}
 
                   {/* Features */}
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
@@ -1690,75 +1705,80 @@ const EditProperty: React.FC = () => {
                 </Grid>
               </Grid>
 
-              {/* Divider */}
-              <Divider sx={{ my: 4 }} />
+              {/* Rental Income Section - only show when property is occupied/pending */}
+              {shouldShowRentalFields(formData.status) && (
+                <>
+                  {/* Divider */}
+                  <Divider sx={{ my: 4 }} />
 
-              {/* Rental Income Section */}
-              <Typography
-                variant="h6"
-                sx={{
-                  mb: 3,
-                  fontWeight: 600,
-                  fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.25rem' },
-                  color: 'text.primary'
-                }}
-              >
-                Rental Income
-              </Typography>
+                  {/* Rental Income Section */}
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      mb: 3,
+                      fontWeight: 600,
+                      fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.25rem' },
+                      color: 'text.primary'
+                    }}
+                  >
+                    Rental Income
+                  </Typography>
 
-              <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    label="Monthly Rent"
-                    type="number"
-                    value={formData.financials.monthlyRent}
-                    onChange={(e) => handleInputChange('financials.monthlyRent', e.target.value)}
-                    placeholder="2500"
-                    fullWidth
-                    slotProps={{
-                      input: {
-                        startAdornment: <Box sx={{ mr: 1, color: 'text.secondary' }}>{currencySymbol}</Box>,
-                      }
-                    }}
-                    sx={textFieldStyles}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    label="Security Deposit"
-                    type="number"
-                    value={formData.financials.securityDeposit}
-                    onChange={(e) => handleInputChange('financials.securityDeposit', e.target.value)}
-                    placeholder="2500"
-                    fullWidth
-                    slotProps={{
-                      input: {
-                        startAdornment: <Box sx={{ mr: 1, color: 'text.secondary' }}>{currencySymbol}</Box>,
-                      }
-                    }}
-                    sx={textFieldStyles}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    label="Pet Deposit"
-                    type="number"
-                    value={formData.financials.petDeposit}
-                    onChange={(e) => handleInputChange('financials.petDeposit', e.target.value)}
-                    placeholder="500"
-                    fullWidth
-                    slotProps={{
-                      input: {
-                        startAdornment: <Box sx={{ mr: 1, color: 'text.secondary' }}>{currencySymbol}</Box>,
-                      }
-                    }}
-                    sx={textFieldStyles}
-                  />
-                </Grid>
-              </Grid>
+                  <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <TextField
+                        label="Monthly Rent"
+                        type="number"
+                        value={formData.financials.monthlyRent}
+                        onChange={(e) => handleInputChange('financials.monthlyRent', e.target.value)}
+                        placeholder="2500"
+                        fullWidth
+                        slotProps={{
+                          input: {
+                            startAdornment: <Box sx={{ mr: 1, color: 'text.secondary' }}>{currencySymbol}</Box>,
+                          }
+                        }}
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <TextField
+                        label="Security Deposit"
+                        type="number"
+                        value={formData.financials.securityDeposit}
+                        onChange={(e) => handleInputChange('financials.securityDeposit', e.target.value)}
+                        placeholder="2500"
+                        fullWidth
+                        slotProps={{
+                          input: {
+                            startAdornment: <Box sx={{ mr: 1, color: 'text.secondary' }}>{currencySymbol}</Box>,
+                          }
+                        }}
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <TextField
+                        label="Pet Deposit"
+                        type="number"
+                        value={formData.financials.petDeposit}
+                        onChange={(e) => handleInputChange('financials.petDeposit', e.target.value)}
+                        placeholder="500"
+                        fullWidth
+                        slotProps={{
+                          input: {
+                            startAdornment: <Box sx={{ mr: 1, color: 'text.secondary' }}>{currencySymbol}</Box>,
+                          }
+                        }}
+                        sx={textFieldStyles}
+                      />
+                    </Grid>
+                  </Grid>
 
-              {/* Divider */}
-              <Divider sx={{ my: 4 }} />
+                  {/* Divider */}
+                  <Divider sx={{ my: 4 }} />
+                </>
+              )}
 
               {/* Monthly Expenses Section */}
               <Typography

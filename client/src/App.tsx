@@ -13,7 +13,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy'
 import LandingPage from './pages/LandingPage'
 import PropertyDetails from './pages/Property.tsx'
 import Dashboard from './pages/Dashboard'
-import EditProperty from './pages/EditProperty'
+import EditProperty from './pages/CreateProperty.tsx'
 import ProtectedRoute from './components/ProtectedRoute.tsx'
 
 // Temporary placeholder components - replace with actual pages

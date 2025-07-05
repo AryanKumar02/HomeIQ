@@ -110,8 +110,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
 
   // Format address
   const formatAddress = () => {
+    if (!property.address) return 'Address not available'
     const { street, city, state } = property.address
-    return `${street}, ${city}, ${state}`
+    const parts = [street, city, state].filter(Boolean)
+    return parts.length > 0 ? parts.join(', ') : 'Address not available'
   }
 
   // Get status color and label
@@ -152,7 +154,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       case 'land':
         return { icon: LandIcon, label: 'Land' }
       default:
-        return { icon: HomeIcon, label: property.propertyType }
+        return { icon: HomeIcon, label: property.propertyType || 'Property' }
     }
   }
 
@@ -388,8 +390,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                     >
                       Total Revenue: {formatPropertyPrice(
                         property.units.reduce((total, unit) => {
+                          if (!unit.monthlyRent) return total
                           const rent = typeof unit.monthlyRent === 'string' ? parseFloat(unit.monthlyRent) : unit.monthlyRent
-                          return total + (isNaN(rent) ? 0 : rent)
+                          return total + (isNaN(rent) || rent < 0 ? 0 : rent)
                         }, 0)
                       )} /month
                     </Typography>
@@ -433,7 +436,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                                   fontSize: '0.8rem',
                                 }}
                               >
-                                Unit {unit.unitNumber}: {unit.bedrooms}BR/{unit.bathrooms}BA
+                                Unit {unit.unitNumber || 'N/A'}: {unit.bedrooms || 0}BR/{unit.bathrooms || 0}BA
                               </Typography>
                               <Box
                                 sx={{
@@ -453,12 +456,14 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                             <Typography
                               variant="body2"
                               sx={{
-                                color: unit.status === 'available' ? theme.palette.secondary.main : theme.palette.grey[500],
+                                color: unit.status === 'available' || unit.status === 'occupied' 
+                                  ? theme.palette.secondary.main 
+                                  : theme.palette.grey[500],
                                 fontSize: '0.8rem',
                                 fontWeight: 600,
                               }}
                             >
-                              {unit.status === 'available' ? formatPropertyPrice(unit.monthlyRent) : '--'} /mo
+                              {unit.monthlyRent && (unit.status === 'available' || unit.status === 'occupied') ? formatPropertyPrice(unit.monthlyRent) : '--'} /mo
                             </Typography>
                           </Box>
                         )
@@ -517,7 +522,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                   mb: 0.5,
                 }}
               >
-                {formatPropertyPrice(property.financials.monthlyRent)} /month
+                {formatPropertyPrice(property.financials?.monthlyRent)} /month
               </Typography>
 
               {/* Bedroom and Bathroom Info */}
@@ -531,7 +536,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                       fontSize: '0.85rem',
                     }}
                   >
-                    {property.bedrooms} bed
+                    {property.bedrooms || 0} bed
                   </Typography>
                 </Box>
                 <Typography
@@ -549,7 +554,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                       fontSize: '0.85rem',
                     }}
                   >
-                    {property.bathrooms} bath
+                    {property.bathrooms || 0} bath
                   </Typography>
                 </Box>
               </Box>
@@ -633,12 +638,12 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         open={menuOpen}
         onClose={handleMenuClose}
         anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
+          vertical: 'top',
+          horizontal: 'left',
         }}
         transformOrigin={{
           vertical: 'top',
-          horizontal: 'right',
+          horizontal: 'left',
         }}
         sx={{
           '& .MuiPaper-root': {
