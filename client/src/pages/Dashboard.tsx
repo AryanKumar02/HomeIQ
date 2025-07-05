@@ -51,7 +51,9 @@ const Dashboard: React.FC = () => {
               boxShadow: '0 2px 8px 0 rgba(0,0,0,0.1)',
             }}
           >
-            <Typography variant="h4" sx={{ mb: 3 }}>Dashboard Overview</Typography>
+            <Typography variant="h4" sx={{ mb: 3 }}>
+              Dashboard Overview
+            </Typography>
             <Typography>Welcome to your property management dashboard!</Typography>
           </Box>
         </Box>

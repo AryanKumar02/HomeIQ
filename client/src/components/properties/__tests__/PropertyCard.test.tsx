@@ -19,16 +19,14 @@ window.IntersectionObserver = mockIntersectionObserver
 // Mock the useCurrency hook
 vi.mock('../../../hooks/useCurrency', () => ({
   useCurrency: () => ({
-    formatPrice: (price: number) => `$${price.toLocaleString()}`
-  })
+    formatPrice: (price: number) => `$${price.toLocaleString()}`,
+  }),
 }))
 
 // Test wrapper component
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <BrowserRouter>
-    <ThemeProvider theme={theme}>
-      {children}
-    </ThemeProvider>
+    <ThemeProvider theme={theme}>{children}</ThemeProvider>
   </BrowserRouter>
 )
 
@@ -43,7 +41,7 @@ const mockProperty: Property = {
     city: 'Test City',
     state: 'Test State',
     zipCode: '12345',
-    country: 'United States'
+    country: 'United States',
   },
   bedrooms: 3,
   bathrooms: 2,
@@ -56,7 +54,7 @@ const mockProperty: Property = {
     leaseStart: '',
     leaseEnd: '',
     leaseType: 'month-to-month',
-    rentDueDate: 1
+    rentDueDate: 1,
   },
   financials: {
     propertyValue: 300000,
@@ -69,7 +67,7 @@ const mockProperty: Property = {
     propertyTaxes: 300,
     insurance: 100,
     maintenance: 200,
-    utilities: 150
+    utilities: 150,
   },
   features: {
     parking: 'garage',
@@ -79,19 +77,19 @@ const mockProperty: Property = {
     petPolicy: {
       allowed: true,
       types: ['dogs', 'cats'],
-      maxPets: 2
+      maxPets: 2,
     },
-    amenities: ['pool', 'gym']
+    amenities: ['pool', 'gym'],
   },
   images: [
     {
       url: 'https://example.com/image1.jpg',
       caption: 'Front view',
       isPrimary: true,
-      uploadedAt: '2024-01-01T00:00:00Z'
-    }
+      uploadedAt: '2024-01-01T00:00:00Z',
+    },
   ],
-  units: []
+  units: [],
 }
 
 const mockApartmentProperty: Property = {
@@ -114,13 +112,13 @@ const mockApartmentProperty: Property = {
         leaseStart: '',
         leaseEnd: '',
         leaseType: 'month-to-month',
-        rentDueDate: 1
+        rentDueDate: 1,
       },
       features: {
         parking: 'assigned',
         balcony: true,
-        amenities: ['pool']
-      }
+        amenities: ['pool'],
+      },
     },
     {
       _id: 'unit2',
@@ -136,15 +134,15 @@ const mockApartmentProperty: Property = {
         leaseStart: '2024-01-01',
         leaseEnd: '2024-12-31',
         leaseType: 'fixed-term',
-        rentDueDate: 1
+        rentDueDate: 1,
       },
       features: {
         parking: 'none',
         balcony: false,
-        amenities: []
-      }
-    }
-  ]
+        amenities: [],
+      },
+    },
+  ],
 }
 
 describe('PropertyCard', () => {
@@ -296,10 +294,10 @@ describe('PropertyCard', () => {
       const menuButton = screen.getByLabelText('Property options for Beautiful Test House')
       expect(menuButton).toBeInTheDocument()
       expect(menuButton).toHaveAttribute('aria-expanded', 'false')
-      
+
       // Click to open menu
       fireEvent.click(menuButton)
-      
+
       // Menu should be expanded
       expect(menuButton).toHaveAttribute('aria-expanded', 'true')
     })
@@ -319,7 +317,7 @@ describe('PropertyCard', () => {
       const menuButton = screen.getByLabelText('Property options for Beautiful Test House')
       expect(menuButton).toHaveAttribute('aria-haspopup', 'true')
       expect(menuButton).toHaveAttribute('aria-expanded', 'false')
-      
+
       // Verify clicking changes expanded state
       fireEvent.click(menuButton)
       expect(menuButton).toHaveAttribute('aria-expanded', 'true')
@@ -340,7 +338,7 @@ describe('PropertyCard', () => {
       const menuButton = screen.getByLabelText('Property options for Beautiful Test House')
       expect(menuButton).toHaveAttribute('aria-haspopup', 'true')
       expect(menuButton).toHaveAttribute('aria-expanded', 'false')
-      
+
       // Test accessibility attributes remain correct after interactions
       fireEvent.click(menuButton)
       expect(menuButton).toHaveAttribute('aria-haspopup', 'true')
@@ -379,10 +377,10 @@ describe('PropertyCard', () => {
       )
 
       const image = screen.getByAltText('Property image of Beautiful Test House')
-      
+
       // Simulate image error
       fireEvent.error(image)
-      
+
       // Should still be in the document but with placeholder
       expect(image).toBeInTheDocument()
     })
@@ -392,7 +390,7 @@ describe('PropertyCard', () => {
     test('handles property without images', () => {
       const propertyWithoutImages = {
         ...mockProperty,
-        images: []
+        images: [],
       }
 
       render(
@@ -417,8 +415,8 @@ describe('PropertyCard', () => {
         ...mockProperty,
         financials: {
           ...mockProperty.financials,
-          monthlyRent: 0
-        }
+          monthlyRent: 0,
+        },
       }
 
       render(
@@ -439,7 +437,7 @@ describe('PropertyCard', () => {
       const apartmentWithoutUnits = {
         ...mockProperty,
         propertyType: 'apartment' as const,
-        units: []
+        units: [],
       }
 
       render(
@@ -464,11 +462,11 @@ describe('PropertyCard', () => {
       ['occupied', 'Occupied'],
       ['maintenance', 'Maintenance'],
       ['off-market', 'Off Market'],
-      ['pending', 'Pending']
+      ['pending', 'Pending'],
     ])('displays %s status correctly', (status, expectedLabel) => {
       const propertyWithStatus = {
         ...mockProperty,
-        status: status as Property['status']
+        status: status as Property['status'],
       }
 
       render(

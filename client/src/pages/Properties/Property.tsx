@@ -70,10 +70,10 @@ const PropertyDetails: React.FC = () => {
         // Check if the API call was successful (including 204 No Content)
         if (response.success || response.status === 'success' || response === undefined) {
           // Remove property from state
-          setProperties(prev => prev.filter(p => p._id !== propertyId))
+          setProperties((prev) => prev.filter((p) => p._id !== propertyId))
 
           // Adjust current page if necessary
-          const remainingProperties = properties.filter(p => p._id !== propertyId)
+          const remainingProperties = properties.filter((p) => p._id !== propertyId)
           const newTotalPages = Math.ceil(remainingProperties.length / propertiesPerPage)
           if (currentPage > newTotalPages && newTotalPages > 0) {
             setCurrentPage(newTotalPages)
@@ -108,10 +108,11 @@ const PropertyDetails: React.FC = () => {
   }
 
   // Filter properties based on search term
-  const filteredProperties = properties.filter(property =>
-    property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    property.address.street.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    property.address.city.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProperties = properties.filter(
+    (property) =>
+      property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.address.street.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.address.city.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   // Calculate pagination
@@ -164,9 +165,7 @@ const PropertyDetails: React.FC = () => {
           {/* Properties content */}
 
           {/* Loading State */}
-          {loading && (
-            <PropertyCardSkeletonGrid count={propertiesPerPage} />
-          )}
+          {loading && <PropertyCardSkeletonGrid count={propertiesPerPage} />}
 
           {/* Error State */}
           {error && (
@@ -213,7 +212,7 @@ const PropertyDetails: React.FC = () => {
                       flexWrap: 'wrap',
                       gap: 3,
                       mb: 4,
-                      justifyContent: { xs: 'center', sm: 'flex-start' }
+                      justifyContent: { xs: 'center', sm: 'flex-start' },
                     }}
                   >
                     {currentProperties.map((property) => (

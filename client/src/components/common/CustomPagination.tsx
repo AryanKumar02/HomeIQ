@@ -34,7 +34,7 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
   // Calculate which pages to show
   const getVisiblePages = () => {
     const pages: (number | string)[] = []
-    
+
     if (totalPages <= maxVisiblePages) {
       // Show all pages if total is less than max
       for (let i = 1; i <= totalPages; i++) {

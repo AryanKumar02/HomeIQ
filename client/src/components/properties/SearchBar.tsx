@@ -5,13 +5,13 @@ import SearchIcon from '@mui/icons-material/Search'
 interface SearchBarProps {
   onSearch?: (term: string) => void
   placeholder?: string
-  width?: { xs: number | string, sm: number | string, md: number | string }
+  width?: { xs: number | string; sm: number | string; md: number | string }
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
   onSearch,
-  placeholder = "Search...",
-  width = { xs: 200, sm: 250, md: 300 }
+  placeholder = 'Search...',
+  width = { xs: 200, sm: 250, md: 300 },
 }) => {
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -43,7 +43,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
           '& fieldset': {
             borderColor: 'rgba(0, 0, 0, 0.12)', // Default light grey
             borderWidth: '1px',
-            transition: 'border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition:
+              'border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           },
           '&:hover fieldset': {
             borderColor: 'rgba(0, 0, 0, 0.23)', // Darker grey on hover

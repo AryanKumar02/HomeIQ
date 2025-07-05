@@ -47,37 +47,20 @@ describe('PropertyImage', () => {
 
   describe('Basic Rendering', () => {
     test('renders with single image', () => {
-      render(
-        <PropertyImage
-          images={[mockImages[0]]}
-          title="Test Property"
-        />
-      )
+      render(<PropertyImage images={[mockImages[0]]} title="Test Property" />)
 
       expect(screen.getByAltText('Property image of Test Property')).toBeInTheDocument()
     })
 
     test('renders with no images and shows placeholder', () => {
-      render(
-        <PropertyImage
-          images={[]}
-          title="Test Property"
-        />
-      )
+      render(<PropertyImage images={[]} title="Test Property" />)
 
       const image = screen.getByAltText('Property image of Test Property')
       expect(image).toHaveAttribute('src', expect.stringContaining('data:image/svg+xml'))
     })
 
     test('applies custom dimensions', () => {
-      render(
-        <PropertyImage
-          images={mockImages}
-          title="Test Property"
-          width={300}
-          height={200}
-        />
-      )
+      render(<PropertyImage images={mockImages} title="Test Property" width={300} height={200} />)
 
       const container = screen.getByAltText('Property image of Test Property').closest('div')
       expect(container).toHaveStyle({ width: '300px', height: '200px' })
@@ -86,34 +69,19 @@ describe('PropertyImage', () => {
 
   describe('Multiple Images', () => {
     test('shows image count indicator with multiple images', () => {
-      render(
-        <PropertyImage
-          images={mockImages}
-          title="Test Property"
-        />
-      )
+      render(<PropertyImage images={mockImages} title="Test Property" />)
 
       expect(screen.getByText('1/3')).toBeInTheDocument()
     })
 
     test('does not show image count with single image', () => {
-      render(
-        <PropertyImage
-          images={[mockImages[0]]}
-          title="Test Property"
-        />
-      )
+      render(<PropertyImage images={[mockImages[0]]} title="Test Property" />)
 
       expect(screen.queryByText('1/1')).not.toBeInTheDocument()
     })
 
     test('renders secondary image for hover effect', () => {
-      render(
-        <PropertyImage
-          images={mockImages}
-          title="Test Property"
-        />
-      )
+      render(<PropertyImage images={mockImages} title="Test Property" />)
 
       const images = screen.getAllByTestId('optimized-image')
       expect(images).toHaveLength(2) // Primary and secondary images
@@ -130,13 +98,7 @@ describe('PropertyImage', () => {
 
   describe('Interactive Features', () => {
     test('handles mouse hover with multiple images', () => {
-      render(
-        <PropertyImage
-          images={mockImages}
-          title="Test Property"
-          interactive={true}
-        />
-      )
+      render(<PropertyImage images={mockImages} title="Test Property" interactive={true} />)
 
       const container = screen.getByAltText('Property image of Test Property').closest('div')
 
@@ -151,39 +113,21 @@ describe('PropertyImage', () => {
     })
 
     test('disables interactivity when interactive=false', () => {
-      render(
-        <PropertyImage
-          images={mockImages}
-          title="Test Property"
-          interactive={false}
-        />
-      )
+      render(<PropertyImage images={mockImages} title="Test Property" interactive={false} />)
 
       const container = screen.getByAltText('Property image of Test Property').closest('div')
       expect(container).toHaveStyle({ cursor: 'default' })
     })
 
     test('enables pointer cursor when interactive=true', () => {
-      render(
-        <PropertyImage
-          images={mockImages}
-          title="Test Property"
-          interactive={true}
-        />
-      )
+      render(<PropertyImage images={mockImages} title="Test Property" interactive={true} />)
 
       const container = screen.getByAltText('Property image of Test Property').closest('div')
       expect(container).toHaveStyle({ cursor: 'pointer' })
     })
 
     test('does not render secondary image with single image', () => {
-      render(
-        <PropertyImage
-          images={[mockImages[0]]}
-          title="Test Property"
-          interactive={true}
-        />
-      )
+      render(<PropertyImage images={[mockImages[0]]} title="Test Property" interactive={true} />)
 
       const images = screen.getAllByTestId('optimized-image')
       expect(images).toHaveLength(1) // Only primary image
@@ -209,13 +153,7 @@ describe('PropertyImage', () => {
 
     test('calls onLoad callback when image loads successfully', () => {
       const onLoad = vi.fn()
-      render(
-        <PropertyImage
-          images={mockImages}
-          title="Test Property"
-          onLoad={onLoad}
-        />
-      )
+      render(<PropertyImage images={mockImages} title="Test Property" onLoad={onLoad} />)
 
       const image = screen.getByAltText('Property image of Test Property')
       fireEvent.load(image)
@@ -226,12 +164,7 @@ describe('PropertyImage', () => {
 
   describe('Placeholder Generation', () => {
     test('generates property-specific placeholder', () => {
-      render(
-        <PropertyImage
-          images={[]}
-          title="Test Property"
-        />
-      )
+      render(<PropertyImage images={[]} title="Test Property" />)
 
       const image = screen.getByAltText('Property image of Test Property')
       const src = image.getAttribute('src')
@@ -243,34 +176,19 @@ describe('PropertyImage', () => {
 
   describe('Accessibility', () => {
     test('has proper alt text for primary image', () => {
-      render(
-        <PropertyImage
-          images={mockImages}
-          title="Beautiful House"
-        />
-      )
+      render(<PropertyImage images={mockImages} title="Beautiful House" />)
 
       expect(screen.getByAltText('Property image of Beautiful House')).toBeInTheDocument()
     })
 
     test('has proper alt text for secondary image', () => {
-      render(
-        <PropertyImage
-          images={mockImages}
-          title="Beautiful House"
-        />
-      )
+      render(<PropertyImage images={mockImages} title="Beautiful House" />)
 
       expect(screen.getByAltText('Secondary image of Beautiful House')).toBeInTheDocument()
     })
 
     test('image count indicator is not interactive', () => {
-      render(
-        <PropertyImage
-          images={mockImages}
-          title="Test Property"
-        />
-      )
+      render(<PropertyImage images={mockImages} title="Test Property" />)
 
       const indicator = screen.getByText('1/3').closest('div')
       expect(indicator).toHaveStyle({ pointerEvents: 'none' })

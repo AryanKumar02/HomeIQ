@@ -12,16 +12,14 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
   return {
     ...actual,
-    useNavigate: () => mockNavigate
+    useNavigate: () => mockNavigate,
   }
 })
 
 // Test wrapper component
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <BrowserRouter>
-    <ThemeProvider theme={theme}>
-      {children}
-    </ThemeProvider>
+    <ThemeProvider theme={theme}>{children}</ThemeProvider>
   </BrowserRouter>
 )
 
@@ -34,9 +32,9 @@ const ThrowError: React.FC<{ shouldThrow?: boolean }> = ({ shouldThrow = false }
 }
 
 // Custom fallback component for testing
-const CustomFallback: React.FC<{ error?: Error; resetError: () => void }> = ({ 
-  error, 
-  resetError 
+const CustomFallback: React.FC<{ error?: Error; resetError: () => void }> = ({
+  error,
+  resetError,
 }) => (
   <div>
     <h1>Custom Error Fallback</h1>
@@ -159,10 +157,10 @@ describe('ErrorBoundary', () => {
       )
 
       expect(screen.getByText('Custom Error Fallback')).toBeInTheDocument()
-      
+
       const resetButton = screen.getByText('Custom Reset')
       expect(resetButton).toBeInTheDocument()
-      
+
       // Verify reset button is clickable
       fireEvent.click(resetButton)
     })
@@ -173,7 +171,7 @@ describe('ErrorBoundary', () => {
       const mockReload = vi.fn()
       Object.defineProperty(window, 'location', {
         value: { reload: mockReload },
-        writable: true
+        writable: true,
       })
 
       render(
@@ -207,7 +205,7 @@ describe('ErrorBoundary', () => {
       const mockReload = vi.fn()
       Object.defineProperty(window, 'location', {
         value: { reload: mockReload },
-        writable: true
+        writable: true,
       })
 
       render(
@@ -243,7 +241,7 @@ describe('ErrorBoundary', () => {
 
       // Should have alert for error message
       expect(screen.getByRole('alert')).toBeInTheDocument()
-      
+
       // Should have buttons with proper roles
       expect(screen.getByRole('button', { name: /refresh page/i })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /go to dashboard/i })).toBeInTheDocument()

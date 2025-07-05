@@ -17,11 +17,11 @@ interface TitlebarProps {
 const Titlebar: React.FC<TitlebarProps> = ({
   onAdd,
   onSearch,
-  title = "Properties",
-  searchPlaceholder = "Search properties...",
-  addButtonText = "Add Property",
+  title = 'Properties',
+  searchPlaceholder = 'Search properties...',
+  addButtonText = 'Add Property',
   showSearch = true,
-  children
+  children,
 }) => {
   const theme = useTheme()
 
@@ -53,11 +53,13 @@ const Titlebar: React.FC<TitlebarProps> = ({
         {title}
       </Typography>
 
-      <Box sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: { xs: 2, sm: 3, md: 4 }
-      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: { xs: 2, sm: 3, md: 4 },
+        }}
+      >
         {showSearch && (
           <SearchBar
             placeholder={searchPlaceholder}
@@ -69,11 +71,7 @@ const Titlebar: React.FC<TitlebarProps> = ({
         {children}
 
         {!children && onAdd && (
-          <CustomButton
-            text={addButtonText}
-            startIcon={<AddIcon />}
-            onClick={onAdd}
-          />
+          <CustomButton text={addButtonText} startIcon={<AddIcon />} onClick={onAdd} />
         )}
       </Box>
     </Box>

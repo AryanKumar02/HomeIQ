@@ -28,7 +28,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   startIcon,
   endIcon,
   disabled = false,
-  size = 'small'
+  size = 'small',
 }) => {
   const theme = useTheme()
 

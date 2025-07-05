@@ -25,7 +25,7 @@ const PropertyFormSkeleton: React.FC = () => {
             <Skeleton variant="text" width="25%" height={32} sx={{ mb: 1 }} />
             <Skeleton variant="text" width="40%" height={20} />
           </Box>
-          
+
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 6 }}>
               <FormFieldSkeleton />
@@ -59,7 +59,7 @@ const PropertyFormSkeleton: React.FC = () => {
             <Skeleton variant="text" width="20%" height={32} sx={{ mb: 1 }} />
             <Skeleton variant="text" width="35%" height={20} />
           </Box>
-          
+
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 6 }}>
               <FormFieldSkeleton />
@@ -84,15 +84,10 @@ const PropertyFormSkeleton: React.FC = () => {
             <Skeleton variant="text" width="18%" height={32} sx={{ mb: 1 }} />
             <Skeleton variant="text" width="32%" height={20} />
           </Box>
-          
+
           {/* Upload area skeleton */}
-          <Skeleton 
-            variant="rounded" 
-            width="100%" 
-            height={120} 
-            sx={{ mb: 4, borderRadius: 2 }}
-          />
-          
+          <Skeleton variant="rounded" width="100%" height={120} sx={{ mb: 4, borderRadius: 2 }} />
+
           {/* Image grid skeleton */}
           <Grid container spacing={3}>
             {Array.from({ length: 3 }, (_, index) => (
@@ -116,7 +111,7 @@ const PropertyFormSkeleton: React.FC = () => {
             <Skeleton variant="text" width="25%" height={32} sx={{ mb: 1 }} />
             <Skeleton variant="text" width="45%" height={20} />
           </Box>
-          
+
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 6 }}>
               <FormFieldSkeleton />

@@ -16,7 +16,7 @@ const Card: React.FC<CardProps> = ({
   children,
   padding = { xs: 2, sm: 2.5, md: 3 },
   marginBottom = 3,
-  elevation = 1
+  elevation = 1,
 }) => {
   const theme = useTheme()
 

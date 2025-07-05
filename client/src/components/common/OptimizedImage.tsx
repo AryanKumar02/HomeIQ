@@ -70,41 +70,44 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const placeholderUrl = placeholder || defaultPlaceholder
 
   // Generate optimized image URL with quality and size parameters
-  const getOptimizedImageUrl = useCallback((originalUrl: string) => {
-    // Handle non-string inputs
-    if (!originalUrl || typeof originalUrl !== 'string') {
-      return placeholderUrl
-    }
-
-    // If it's already a data URL or placeholder, return as-is
-    if (originalUrl.startsWith('data:') || originalUrl === placeholderUrl) {
-      return originalUrl
-    }
-
-    // For real image URLs, we could add optimization parameters
-    // This would typically integrate with a CDN or image optimization service
-    try {
-      const url = new URL(originalUrl)
-      
-      // Add quality parameter if not already present
-      if (!url.searchParams.has('q') && !url.searchParams.has('quality')) {
-        url.searchParams.set('q', quality.toString())
+  const getOptimizedImageUrl = useCallback(
+    (originalUrl: string) => {
+      // Handle non-string inputs
+      if (!originalUrl || typeof originalUrl !== 'string') {
+        return placeholderUrl
       }
 
-      // Add responsive sizing if dimensions are specified
-      if (typeof width === 'number' && !url.searchParams.has('w')) {
-        url.searchParams.set('w', Math.ceil(width * 2).toString()) // 2x for retina
-      }
-      if (typeof height === 'number' && !url.searchParams.has('h')) {
-        url.searchParams.set('h', Math.ceil(height * 2).toString()) // 2x for retina
+      // If it's already a data URL or placeholder, return as-is
+      if (originalUrl.startsWith('data:') || originalUrl === placeholderUrl) {
+        return originalUrl
       }
 
-      return url.toString()
-    } catch {
-      // If URL parsing fails, return original
-      return originalUrl
-    }
-  }, [quality, width, height, placeholderUrl])
+      // For real image URLs, we could add optimization parameters
+      // This would typically integrate with a CDN or image optimization service
+      try {
+        const url = new URL(originalUrl)
+
+        // Add quality parameter if not already present
+        if (!url.searchParams.has('q') && !url.searchParams.has('quality')) {
+          url.searchParams.set('q', quality.toString())
+        }
+
+        // Add responsive sizing if dimensions are specified
+        if (typeof width === 'number' && !url.searchParams.has('w')) {
+          url.searchParams.set('w', Math.ceil(width * 2).toString()) // 2x for retina
+        }
+        if (typeof height === 'number' && !url.searchParams.has('h')) {
+          url.searchParams.set('h', Math.ceil(height * 2).toString()) // 2x for retina
+        }
+
+        return url.toString()
+      } catch {
+        // If URL parsing fails, return original
+        return originalUrl
+      }
+    },
+    [quality, width, height, placeholderUrl]
+  )
 
   // Intersection Observer for lazy loading
   useEffect(() => {
@@ -140,17 +143,20 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   }, [onLoad])
 
   // Handle image error
-  const handleError = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
-    setIsLoading(false)
-    setHasError(true)
-    
-    // Prevent infinite loop by checking if we're already showing placeholder
-    if (event.currentTarget.src !== placeholderUrl) {
-      event.currentTarget.src = placeholderUrl
-    }
-    
-    onError?.()
-  }, [placeholderUrl, onError])
+  const handleError = useCallback(
+    (event: React.SyntheticEvent<HTMLImageElement>) => {
+      setIsLoading(false)
+      setHasError(true)
+
+      // Prevent infinite loop by checking if we're already showing placeholder
+      if (event.currentTarget.src !== placeholderUrl) {
+        event.currentTarget.src = placeholderUrl
+      }
+
+      onError?.()
+    },
+    [placeholderUrl, onError]
+  )
 
   // Determine which image URL to use
   const imageUrl = React.useMemo(() => {

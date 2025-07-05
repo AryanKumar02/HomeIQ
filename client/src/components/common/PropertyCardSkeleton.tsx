@@ -4,13 +4,13 @@ import { Card, CardContent, Box, Skeleton } from '@mui/material'
 /**
  * Skeleton loader for PropertyCard component.
  * Provides a visual placeholder while property data is loading.
- * 
+ *
  * Features:
  * - Matches the exact layout and dimensions of PropertyCard
  * - Animated skeleton effects using Material-UI Skeleton component
  * - Responsive design that works on all screen sizes
  * - Shows placeholders for image, badges, content, and buttons
- * 
+ *
  * @returns A skeleton loader component matching PropertyCard layout
  */
 const PropertyCardSkeleton: React.FC = () => {
@@ -39,7 +39,7 @@ const PropertyCardSkeleton: React.FC = () => {
             borderTopRightRadius: 2,
           }}
         />
-        
+
         {/* Status Badge Skeleton */}
         <Skeleton
           variant="rounded"
@@ -91,28 +91,13 @@ const PropertyCardSkeleton: React.FC = () => {
         {/* Property Info Skeleton */}
         <Box>
           {/* Title */}
-          <Skeleton
-            variant="text"
-            width="85%"
-            height={24}
-            sx={{ mb: 0.5 }}
-          />
+          <Skeleton variant="text" width="85%" height={24} sx={{ mb: 0.5 }} />
 
           {/* Address */}
-          <Skeleton
-            variant="text"
-            width="75%"
-            height={20}
-            sx={{ mb: 1 }}
-          />
+          <Skeleton variant="text" width="75%" height={20} sx={{ mb: 1 }} />
 
           {/* Price */}
-          <Skeleton
-            variant="text"
-            width="60%"
-            height={28}
-            sx={{ mb: 1 }}
-          />
+          <Skeleton variant="text" width="60%" height={28} sx={{ mb: 1 }} />
 
           {/* Bedroom and Bathroom Info */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
@@ -142,12 +127,7 @@ const PropertyCardSkeleton: React.FC = () => {
         </Box>
 
         {/* View Details Button Skeleton */}
-        <Skeleton
-          variant="rounded"
-          width="100%"
-          height={36}
-          sx={{ borderRadius: 2 }}
-        />
+        <Skeleton variant="rounded" width="100%" height={36} sx={{ borderRadius: 2 }} />
       </CardContent>
     </Card>
   )
@@ -163,14 +143,16 @@ interface PropertyCardSkeletonGridProps {
 
 /**
  * Grid of PropertyCard skeletons for loading states.
- * 
+ *
  * Displays multiple PropertyCardSkeleton components in a responsive grid layout
  * that matches the actual PropertyCard grid layout.
- * 
+ *
  * @param props - The component props
  * @returns A grid of skeleton loaders
  */
-export const PropertyCardSkeletonGrid: React.FC<PropertyCardSkeletonGridProps> = ({ count = 6 }) => {
+export const PropertyCardSkeletonGrid: React.FC<PropertyCardSkeletonGridProps> = ({
+  count = 6,
+}) => {
   return (
     <Box
       sx={{
@@ -178,7 +160,7 @@ export const PropertyCardSkeletonGrid: React.FC<PropertyCardSkeletonGridProps> =
         flexWrap: 'wrap',
         gap: 3,
         mb: 4,
-        justifyContent: { xs: 'center', sm: 'flex-start' }
+        justifyContent: { xs: 'center', sm: 'flex-start' },
       }}
     >
       {Array.from({ length: count }, (_, index) => (

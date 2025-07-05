@@ -50,7 +50,7 @@ const Sidebar: React.FC = () => {
   // Determine selected index based on current route
   const getSelectedIndex = () => {
     const currentPath = location.pathname
-    const index = menuItems.findIndex(item => currentPath.startsWith(item.path))
+    const index = menuItems.findIndex((item) => currentPath.startsWith(item.path))
     return index >= 0 ? index : 0
   }
 
@@ -76,7 +76,12 @@ const Sidebar: React.FC = () => {
       // Use a small delay to ensure DOM elements are fully mounted
       timer = setTimeout(() => {
         // Check if all refs are available before animating
-        if (!headerRef.current || !logoRef.current || !navigationRef.current || !profileRef.current) {
+        if (
+          !headerRef.current ||
+          !logoRef.current ||
+          !navigationRef.current ||
+          !profileRef.current
+        ) {
           return
         }
 
@@ -115,7 +120,12 @@ const Sidebar: React.FC = () => {
       }, 50) // Small delay to ensure DOM is ready
     } else if (hasAnimated && !isLoaded) {
       // If we've already animated but component re-mounted, set everything to final state immediately
-      const elements = [headerRef.current, logoRef.current, navigationRef.current, profileRef.current].filter(Boolean)
+      const elements = [
+        headerRef.current,
+        logoRef.current,
+        navigationRef.current,
+        profileRef.current,
+      ].filter(Boolean)
       const menuElements = menuItemsRef.current.filter(Boolean)
 
       if (elements.length > 0) {
@@ -123,7 +133,7 @@ const Sidebar: React.FC = () => {
           x: 0,
           y: 0,
           scale: 1,
-          opacity: 1
+          opacity: 1,
         })
       }
 
@@ -132,7 +142,7 @@ const Sidebar: React.FC = () => {
           x: 0,
           y: 0,
           scale: 1,
-          opacity: 1
+          opacity: 1,
         })
       }
 
@@ -159,7 +169,8 @@ const Sidebar: React.FC = () => {
 
       // Check if the active element is within the sidebar or is an input/textarea
       const activeElement = document.activeElement
-      const isInputField = activeElement?.tagName === 'INPUT' || activeElement?.tagName === 'TEXTAREA'
+      const isInputField =
+        activeElement?.tagName === 'INPUT' || activeElement?.tagName === 'TEXTAREA'
 
       // Don't intercept keyboard events if user is typing in an input field
       if (isInputField) return

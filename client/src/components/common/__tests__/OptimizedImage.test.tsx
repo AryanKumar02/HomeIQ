@@ -19,13 +19,7 @@ describe('OptimizedImage', () => {
 
   describe('Basic Rendering', () => {
     test('renders with basic props (lazy disabled)', () => {
-      render(
-        <OptimizedImage
-          src="https://example.com/image.jpg"
-          alt="Test image"
-          lazy={false}
-        />
-      )
+      render(<OptimizedImage src="https://example.com/image.jpg" alt="Test image" lazy={false} />)
 
       expect(screen.getByAltText('Test image')).toBeInTheDocument()
     })
@@ -62,58 +56,31 @@ describe('OptimizedImage', () => {
 
   describe('Lazy Loading', () => {
     test('shows loading placeholder when lazy loading is enabled', () => {
-      render(
-        <OptimizedImage
-          src="https://example.com/image.jpg"
-          alt="Test image"
-          lazy={true}
-        />
-      )
+      render(<OptimizedImage src="https://example.com/image.jpg" alt="Test image" lazy={true} />)
 
       expect(screen.getByText('Loading...')).toBeInTheDocument()
     })
 
     test('loads immediately when lazy loading is disabled', () => {
-      render(
-        <OptimizedImage
-          src="https://example.com/image.jpg"
-          alt="Test image"
-          lazy={false}
-        />
-      )
+      render(<OptimizedImage src="https://example.com/image.jpg" alt="Test image" lazy={false} />)
 
       expect(screen.getByAltText('Test image')).toBeInTheDocument()
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument()
     })
 
     test('sets up IntersectionObserver when lazy loading is enabled', () => {
-      render(
-        <OptimizedImage
-          src="https://example.com/image.jpg"
-          alt="Test image"
-          lazy={true}
-        />
-      )
+      render(<OptimizedImage src="https://example.com/image.jpg" alt="Test image" lazy={true} />)
 
-      expect(mockIntersectionObserver).toHaveBeenCalledWith(
-        expect.any(Function),
-        {
-          rootMargin: '50px',
-          threshold: 0.1,
-        }
-      )
+      expect(mockIntersectionObserver).toHaveBeenCalledWith(expect.any(Function), {
+        rootMargin: '50px',
+        threshold: 0.1,
+      })
     })
   })
 
   describe('Image Loading States', () => {
     test('shows skeleton while loading', () => {
-      render(
-        <OptimizedImage
-          src="https://example.com/image.jpg"
-          alt="Test image"
-          lazy={false}
-        />
-      )
+      render(<OptimizedImage src="https://example.com/image.jpg" alt="Test image" lazy={false} />)
 
       // Skeleton should be visible initially
       expect(document.querySelector('.MuiSkeleton-root')).toBeInTheDocument()
@@ -174,11 +141,7 @@ describe('OptimizedImage', () => {
 
     test('uses default placeholder when none provided', () => {
       render(
-        <OptimizedImage
-          src="https://example.com/broken-image.jpg"
-          alt="Test image"
-          lazy={false}
-        />
+        <OptimizedImage src="https://example.com/broken-image.jpg" alt="Test image" lazy={false} />
       )
 
       const image = screen.getByAltText('Test image')
@@ -223,15 +186,9 @@ describe('OptimizedImage', () => {
     })
 
     test('does not modify data URLs', () => {
-      const dataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
-      render(
-        <OptimizedImage
-          src={dataUrl}
-          alt="Test image"
-          lazy={false}
-          quality={75}
-        />
-      )
+      const dataUrl =
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+      render(<OptimizedImage src={dataUrl} alt="Test image" lazy={false} quality={75} />)
 
       const image = screen.getByAltText('Test image')
       expect(image).toHaveAttribute('src', dataUrl)

@@ -51,7 +51,7 @@ interface PropertyCardProps {
 
 /**
  * PropertyCard component displays a property in a card format with image, details, and actions.
- * 
+ *
  * Features:
  * - Displays property image with fallback placeholder
  * - Shows property status, type, and key details (bedrooms, bathrooms, etc.)
@@ -60,7 +60,7 @@ interface PropertyCardProps {
  * - Delete confirmation dialog
  * - Fully accessible with ARIA labels and keyboard navigation
  * - Responsive design that works on all screen sizes
- * 
+ *
  * @param props - The component props
  * @returns A card component displaying property information
  */
@@ -74,7 +74,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   const { formatPrice } = useCurrency()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  
+
   const menuOpen = Boolean(anchorEl)
 
   // Handle image error (PropertyImage component handles its own errors)
@@ -217,14 +217,14 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       {/* Image Section - 50% of card height */}
       <Box sx={{ position: 'relative', height: '160px', flex: '0 0 auto' }}>
         <PropertyImage
-          images={property.images?.map(img => img.url) || []}
+          images={property.images?.map((img) => img.url) || []}
           title={property.title}
           width="100%"
           height={160}
           interactive={true}
           onError={handleImageError}
         />
-        
+
         {/* Status Badge - Bottom Right */}
         <Chip
           label={statusConfig.label}
@@ -354,7 +354,14 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
               {property.units && property.units.length > 0 ? (
                 <>
                   {/* Unit Summary */}
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mb: 1,
+                    }}
+                  >
                     <Typography
                       variant="body2"
                       sx={{
@@ -373,10 +380,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                         fontWeight: 600,
                       }}
                     >
-                      {property.units.filter(unit => unit.status === 'available').length} Available
+                      {property.units.filter((unit) => unit.status === 'available').length}{' '}
+                      Available
                     </Typography>
                   </Box>
-                  
+
                   {/* Total Revenue Potential */}
                   <Box sx={{ mb: 1 }}>
                     <Typography
@@ -387,22 +395,32 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                         fontWeight: 700,
                       }}
                     >
-                      Total Revenue: {formatPropertyPrice(
+                      Total Revenue:{' '}
+                      {formatPropertyPrice(
                         property.units.reduce((total, unit) => {
                           if (!unit.monthlyRent) return total
-                          const rent = typeof unit.monthlyRent === 'string' ? parseFloat(unit.monthlyRent) : unit.monthlyRent
+                          const rent =
+                            typeof unit.monthlyRent === 'string'
+                              ? parseFloat(unit.monthlyRent)
+                              : unit.monthlyRent
                           return total + (isNaN(rent) || rent < 0 ? 0 : rent)
                         }, 0)
-                      )} /month
+                      )}{' '}
+                      /month
                     </Typography>
                   </Box>
-                  
+
                   {/* Show first 2 units with status and pricing */}
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                     {property.units
                       .sort((a, b) => {
                         // Sort by status: available first, then occupied, then others
-                        const statusPriority = { available: 0, occupied: 1, maintenance: 2, 'off-market': 3 }
+                        const statusPriority = {
+                          available: 0,
+                          occupied: 1,
+                          maintenance: 2,
+                          'off-market': 3,
+                        }
                         return statusPriority[a.status] - statusPriority[b.status]
                       })
                       .slice(0, 2)
@@ -411,22 +429,50 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                         const getUnitStatusConfig = (status: string) => {
                           switch (status) {
                             case 'available':
-                              return { color: theme.palette.success.main, label: 'Available', bgColor: theme.palette.success.light }
+                              return {
+                                color: theme.palette.success.main,
+                                label: 'Available',
+                                bgColor: theme.palette.success.light,
+                              }
                             case 'occupied':
-                              return { color: theme.palette.primary.main, label: 'Occupied', bgColor: theme.palette.primary.light }
+                              return {
+                                color: theme.palette.primary.main,
+                                label: 'Occupied',
+                                bgColor: theme.palette.primary.light,
+                              }
                             case 'maintenance':
-                              return { color: theme.palette.warning.main, label: 'Maintenance', bgColor: theme.palette.warning.light }
+                              return {
+                                color: theme.palette.warning.main,
+                                label: 'Maintenance',
+                                bgColor: theme.palette.warning.light,
+                              }
                             case 'off-market':
-                              return { color: theme.palette.grey[600], label: 'Off Market', bgColor: theme.palette.grey[300] }
+                              return {
+                                color: theme.palette.grey[600],
+                                label: 'Off Market',
+                                bgColor: theme.palette.grey[300],
+                              }
                             default:
-                              return { color: theme.palette.grey[600], label: status, bgColor: theme.palette.grey[300] }
+                              return {
+                                color: theme.palette.grey[600],
+                                label: status,
+                                bgColor: theme.palette.grey[300],
+                              }
                           }
                         }
-                        
+
                         const statusConfig = getUnitStatusConfig(unit.status)
-                        
+
                         return (
-                          <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.25 }}>
+                          <Box
+                            key={index}
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              py: 0.25,
+                            }}
+                          >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                               <Typography
                                 variant="body2"
@@ -435,7 +481,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                                   fontSize: '0.8rem',
                                 }}
                               >
-                                Unit {unit.unitNumber || 'N/A'}: {unit.bedrooms || 0}BR/{unit.bathrooms || 0}BA
+                                Unit {unit.unitNumber || 'N/A'}: {unit.bedrooms || 0}BR/
+                                {unit.bathrooms || 0}BA
                               </Typography>
                               <Box
                                 sx={{
@@ -455,19 +502,24 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                             <Typography
                               variant="body2"
                               sx={{
-                                color: unit.status === 'available' || unit.status === 'occupied' 
-                                  ? theme.palette.secondary.main 
-                                  : theme.palette.grey[500],
+                                color:
+                                  unit.status === 'available' || unit.status === 'occupied'
+                                    ? theme.palette.secondary.main
+                                    : theme.palette.grey[500],
                                 fontSize: '0.8rem',
                                 fontWeight: 600,
                               }}
                             >
-                              {unit.monthlyRent && (unit.status === 'available' || unit.status === 'occupied') ? formatPropertyPrice(unit.monthlyRent) : '--'} /mo
+                              {unit.monthlyRent &&
+                              (unit.status === 'available' || unit.status === 'occupied')
+                                ? formatPropertyPrice(unit.monthlyRent)
+                                : '--'}{' '}
+                              /mo
                             </Typography>
                           </Box>
                         )
                       })}
-                    
+
                     {property.units.length > 2 && (
                       <Typography
                         variant="body2"
@@ -479,7 +531,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                           mt: 0.5,
                         }}
                       >
-                        +{property.units.length - 2} more unit{property.units.length - 2 !== 1 ? 's' : ''}
+                        +{property.units.length - 2} more unit
+                        {property.units.length - 2 !== 1 ? 's' : ''}
                       </Typography>
                     )}
                   </Box>
@@ -571,9 +624,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                         fontSize: '0.8rem',
                       }}
                     >
-                      {typeof property.squareFootage === 'string' 
-                        ? parseFloat(property.squareFootage).toLocaleString() 
-                        : property.squareFootage.toLocaleString()} sq ft
+                      {typeof property.squareFootage === 'string'
+                        ? parseFloat(property.squareFootage).toLocaleString()
+                        : property.squareFootage.toLocaleString()}{' '}
+                      sq ft
                     </Typography>
                   </Box>
                 )}
@@ -661,8 +715,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           },
         }}
       >
-        <MenuItem 
-          onClick={handleEdit} 
+        <MenuItem
+          onClick={handleEdit}
           role="menuitem"
           aria-label={`Edit ${property.title}`}
           sx={{ py: 1, px: 2 }}
@@ -670,12 +724,12 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           <EditIcon sx={{ mr: 1, fontSize: '1.1rem' }} />
           Edit Property
         </MenuItem>
-        <MenuItem 
+        <MenuItem
           onClick={handleDeleteClick}
           role="menuitem"
           aria-label={`Delete ${property.title}`}
-          sx={{ 
-            py: 1, 
+          sx={{
+            py: 1,
             px: 2,
             color: 'error.main',
             '&:hover': {
@@ -708,14 +762,15 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="delete-dialog-description" sx={{ fontSize: '1rem' }}>
-            Are you sure you want to delete &ldquo;{property.title}&rdquo;? This action cannot be undone.
+            Are you sure you want to delete &ldquo;{property.title}&rdquo;? This action cannot be
+            undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 1 }}>
-          <Button 
+          <Button
             onClick={handleDeleteCancel}
             aria-label="Cancel deletion"
-            sx={{ 
+            sx={{
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 600,
@@ -723,12 +778,12 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleDeleteConfirm}
             variant="contained"
             color="error"
             aria-label={`Confirm deletion of ${property.title}`}
-            sx={{ 
+            sx={{
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 600,

@@ -45,10 +45,10 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     if (process.env.NODE_ENV === 'development') {
       console.error('Error caught by boundary:', error, errorInfo)
     }
-    
+
     this.setState({
       error,
-      errorInfo
+      errorInfo,
     })
   }
 
@@ -75,9 +75,9 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 /**
  * Default error fallback component
  */
-const DefaultErrorFallback: React.FC<{ error?: Error; resetError: () => void }> = ({ 
-  error, 
-  resetError 
+const DefaultErrorFallback: React.FC<{ error?: Error; resetError: () => void }> = ({
+  error,
+  resetError,
 }) => {
   const navigate = useNavigate()
 
@@ -103,23 +103,24 @@ const DefaultErrorFallback: React.FC<{ error?: Error; resetError: () => void }> 
         textAlign: 'center',
       }}
     >
-      <Alert 
-        severity="error" 
-        sx={{ 
-          mb: 3, 
+      <Alert
+        severity="error"
+        sx={{
+          mb: 3,
           maxWidth: '600px',
           '& .MuiAlert-message': {
-            width: '100%'
-          }
+            width: '100%',
+          },
         }}
       >
         <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
           Something went wrong
         </Typography>
         <Typography variant="body2" sx={{ mb: 2 }}>
-          We&apos;re sorry, but an unexpected error occurred. This has been logged and we&apos;ll look into it.
+          We&apos;re sorry, but an unexpected error occurred. This has been logged and we&apos;ll
+          look into it.
         </Typography>
-        
+
         {process.env.NODE_ENV === 'development' && error && (
           <Box sx={{ mt: 2, textAlign: 'left' }}>
             <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
