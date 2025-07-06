@@ -8,7 +8,7 @@ import {
   StarBorder as StarBorderIcon,
 } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
-import Card from './Card'
+import Card from '../basic/Card'
 
 interface PropertyImage {
   url: string

@@ -12,7 +12,7 @@ import {
 import Grid from '@mui/material/Grid'
 import { Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
-import Card from './Card'
+import Card from '../basic/Card'
 import type { Unit } from '../../services/property'
 
 interface UnitManagementProps {

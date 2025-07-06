@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, TextField, Typography, Divider } from '@mui/material'
 import Grid from '@mui/material/Grid'
-import Card from './Card'
+import Card from '../basic/Card'
 
 interface FinancialInformationFormProps {
   formData: {

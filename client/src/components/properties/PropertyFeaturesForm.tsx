@@ -2,7 +2,7 @@ import React from 'react'
 import { TextField, MenuItem, Typography, Divider, Switch, FormControlLabel } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import { useTheme } from '@mui/material/styles'
-import Card from './Card'
+import Card from '../basic/Card'
 
 interface PropertyFeaturesFormProps {
   formData: {
