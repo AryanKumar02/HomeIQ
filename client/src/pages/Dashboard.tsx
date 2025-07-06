@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box, Typography } from '@mui/material'
-import Sidebar from '../components/basic/Sidebar'
+import Sidebar from '../components/common/Sidebar'
 import Titlebar from '../components/basic/Titlebar'
 
 const Dashboard: React.FC = () => {

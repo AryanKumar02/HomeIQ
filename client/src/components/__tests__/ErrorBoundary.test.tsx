@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { ThemeProvider } from '@mui/material/styles'
 import { vi } from 'vitest'
-import ErrorBoundary from '../ErrorBoundary'
+import ErrorBoundary from '../common/ErrorBoundary'
 import theme from '../../theme'
 
 // Mock react-router-dom

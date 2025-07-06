@@ -14,8 +14,8 @@ import LandingPage from './pages/LandingPage'
 import PropertyDetails from './pages/Properties/Property.tsx'
 import Dashboard from './pages/Dashboard'
 import EditProperty from './pages/Properties/CreateProperty.tsx'
-import ProtectedRoute from './components/ProtectedRoute.tsx'
-import ErrorBoundary from './components/ErrorBoundary.tsx'
+import ProtectedRoute from './components/common/ProtectedRoute.tsx'
+import ErrorBoundary from './components/common/ErrorBoundary.tsx'
 
 // Temporary placeholder components - replace with actual pages
 const TenantsPage = () => <div>Tenants Page</div>
