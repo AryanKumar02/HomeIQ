@@ -418,49 +418,75 @@ export const searchProperties = catchAsync(async (req, res) => {
     filter.status = status;
   }
   if (city) {
-    filter['address.city'] = new RegExp(city, 'i');
+    // Escape special regex characters to prevent injection
+    const escapedCity = city.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    filter['address.city'] = new RegExp(escapedCity, 'i');
   }
   if (state) {
-    filter['address.state'] = new RegExp(state, 'i');
+    // Escape special regex characters to prevent injection
+    const escapedState = state.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    filter['address.state'] = new RegExp(escapedState, 'i');
   }
 
   if (minBedrooms || maxBedrooms) {
     filter.bedrooms = {};
     if (minBedrooms) {
-      filter.bedrooms.$gte = parseInt(minBedrooms);
+      const parsedMinBedrooms = parseInt(minBedrooms, 10);
+      if (!isNaN(parsedMinBedrooms) && parsedMinBedrooms >= 0) {
+        filter.bedrooms.$gte = parsedMinBedrooms;
+      }
     }
     if (maxBedrooms) {
-      filter.bedrooms.$lte = parseInt(maxBedrooms);
+      const parsedMaxBedrooms = parseInt(maxBedrooms, 10);
+      if (!isNaN(parsedMaxBedrooms) && parsedMaxBedrooms >= 0) {
+        filter.bedrooms.$lte = parsedMaxBedrooms;
+      }
     }
   }
 
   if (minBathrooms || maxBathrooms) {
     filter.bathrooms = {};
     if (minBathrooms) {
-      filter.bathrooms.$gte = parseFloat(minBathrooms);
+      const parsedMinBathrooms = parseFloat(minBathrooms);
+      if (!isNaN(parsedMinBathrooms) && parsedMinBathrooms >= 0) {
+        filter.bathrooms.$gte = parsedMinBathrooms;
+      }
     }
     if (maxBathrooms) {
-      filter.bathrooms.$lte = parseFloat(maxBathrooms);
+      const parsedMaxBathrooms = parseFloat(maxBathrooms);
+      if (!isNaN(parsedMaxBathrooms) && parsedMaxBathrooms >= 0) {
+        filter.bathrooms.$lte = parsedMaxBathrooms;
+      }
     }
   }
 
   if (minRent || maxRent) {
     filter['financials.monthlyRent'] = {};
     if (minRent) {
-      filter['financials.monthlyRent'].$gte = parseFloat(minRent);
+      const parsedMinRent = parseFloat(minRent);
+      if (!isNaN(parsedMinRent) && parsedMinRent >= 0) {
+        filter['financials.monthlyRent'].$gte = parsedMinRent;
+      }
     }
     if (maxRent) {
-      filter['financials.monthlyRent'].$lte = parseFloat(maxRent);
+      const parsedMaxRent = parseFloat(maxRent);
+      if (!isNaN(parsedMaxRent) && parsedMaxRent >= 0) {
+        filter['financials.monthlyRent'].$lte = parsedMaxRent;
+      }
     }
   }
 
-  // Calculate pagination
-  const skip = (page - 1) * limit;
+  // Calculate pagination with proper validation
+  const parsedPage = parseInt(page, 10);
+  const parsedLimit = parseInt(limit, 10);
+  const validatedPage = !isNaN(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const validatedLimit = !isNaN(parsedLimit) && parsedLimit > 0 && parsedLimit <= 100 ? parsedLimit : 10;
+  const skip = (validatedPage - 1) * validatedLimit;
 
   const properties = await Property.find(filter)
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(parseInt(limit));
+    .limit(validatedLimit);
 
   const total = await Property.countDocuments(filter);
 
@@ -470,10 +496,10 @@ export const searchProperties = catchAsync(async (req, res) => {
     status: 'success',
     results: properties.length,
     pagination: {
-      page: parseInt(page),
-      limit: parseInt(limit),
+      page: validatedPage,
+      limit: validatedLimit,
       total,
-      pages: Math.ceil(total / limit),
+      pages: Math.ceil(total / validatedLimit),
     },
     data: {
       properties,

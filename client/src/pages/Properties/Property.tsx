@@ -75,8 +75,10 @@ const PropertyDetails: React.FC = () => {
       try {
         const response = await deleteProperty(propertyId)
 
-        // Check if the API call was successful (including 204 No Content)
-        if (response && (response.success || response.status === 'success') || response === undefined) {
+        // Check if the API call was successful
+        // The deleteProperty service returns PropertyResponse with success/status indicators
+        // or throws an error if the operation failed
+        if (response && (response.success === true || response.status === 'success')) {
           // Remove property from state
           setProperties((prev) => prev.filter((p) => p._id !== propertyId))
 
@@ -89,7 +91,7 @@ const PropertyDetails: React.FC = () => {
 
           console.log('Property deleted successfully from database')
         } else {
-          throw new Error(response.message || 'Delete operation failed')
+          throw new Error((response && response.message) || 'Delete operation failed')
         }
       } catch (err) {
         console.error('Error deleting property:', err)

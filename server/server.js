@@ -9,6 +9,8 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import jwt from 'jsonwebtoken';
 import swaggerUi from 'swagger-ui-express';
+import mongoSanitize from 'express-mongo-sanitize';
+import { generalLimiter } from './middleware/rateLimitMiddleware.js';
 
 import authRoutes from './routes/authRoutes.js';
 import propertyRoutes from './routes/propertyRoutes.js';
@@ -32,10 +34,26 @@ app.use(
     credentials: true,
   }),
 );
-app.use(helmet());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Global rate limiting
+app.use('/api/', generalLimiter);
 
 // Morgan HTTP logging with Winston
 if (process.env.NODE_ENV !== 'production') {
