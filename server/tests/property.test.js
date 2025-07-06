@@ -4,17 +4,20 @@ import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { jest } from '@jest/globals';
 
+// Load test environment variables
+dotenv.config({ path: '.env.test' });
+
 // Mock the email service to prevent actual email sending during tests
 jest.mock('../services/emailService', () => ({
   sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
   sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
 }));
 
-// Load test environment variables
-dotenv.config({ path: '.env.test' });
-
+// eslint-disable-next-line import/first
 import app from '../server.js';
+// eslint-disable-next-line import/first
 import User from '../models/User.js';
+// eslint-disable-next-line import/first
 import Property from '../models/Property.js';
 
 let mongoServer;

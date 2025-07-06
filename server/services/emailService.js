@@ -189,7 +189,9 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
 export const sendVerificationEmail = async (email, verificationToken) => {
   // Skip sending emails in test environment
   if (process.env.NODE_ENV === 'test') {
-    logger.info(`[TEST MODE] Would send verification email to ${email} with token ${verificationToken}`);
+    logger.info(
+      `[TEST MODE] Would send verification email to ${email} with token ${verificationToken}`,
+    );
     return;
   }
 

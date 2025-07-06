@@ -274,7 +274,6 @@ export const usePropertyApi = () => {
           !isEditMode &&
           propertyData &&
           typeof propertyData === 'object' &&
-          propertyData !== null &&
           '_id' in propertyData &&
           propertyData._id &&
           typeof propertyData._id === 'string' &&
@@ -295,7 +294,6 @@ export const usePropertyApi = () => {
             !isEditMode &&
             propertyData &&
             typeof propertyData === 'object' &&
-            propertyData !== null &&
             '_id' in propertyData &&
             propertyData._id &&
             typeof propertyData._id === 'string'

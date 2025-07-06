@@ -93,13 +93,10 @@ const LoginForm: React.FC = () => {
       })
     }
     try {
-      await login(email, password)
-
-      console.log('Login completed, navigating to dashboard...')
+      await login(email, password, rememberMe)
 
       // Determine where to redirect after login
       const from = (location.state as { from?: Location })?.from?.pathname || '/dashboard'
-      console.log('Navigating to:', from)
       void navigate(from, { replace: true })
     } catch (err: unknown) {
       setError(getFriendlyErrorMessage(err))

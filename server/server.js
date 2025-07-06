@@ -18,6 +18,7 @@ import globalErrorHandler from './controllers/errorController.js';
 import User from './models/User.js';
 import swaggerSpec from './utils/swagger.js';
 import { connectDB } from './utils/db.js';
+import { startScheduledTasks, stopScheduledTasks } from './utils/scheduledTasks.js';
 
 // Load environment variables
 dotenv.config();
@@ -107,6 +108,12 @@ const startServer = async () => {
   try {
     await connectDB(MONGO_URI);
     logger.info('MongoDB connected');
+    
+    // Start scheduled tasks (only in production/non-test environments)
+    if (process.env.NODE_ENV !== 'test') {
+      startScheduledTasks();
+    }
+    
     server.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
     });
@@ -124,15 +131,32 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Graceful shutdown
+const gracefulShutdown = (signal) => {
+  logger.info(`${signal} RECEIVED. Shutting down gracefully`);
+  
+  // Stop scheduled tasks
+  stopScheduledTasks();
+  
+  // Close server
+  server.close(() => {
+    logger.info('HTTP server closed');
+    process.exit(0);
+  });
+  
+  // Force close server after timeout
+  setTimeout(() => {
+    logger.error('Could not close connections in time, forcefully shutting down');
+    process.exit(1);
+  }, 10000);
+};
+
 process.on('unhandledRejection', err => {
   logger.error('UNHANDLED REJECTION! Shutting down...', err);
-  process.exit(1);
+  gracefulShutdown('UNHANDLED_REJECTION');
 });
 
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM RECEIVED. Shutting down gracefully');
-  process.exit(0);
-});
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Export for testing
 export { app, server, io };

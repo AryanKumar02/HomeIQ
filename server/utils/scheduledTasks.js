@@ -5,12 +5,21 @@ import logger from './logger.js';
  * Scheduled tasks for S3 maintenance
  */
 
+// Store interval IDs for cleanup
+let cleanupIntervalId = null;
+
 /**
  * Run cleanup tasks every 24 hours
  */
 export const startScheduledTasks = () => {
+  // Prevent multiple intervals if function is called again
+  if (cleanupIntervalId) {
+    logger.warn('Scheduled tasks already running, skipping...');
+    return;
+  }
+
   // Clean up temporary uploads every 24 hours
-  setInterval(
+  cleanupIntervalId = setInterval(
     async () => {
       try {
         logger.info('Starting scheduled S3 cleanup...');
@@ -24,6 +33,17 @@ export const startScheduledTasks = () => {
   ); // 24 hours
 
   logger.info('Scheduled tasks started');
+};
+
+/**
+ * Stop all scheduled tasks and clear intervals
+ */
+export const stopScheduledTasks = () => {
+  if (cleanupIntervalId) {
+    clearInterval(cleanupIntervalId);
+    cleanupIntervalId = null;
+    logger.info('Scheduled tasks stopped');
+  }
 };
 
 /**

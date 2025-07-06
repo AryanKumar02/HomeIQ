@@ -46,7 +46,9 @@ describe('Auth: Registration', () => {
       password: 'Password1',
     });
     expect(res.statusCode).toBe(201);
-    expect(res.body.message).toBe('User registered. Please check your email to verify your account.');
+    expect(res.body.message).toBe(
+      'User registered. Please check your email to verify your account.',
+    );
   });
 
   it('rejects duplicate email', async () => {

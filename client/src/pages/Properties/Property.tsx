@@ -76,7 +76,7 @@ const PropertyDetails: React.FC = () => {
         const response = await deleteProperty(propertyId)
 
         // Check if the API call was successful (including 204 No Content)
-        if (response.success || response.status === 'success' || response === undefined) {
+        if (response && (response.success || response.status === 'success') || response === undefined) {
           // Remove property from state
           setProperties((prev) => prev.filter((p) => p._id !== propertyId))
 
