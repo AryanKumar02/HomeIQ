@@ -3,7 +3,7 @@ import { Box, Typography } from '@mui/material'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 import { useParams } from 'react-router-dom'
-import ResetPasswordForm from '../components/forms/ResetPasswordForm'
+import ResetPasswordForm from '../../components/forms/ResetPasswordForm'
 
 const ResetPassword: React.FC = () => {
   const theme = useTheme()

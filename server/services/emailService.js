@@ -12,6 +12,12 @@ const getResendClient = () => {
 };
 
 export const sendPasswordResetEmail = async (email, resetToken) => {
+  // Skip sending emails in test environment
+  if (process.env.NODE_ENV === 'test') {
+    logger.info(`[TEST MODE] Would send password reset email to ${email} with token ${resetToken}`);
+    return;
+  }
+
   const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
   try {
@@ -181,6 +187,14 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
 };
 
 export const sendVerificationEmail = async (email, verificationToken) => {
+  // Skip sending emails in test environment
+  if (process.env.NODE_ENV === 'test') {
+    logger.info(
+      `[TEST MODE] Would send verification email to ${email} with token ${verificationToken}`,
+    );
+    return;
+  }
+
   const verifyURL = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
 
   try {

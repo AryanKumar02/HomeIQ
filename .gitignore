@@ -3,6 +3,11 @@ node_modules
 /.pnp
 .pnp.js
 
+# Logs
+logs
+server/logs/
+*.log
+
 # Testing
 /coverage
 .nyc_output
@@ -44,3 +49,7 @@ pnpm-debug.log*
 # Misc
 .DS_Store
 Thumbs.db
+
+.claude
+
+

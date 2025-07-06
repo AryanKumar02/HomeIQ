@@ -9,14 +9,19 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import jwt from 'jsonwebtoken';
 import swaggerUi from 'swagger-ui-express';
+import mongoSanitize from 'express-mongo-sanitize';
+import { generalLimiter } from './middleware/rateLimitMiddleware.js';
+import { csrfProtection } from './middleware/csrfMiddleware.js';
 
 import authRoutes from './routes/authRoutes.js';
+import propertyRoutes from './routes/propertyRoutes.js';
 import logger from './utils/logger.js';
 import AppError from './utils/appError.js';
 import globalErrorHandler from './controllers/errorController.js';
 import User from './models/User.js';
 import swaggerSpec from './utils/swagger.js';
 import { connectDB } from './utils/db.js';
+import { startScheduledTasks, stopScheduledTasks } from './utils/scheduledTasks.js';
 
 // Load environment variables
 dotenv.config();
@@ -30,10 +35,29 @@ app.use(
     credentials: true,
   }),
 );
-app.use(helmet());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Global rate limiting
+app.use('/api/', generalLimiter);
+
+// CSRF protection for state-changing operations
+app.use('/api/', csrfProtection);
 
 // Morgan HTTP logging with Winston
 if (process.env.NODE_ENV !== 'production') {
@@ -50,6 +74,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/property', propertyRoutes);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // 404 handler
@@ -105,6 +130,12 @@ const startServer = async () => {
   try {
     await connectDB(MONGO_URI);
     logger.info('MongoDB connected');
+    
+    // Start scheduled tasks (only in production/non-test environments)
+    if (process.env.NODE_ENV !== 'test') {
+      startScheduledTasks();
+    }
+    
     server.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
     });
@@ -122,15 +153,32 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Graceful shutdown
+const gracefulShutdown = (signal) => {
+  logger.info(`${signal} RECEIVED. Shutting down gracefully`);
+  
+  // Stop scheduled tasks
+  stopScheduledTasks();
+  
+  // Close server
+  server.close(() => {
+    logger.info('HTTP server closed');
+    process.exit(0);
+  });
+  
+  // Force close server after timeout
+  setTimeout(() => {
+    logger.error('Could not close connections in time, forcefully shutting down');
+    process.exit(1);
+  }, 10000);
+};
+
 process.on('unhandledRejection', err => {
   logger.error('UNHANDLED REJECTION! Shutting down...', err);
-  process.exit(1);
+  gracefulShutdown('UNHANDLED_REJECTION');
 });
 
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM RECEIVED. Shutting down gracefully');
-  process.exit(0);
-});
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Export for testing
 export { app, server, io };

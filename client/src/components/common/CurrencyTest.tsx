@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box, Typography, Paper, Stack } from '@mui/material'
-import { useCurrency } from '../hooks/useCurrency'
+import { useCurrency } from '../../hooks/useCurrency'
 
 const testPrices = [10, 29, 79, 199, 999, 1999]
 
