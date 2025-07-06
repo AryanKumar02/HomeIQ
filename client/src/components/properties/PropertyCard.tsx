@@ -289,8 +289,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
               backgroundColor: 'rgba(255, 255, 255, 1)',
             },
             '&:focus': {
-              outline: `2px solid ${theme.palette.secondary.main}`,
-              outlineOffset: '2px',
+              outline: 'none',
             },
             width: 32,
             height: 32,
@@ -681,8 +680,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
               backgroundColor: theme.palette.secondary.dark,
             },
             '&:focus': {
-              outline: `2px solid ${theme.palette.secondary.main}`,
-              outlineOffset: '2px',
+              outline: 'none',
             },
           }}
         >

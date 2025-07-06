@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import Sidebar from '../../components/properties/Sidebar'
 import Titlebar from '../../components/properties/Titlebar'
 import PropertyCard from '../../components/properties/PropertyCard'
+import PropertyFilters from '../../components/properties/PropertyFilters'
 import ErrorBoundary from '../../components/ErrorBoundary'
 import { Pagination, PropertyCardSkeletonGrid, SkipLink } from '../../components/common'
 import { getAllProperties, deleteProperty } from '../../services/property'
@@ -16,6 +17,13 @@ const PropertyDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [filters, setFilters] = useState<{
+    type: string | null
+    status: string | null
+  }>({
+    type: null,
+    status: null,
+  })
   const propertiesPerPage = 6 // 3 per row × 2 rows
 
   // Fetch properties on component mount
@@ -107,13 +115,22 @@ const PropertyDetails: React.FC = () => {
     void deleteAsync()
   }
 
-  // Filter properties based on search term
-  const filteredProperties = properties.filter(
-    (property) =>
+  // Filter properties based on search term and filters
+  const filteredProperties = properties.filter((property) => {
+    // Search filter
+    const matchesSearch = 
       property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       property.address.street.toLowerCase().includes(searchTerm.toLowerCase()) ||
       property.address.city.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+    
+    // Type filter
+    const matchesType = filters.type === null || property.propertyType === filters.type
+    
+    // Status filter
+    const matchesStatus = filters.status === null || property.status === filters.status
+    
+    return matchesSearch && matchesType && matchesStatus
+  })
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredProperties.length / propertiesPerPage)
@@ -125,10 +142,19 @@ const PropertyDetails: React.FC = () => {
     setCurrentPage(page)
   }
 
-  // Reset page when search changes
+  // Handle filter changes
+  const handleFilterChange = (filterType: 'type' | 'status', value: string | null) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }))
+    setCurrentPage(1) // Reset to first page when filters change
+  }
+
+  // Reset page when search or filters change
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm])
+  }, [searchTerm, filters])
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -136,7 +162,7 @@ const PropertyDetails: React.FC = () => {
       <SkipLink href="#main-content">Skip to main content</SkipLink>
       <SkipLink href="#properties-list">Skip to properties</SkipLink>
 
-      {/* Titlebar at the top */}
+      {/* Titlebar and Filters at the top */}
       <Box
         sx={{
           position: 'fixed',
@@ -156,10 +182,15 @@ const PropertyDetails: React.FC = () => {
           onAdd={handleAddProperty}
           onSearch={handleSearchProperties}
         />
+        <PropertyFilters
+          properties={properties}
+          selectedFilters={filters}
+          onFilterChange={handleFilterChange}
+        />
       </Box>
 
       {/* Main layout with sidebar and content */}
-      <Box sx={{ display: 'flex', flexGrow: 1, pt: { xs: '80px', md: '100px' } }}>
+      <Box sx={{ display: 'flex', flexGrow: 1, pt: { xs: '160px', md: '180px' } }}>
         <Sidebar />
         <Box component="main" id="main-content" tabIndex={-1} sx={{ flexGrow: 1, p: 3 }}>
           {/* Properties content */}
