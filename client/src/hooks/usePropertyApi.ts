@@ -47,6 +47,22 @@ export const usePropertyApi = () => {
     )
   }
 
+  // Helper function to get file extension from MIME type
+  const getFileExtensionFromMimeType = (mimeType: string): string => {
+    const mimeToExtension: Record<string, string> = {
+      'image/jpeg': '.jpg',
+      'image/jpg': '.jpg',
+      'image/png': '.png',
+      'image/gif': '.gif',
+      'image/webp': '.webp',
+      'image/svg+xml': '.svg',
+      'image/bmp': '.bmp',
+      'image/tiff': '.tiff',
+      'image/x-icon': '.ico',
+    }
+    return mimeToExtension[mimeType.toLowerCase()] || '.jpg' // Default to .jpg if unknown
+  }
+
   // Load property data
   const loadProperty = async (propertyId: string): Promise<Property | null> => {
     try {
@@ -75,32 +91,46 @@ export const usePropertyApi = () => {
 
   // Helper function to upload local blob images after property creation
   const uploadLocalImages = async (propertyId: string, localImages: Property['images']) => {
-    // Convert blob URLs back to Files for upload
-    const uploadPromises = localImages.map(async (image, index) => {
-      try {
-        // Fetch the blob data
-        const response = await fetch(image.url)
-        const blob = await response.blob()
+    if (localImages.length === 0) return
 
-        // Create a File object from the blob
-        const file = new File([blob], `image-${index}.jpg`, { type: blob.type })
+    try {
+      // Create a single FormData with all images and captions
+      const formDataObj = new FormData()
+      const captions: string[] = []
 
-        // Create FormData for upload
-        const formDataObj = new FormData()
-        formDataObj.append('images', file)
-        if (image.caption) {
-          formDataObj.append('captions', image.caption)
-        }
+      // Process all images
+      await Promise.all(
+        localImages.map(async (image, index) => {
+          // Fetch the blob data
+          const response = await fetch(image.url)
+          const blob = await response.blob()
 
-        // Upload to S3
-        return await addPropertyImages(propertyId, formDataObj)
-      } catch (err) {
-        console.error(`Failed to upload image ${index}:`, err)
-        throw err
-      }
-    })
+          // Get the correct file extension from MIME type
+          const extension = getFileExtensionFromMimeType(blob.type)
+          const fileName = `image-${index}${extension}`
 
-    await Promise.all(uploadPromises)
+          // Create a File object from the blob
+          const file = new File([blob], fileName, { type: blob.type })
+
+          // Append to FormData
+          formDataObj.append('images', file)
+
+          // Add caption to array (server expects array of captions)
+          captions.push(image.caption || '')
+        })
+      )
+
+      // Append all captions as individual form fields
+      captions.forEach((caption) => {
+        formDataObj.append('captions', caption)
+      })
+
+      // Upload all images in a single request to S3
+      await addPropertyImages(propertyId, formDataObj)
+    } catch (err) {
+      console.error('Failed to upload images:', err)
+      throw err
+    }
   }
 
   // Save property (create or update)

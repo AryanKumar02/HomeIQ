@@ -8,6 +8,7 @@ import User from '../models/User.js';
 
 jest.mock('../services/emailService', () => ({
   sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+  sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
 }));
 
 dotenv.config({ path: '.env.test' });
@@ -45,7 +46,7 @@ describe('Auth: Registration', () => {
       password: 'Password1',
     });
     expect(res.statusCode).toBe(201);
-    expect(res.body.message).toMatch(/Email verification is temporarily unavailable/i);
+    expect(res.body.message).toBe('User registered. Please check your email to verify your account.');
   });
 
   it('rejects duplicate email', async () => {

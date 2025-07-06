@@ -31,6 +31,12 @@ export const extractS3KeyFromUrl = url => {
   try {
     const bucketName = process.env.AWS_S3_BUCKET_NAME;
 
+    // Validate bucket name is defined
+    if (!bucketName) {
+      console.error('AWS_S3_BUCKET_NAME environment variable is not defined');
+      return null;
+    }
+
     // Handle different S3 URL formats
     if (url.includes(`${bucketName}.s3.`)) {
       // Format: https://bucket-name.s3.region.amazonaws.com/key
