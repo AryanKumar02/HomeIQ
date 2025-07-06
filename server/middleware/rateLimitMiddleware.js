@@ -1,4 +1,5 @@
 import rateLimit from 'express-rate-limit';
+
 import logger from '../utils/logger.js';
 
 // If in test environment, disable rate limiting
@@ -35,7 +36,9 @@ export const strictLimiter = isTest
       standardHeaders: true,
       legacyHeaders: false,
       handler: (req, res) => {
-        logger.warn(`Strict rate limit exceeded for IP: ${req.ip}, Path: ${req.path}, Method: ${req.method}`);
+        logger.warn(
+          `Strict rate limit exceeded for IP: ${req.ip}, Path: ${req.path}, Method: ${req.method}`,
+        );
         res.status(429).json({
           error: 'Too many modification requests from this IP, please try again later.',
         });

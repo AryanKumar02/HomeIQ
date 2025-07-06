@@ -412,7 +412,16 @@ export const searchProperties = catchAsync(async (req, res) => {
   };
 
   // Whitelist of allowed property types
-  const allowedPropertyTypes = ['house', 'apartment', 'condo', 'townhouse', 'duplex', 'commercial', 'land', 'other'];
+  const allowedPropertyTypes = [
+    'house',
+    'apartment',
+    'condo',
+    'townhouse',
+    'duplex',
+    'commercial',
+    'land',
+    'other',
+  ];
   const allowedStatuses = ['available', 'occupied', 'maintenance', 'off-market', 'pending'];
 
   if (propertyType && allowedPropertyTypes.includes(propertyType)) {
@@ -484,7 +493,8 @@ export const searchProperties = catchAsync(async (req, res) => {
   const parsedPage = parseInt(page, 10);
   const parsedLimit = parseInt(limit, 10);
   const validatedPage = !isNaN(parsedPage) && parsedPage > 0 ? parsedPage : 1;
-  const validatedLimit = !isNaN(parsedLimit) && parsedLimit > 0 && parsedLimit <= 100 ? parsedLimit : 10;
+  const validatedLimit =
+    !isNaN(parsedLimit) && parsedLimit > 0 && parsedLimit <= 100 ? parsedLimit : 10;
   const skip = (validatedPage - 1) * validatedLimit;
 
   const properties = await Property.find(filter)

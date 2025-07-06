@@ -10,9 +10,9 @@ import cookieParser from 'cookie-parser';
 import jwt from 'jsonwebtoken';
 import swaggerUi from 'swagger-ui-express';
 import mongoSanitize from 'express-mongo-sanitize';
+
 import { generalLimiter } from './middleware/rateLimitMiddleware.js';
 import { csrfProtection } from './middleware/csrfMiddleware.js';
-
 import authRoutes from './routes/authRoutes.js';
 import propertyRoutes from './routes/propertyRoutes.js';
 import logger from './utils/logger.js';
@@ -35,17 +35,19 @@ app.use(
     credentials: true,
   }),
 );
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+      },
     },
-  },
-  crossOriginEmbedderPolicy: false,
-}));
+    crossOriginEmbedderPolicy: false,
+  }),
+);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
@@ -130,12 +132,12 @@ const startServer = async () => {
   try {
     await connectDB(MONGO_URI);
     logger.info('MongoDB connected');
-    
+
     // Start scheduled tasks (only in production/non-test environments)
     if (process.env.NODE_ENV !== 'test') {
       startScheduledTasks();
     }
-    
+
     server.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
     });
@@ -153,18 +155,18 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Graceful shutdown
-const gracefulShutdown = (signal) => {
+const gracefulShutdown = signal => {
   logger.info(`${signal} RECEIVED. Shutting down gracefully`);
-  
+
   // Stop scheduled tasks
   stopScheduledTasks();
-  
+
   // Close server
   server.close(() => {
     logger.info('HTTP server closed');
     process.exit(0);
   });
-  
+
   // Force close server after timeout
   setTimeout(() => {
     logger.error('Could not close connections in time, forcefully shutting down');

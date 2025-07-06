@@ -33,10 +33,22 @@ router.get('/', generalLimiter, propertyController.getMyProperties);
 router.get('/search', searchLimiter, propertyController.searchProperties);
 router.get('/analytics', generalLimiter, propertyController.getPropertyAnalytics);
 router.get('/storage', generalLimiter, propertyController.getUserStorageAnalytics);
-router.post('/', strictLimiter, createPropertyValidators, validateMiddleware, propertyController.createProperty);
+router.post(
+  '/',
+  strictLimiter,
+  createPropertyValidators,
+  validateMiddleware,
+  propertyController.createProperty,
+);
 
 router.get('/:id', generalLimiter, propertyController.getProperty);
-router.put('/:id', strictLimiter, updatePropertyValidators, validateMiddleware, propertyController.updateProperty);
+router.put(
+  '/:id',
+  strictLimiter,
+  updatePropertyValidators,
+  validateMiddleware,
+  propertyController.updateProperty,
+);
 router.delete('/:id', strictLimiter, propertyController.deleteProperty);
 
 // Property status management
@@ -71,7 +83,13 @@ router.patch('/:id/images/:imageId/primary', strictLimiter, propertyController.s
 
 // Unit management (for apartment properties)
 router.get('/:id/units', generalLimiter, propertyController.getUnits);
-router.post('/:id/units', strictLimiter, addUnitValidators, validateMiddleware, propertyController.addUnit);
+router.post(
+  '/:id/units',
+  strictLimiter,
+  addUnitValidators,
+  validateMiddleware,
+  propertyController.addUnit,
+);
 router.get('/:id/units/analytics', generalLimiter, propertyController.getUnitAnalytics);
 router.put(
   '/:id/units/:unitId',
