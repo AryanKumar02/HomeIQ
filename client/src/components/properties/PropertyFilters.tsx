@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Chip, Typography } from '@mui/material'
+import { Box, Chip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { Property } from '../../services/property'
 
@@ -20,16 +20,22 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
   const theme = useTheme()
 
   // Calculate counts for property types
-  const typeCounts = properties.reduce((acc, property) => {
-    acc[property.propertyType] = (acc[property.propertyType] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
+  const typeCounts = properties.reduce(
+    (acc, property) => {
+      acc[property.propertyType] = (acc[property.propertyType] || 0) + 1
+      return acc
+    },
+    {} as Record<string, number>
+  )
 
   // Calculate counts for property statuses
-  const statusCounts = properties.reduce((acc, property) => {
-    acc[property.status] = (acc[property.status] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
+  const statusCounts = properties.reduce(
+    (acc, property) => {
+      acc[property.status] = (acc[property.status] || 0) + 1
+      return acc
+    },
+    {} as Record<string, number>
+  )
 
   // Property type options
   const propertyTypes = [
@@ -87,7 +93,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
         backgroundColor: 'background.paper',
       }}
     >
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
         {/* All Properties - First */}
         <Chip
           label={`All Properties (${properties.length})`}
@@ -104,7 +110,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
         {propertyTypes.map((type) => {
           const count = typeCounts[type.value] || 0
           if (count === 0) return null
-          
+
           return (
             <Chip
               key={type.value}
@@ -124,7 +130,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
         {propertyStatuses.map((status) => {
           const count = statusCounts[status.value] || 0
           if (count === 0) return null
-          
+
           return (
             <Chip
               key={status.value}

@@ -118,17 +118,17 @@ const PropertyDetails: React.FC = () => {
   // Filter properties based on search term and filters
   const filteredProperties = properties.filter((property) => {
     // Search filter
-    const matchesSearch = 
+    const matchesSearch =
       property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       property.address.street.toLowerCase().includes(searchTerm.toLowerCase()) ||
       property.address.city.toLowerCase().includes(searchTerm.toLowerCase())
-    
+
     // Type filter
     const matchesType = filters.type === null || property.propertyType === filters.type
-    
+
     // Status filter
     const matchesStatus = filters.status === null || property.status === filters.status
-    
+
     return matchesSearch && matchesType && matchesStatus
   })
 
@@ -144,9 +144,9 @@ const PropertyDetails: React.FC = () => {
 
   // Handle filter changes
   const handleFilterChange = (filterType: 'type' | 'status', value: string | null) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [filterType]: value
+      [filterType]: value,
     }))
     setCurrentPage(1) // Reset to first page when filters change
   }
