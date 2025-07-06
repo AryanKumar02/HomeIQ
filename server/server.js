@@ -11,6 +11,7 @@ import jwt from 'jsonwebtoken';
 import swaggerUi from 'swagger-ui-express';
 import mongoSanitize from 'express-mongo-sanitize';
 import { generalLimiter } from './middleware/rateLimitMiddleware.js';
+import { csrfProtection } from './middleware/csrfMiddleware.js';
 
 import authRoutes from './routes/authRoutes.js';
 import propertyRoutes from './routes/propertyRoutes.js';
@@ -54,6 +55,9 @@ app.use(mongoSanitize());
 
 // Global rate limiting
 app.use('/api/', generalLimiter);
+
+// CSRF protection for state-changing operations
+app.use('/api/', csrfProtection);
 
 // Morgan HTTP logging with Winston
 if (process.env.NODE_ENV !== 'production') {

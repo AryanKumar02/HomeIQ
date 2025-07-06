@@ -406,23 +406,27 @@ export const searchProperties = catchAsync(async (req, res) => {
     limit = 10,
   } = req.query;
 
-  // Build filter object
+  // Build filter object with whitelisted fields only
   const filter = {
     owner: req.user.id,
   };
 
-  if (propertyType) {
+  // Whitelist of allowed property types
+  const allowedPropertyTypes = ['house', 'apartment', 'condo', 'townhouse', 'duplex', 'commercial', 'land', 'other'];
+  const allowedStatuses = ['available', 'occupied', 'maintenance', 'off-market', 'pending'];
+
+  if (propertyType && allowedPropertyTypes.includes(propertyType)) {
     filter.propertyType = propertyType;
   }
-  if (status) {
+  if (status && allowedStatuses.includes(status)) {
     filter.status = status;
   }
-  if (city) {
+  if (city && typeof city === 'string' && city.length <= 100) {
     // Escape special regex characters to prevent injection
     const escapedCity = city.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     filter['address.city'] = new RegExp(escapedCity, 'i');
   }
-  if (state) {
+  if (state && typeof state === 'string' && state.length <= 100) {
     // Escape special regex characters to prevent injection
     const escapedState = state.toString().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     filter['address.state'] = new RegExp(escapedState, 'i');

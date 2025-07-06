@@ -1,36 +1,28 @@
 import crypto from 'crypto';
 import logger from '../utils/logger.js';
 
-// Simple CSRF protection middleware
-// For state-changing operations, we'll validate that requests include a proper token
+// CSRF protection middleware for cookie-based operations
 export const csrfProtection = (req, res, next) => {
   // Skip CSRF protection for test environment
   if (process.env.NODE_ENV === 'test') {
     return next();
   }
 
-  // Skip for GET requests as they should be idempotent
+  // Skip for safe HTTP methods
   if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
     return next();
   }
 
-  // For authenticated API requests, we'll use the JWT token itself as anti-CSRF protection
-  // since SPAs don't suffer from traditional CSRF when using proper token storage
-  // But we'll add additional header validation for extra security
-  
-  const contentType = req.get('Content-Type');
+  // Skip for authentication routes that don't use cookies for state
+  if (req.path.includes('/auth/')) {
+    return next();
+  }
+
+  // For JWT-based API requests, validate origin/referer
   const origin = req.get('Origin');
   const referer = req.get('Referer');
   
-  // Validate content type for API requests
-  if (!contentType || !contentType.includes('application/json')) {
-    logger.warn(`CSRF: Invalid content type from IP: ${req.ip}, Content-Type: ${contentType}`);
-    return res.status(403).json({
-      error: 'Invalid request format',
-    });
-  }
-
-  // Validate origin/referer for additional protection
+  // Define allowed origins
   const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3000',
@@ -40,11 +32,25 @@ export const csrfProtection = (req, res, next) => {
   const hasValidOrigin = origin && allowedOrigins.includes(origin);
   const hasValidReferer = referer && allowedOrigins.some(allowed => referer.startsWith(allowed));
 
-  if (!hasValidOrigin && !hasValidReferer) {
-    logger.warn(`CSRF: Invalid origin/referer from IP: ${req.ip}, Origin: ${origin}, Referer: ${referer}`);
-    return res.status(403).json({
-      error: 'Request not allowed from this origin',
-    });
+  // For API requests with cookies, require valid origin
+  if (req.cookies && Object.keys(req.cookies).length > 0) {
+    if (!hasValidOrigin && !hasValidReferer) {
+      logger.warn(`CSRF: Invalid origin/referer for cookie request from IP: ${req.ip}, Origin: ${origin}, Referer: ${referer}`);
+      return res.status(403).json({
+        error: 'Request not allowed from this origin',
+      });
+    }
+  }
+
+  // Additional validation for JSON API requests
+  const contentType = req.get('Content-Type');
+  if (contentType && contentType.includes('application/json')) {
+    if (!hasValidOrigin && !hasValidReferer) {
+      logger.warn(`CSRF: Invalid origin/referer for JSON request from IP: ${req.ip}, Origin: ${origin}, Referer: ${referer}`);
+      return res.status(403).json({
+        error: 'Request not allowed from this origin',
+      });
+    }
   }
 
   next();
