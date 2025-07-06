@@ -180,6 +180,19 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     setDeleteDialogOpen(false)
   }
 
+  const handleCardClick = () => {
+    // Don't navigate if menu is open
+    if (menuOpen) {
+      return
+    }
+    handleViewDetails()
+  }
+
+  const handleViewDetailsButtonClick = (event: React.MouseEvent) => {
+    event.stopPropagation() // Prevent card click
+    handleViewDetails()
+  }
+
   return (
     <Card
       component="article"
@@ -206,11 +219,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         flexDirection: 'column',
         flexShrink: 0,
       }}
-      onClick={handleViewDetails}
+      onClick={handleCardClick}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
-          handleViewDetails()
+          handleCardClick()
         }
       }}
     >
@@ -665,7 +678,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         <Button
           variant="contained"
           fullWidth
-          onClick={handleViewDetails}
+          onClick={handleViewDetailsButtonClick}
           aria-label={`View details of ${property.title}`}
           sx={{
             backgroundColor: theme.palette.secondary.main,

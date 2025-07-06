@@ -313,7 +313,7 @@ const CreateProperty: React.FC = () => {
   const handleSave = async () => {
     const result = await saveProperty(formData, isEditMode, propertyId)
 
-    if (result.success && result.propertyId) {
+    if (result.success) {
       // Small delay before redirect to show success message
       setTimeout(() => {
         void navigate('/properties')
