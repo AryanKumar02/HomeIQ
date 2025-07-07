@@ -1,4 +1,5 @@
-import { useEffect, RefObject } from 'react'
+import { useEffect } from 'react'
+import type { RefObject } from 'react'
 import gsap from 'gsap'
 
 interface SidebarAnimationRefs {

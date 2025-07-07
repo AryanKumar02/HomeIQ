@@ -6,15 +6,11 @@ import Titlebar from '../../components/basic/Titlebar'
 import PropertyCard from '../../components/properties/PropertyCard'
 import PropertyFilters from '../../components/properties/PropertyFilters'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
-import { Pagination, PropertyCardSkeletonGrid, SkipLink } from '../../components/common'
-import { getAllProperties, deleteProperty } from '../../services/property'
-import type { Property } from '../../services/property'
+import { PropertyCardSkeletonGrid, SkipLink } from '../../components/common'
+import { useProperties, useDeleteProperty } from '../../hooks/useProperties'
 
 const PropertyDetails: React.FC = () => {
   const navigate = useNavigate()
-  const [properties, setProperties] = useState<Property[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [filters, setFilters] = useState<{
@@ -26,31 +22,9 @@ const PropertyDetails: React.FC = () => {
   })
   const propertiesPerPage = 6 // 3 per row × 2 rows
 
-  // Fetch properties on component mount
-  useEffect(() => {
-    void fetchProperties()
-  }, [])
-
-  const fetchProperties = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      const response = await getAllProperties()
-
-      if (response.properties) {
-        setProperties(response.properties)
-      } else if (response.data?.properties) {
-        setProperties(response.data.properties)
-      } else {
-        setProperties([])
-      }
-    } catch (err) {
-      console.error('Error fetching properties:', err)
-      setError('Failed to load properties. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Use React Query hooks
+  const { data: properties = [], isLoading, error } = useProperties()
+  const deletePropertyMutation = useDeleteProperty()
 
   const handleAddProperty = () => {
     console.log('Add property clicked')
@@ -71,50 +45,20 @@ const PropertyDetails: React.FC = () => {
   }
 
   const handleDelete = (propertyId: string) => {
-    const deleteAsync = async () => {
-      try {
-        const response = await deleteProperty(propertyId)
-
-        // Check if the API call was successful
-        // The deleteProperty service returns PropertyResponse with success/status indicators
-        // or throws an error if the operation failed
-        if (response && (response.success === true || response.status === 'success')) {
-          // Remove property from state
-          setProperties((prev) => prev.filter((p) => p._id !== propertyId))
-
-          // Adjust current page if necessary
-          const remainingProperties = properties.filter((p) => p._id !== propertyId)
-          const newTotalPages = Math.ceil(remainingProperties.length / propertiesPerPage)
-          if (currentPage > newTotalPages && newTotalPages > 0) {
-            setCurrentPage(newTotalPages)
-          }
-
-          console.log('Property deleted successfully from database')
-        } else {
-          throw new Error((response && response.message) || 'Delete operation failed')
+    deletePropertyMutation.mutate(propertyId, {
+      onSuccess: () => {
+        // Adjust current page if necessary
+        const remainingProperties = properties.filter((p) => p._id !== propertyId)
+        const newTotalPages = Math.ceil(remainingProperties.length / propertiesPerPage)
+        if (currentPage > newTotalPages && newTotalPages > 0) {
+          setCurrentPage(newTotalPages)
         }
-      } catch (err) {
-        console.error('Error deleting property:', err)
-
-        // If we get a 404, the property might already be deleted - refresh the list
-        if (err && typeof err === 'object' && 'response' in err) {
-          const axiosError = err as { response?: { status?: number } }
-          if (axiosError.response?.status === 404) {
-            // Property doesn't exist anymore, refresh the list
-            console.log('Property not found, refreshing list...')
-            await fetchProperties()
-            return
-          }
-        }
-
-        setError('Failed to delete property. Please try again.')
-
-        // Clear error after 5 seconds
-        setTimeout(() => setError(null), 5000)
-      }
-    }
-
-    void deleteAsync()
+        console.log('Property deleted successfully')
+      },
+      onError: (error) => {
+        console.error('Error deleting property:', error)
+      },
+    })
   }
 
   // Filter properties based on search term and filters
@@ -188,27 +132,39 @@ const PropertyDetails: React.FC = () => {
           properties={properties}
           selectedFilters={filters}
           onFilterChange={handleFilterChange}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
         />
       </Box>
 
       {/* Main layout with sidebar and content */}
-      <Box sx={{ display: 'flex', flexGrow: 1, pt: { xs: '160px', md: '180px' } }}>
+      <Box sx={{ display: 'flex', flexGrow: 1, pt: { xs: '120px', md: '120px' } }}>
         <Sidebar />
-        <Box component="main" id="main-content" tabIndex={-1} sx={{ flexGrow: 1, p: 3 }}>
+        <Box component="main" id="main-content" tabIndex={-1} sx={{ flexGrow: 1, p: 3, mt: 2 }}>
           {/* Properties content */}
 
           {/* Loading State */}
-          {loading && <PropertyCardSkeletonGrid count={propertiesPerPage} />}
+          {isLoading && <PropertyCardSkeletonGrid count={propertiesPerPage} />}
 
           {/* Error State */}
           {error && (
             <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
+              {error instanceof Error ? error.message : 'Failed to load properties. Please try again.'}
+            </Alert>
+          )}
+
+          {/* Delete Error State */}
+          {deletePropertyMutation.isError && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {deletePropertyMutation.error instanceof Error
+                ? deletePropertyMutation.error.message
+                : 'Failed to delete property. Please try again.'}
             </Alert>
           )}
 
           {/* Properties Grid */}
-          {!loading && !error && (
+          {!isLoading && !error && (
             <>
               {filteredProperties.length === 0 ? (
                 <Box
@@ -258,17 +214,6 @@ const PropertyDetails: React.FC = () => {
                         />
                       </ErrorBoundary>
                     ))}
-                  </Box>
-
-                  {/* Pagination */}
-                  <Box sx={{ mt: 6, mb: 4 }}>
-                    <Pagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      onPageChange={handlePageChange}
-                      showFirstLast={true}
-                      size="large"
-                    />
                   </Box>
                 </>
               )}

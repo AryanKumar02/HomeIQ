@@ -13,8 +13,15 @@ import PropertyDetailsForm from '../../components/properties/PropertyDetailsForm
 import PropertyStatusOccupancyForm from '../../components/properties/PropertyStatusOccupancyForm'
 import FinancialInformationForm from '../../components/properties/FinancialInformationForm'
 import PropertyFeaturesForm from '../../components/properties/PropertyFeaturesForm'
-import { type Property, type Unit } from '../../services/property'
-import { usePropertyApi } from '../../hooks/usePropertyApi'
+import { type Property, type Unit } from '../../types/property'
+import { 
+  useProperty, 
+  useCreateProperty, 
+  useUpdateProperty,
+  useAddPropertyImages,
+  useRemovePropertyImage,
+  useSetPrimaryPropertyImage
+} from '../../hooks/useProperties'
 
 // Use Property type from service
 type FormData = Property
@@ -27,32 +34,33 @@ const CreateProperty: React.FC = () => {
   const { id: propertyId } = useParams<{ id: string }>()
 
   const [isEditMode] = useState(!!propertyId)
-  const {
-    loading,
-    saving,
-    error,
-    success,
-    loadProperty: loadPropertyAPI,
-    saveProperty,
-    addImage: addImageAPI,
-    removeImage: removeImageAPI,
-    setPrimaryImage: setPrimaryImageAPI,
-    clearMessages,
-  } = usePropertyApi()
+  
+  // React Query hooks
+  const { data: propertyData, isLoading: loading } = useProperty(propertyId || '', {
+    enabled: !!propertyId,
+  })
+  const createPropertyMutation = useCreateProperty()
+  const updatePropertyMutation = useUpdateProperty()
+  
+  // Image management mutations
+  const addImagesMutation = useAddPropertyImages()
+  const removeImageMutation = useRemovePropertyImage()
+  const setPrimaryImageMutation = useSetPrimaryPropertyImage()
+  
+  const saving = createPropertyMutation.isPending || updatePropertyMutation.isPending
+  const error = createPropertyMutation.error || updatePropertyMutation.error
+  const success = createPropertyMutation.isSuccess || updatePropertyMutation.isSuccess
+  
+  // Image operation states
+  const imageUploading = addImagesMutation.isPending
+  const imageError = addImagesMutation.error || removeImageMutation.error || setPrimaryImageMutation.error
 
   // Load property data if editing
   useEffect(() => {
-    if (propertyId) {
-      void loadProperty()
-    }
-  }, [propertyId])
-
-  const loadProperty = async () => {
-    const propertyData = await loadPropertyAPI(propertyId!)
     if (propertyData) {
       setFormData(propertyData)
     }
-  }
+  }, [propertyData])
 
   // Common TextField styles matching login form styling
   const textFieldStyles = {
@@ -291,16 +299,170 @@ const CreateProperty: React.FC = () => {
     }
   }
 
-  const addImage = async (file: File) => {
-    await addImageAPI(file, formData, setFormData, isEditMode, propertyId)
+  const addImage = (file: File) => {
+    // Validate file
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    
+    if (file.size > maxSize) {
+      console.error('File too large. Maximum size is 10MB.')
+      return
+    }
+    
+    if (!allowedTypes.includes(file.type)) {
+      console.error('Invalid file type. Only JPEG, PNG, and WebP are allowed.')
+      return
+    }
+
+    if (!isEditMode || !propertyId) {
+      // For new properties, add to local state with optimistic preview
+      const url = URL.createObjectURL(file)
+      const newImage = {
+        url,
+        caption: '',
+        isPrimary: formData.images.length === 0,
+        uploadedAt: new Date().toISOString(),
+        file, // Store file for later upload
+      }
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, newImage],
+      }))
+    } else {
+      // For existing properties, upload immediately with optimistic update
+      const formDataObj = new FormData()
+      formDataObj.append('images', file)
+      formDataObj.append('captions', '') // Default empty caption
+      
+      // Optimistic update: Add image to UI immediately
+      const optimisticImage = {
+        url: URL.createObjectURL(file),
+        caption: '',
+        isPrimary: formData.images.length === 0,
+        uploadedAt: new Date().toISOString(),
+        uploading: true, // Flag to show upload progress
+      }
+      
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, optimisticImage],
+      }))
+
+      // Upload to server
+      addImagesMutation.mutate(
+        { id: propertyId, images: formDataObj },
+        {
+          onSuccess: (updatedProperty) => {
+            // Update with real server data
+            setFormData(updatedProperty)
+          },
+          onError: () => {
+            // Remove optimistic image on failure
+            setFormData((prev) => ({
+              ...prev,
+              images: prev.images.filter((img) => !img.uploading),
+            }))
+          },
+        }
+      )
+    }
   }
 
-  const removeImage = async (index: number) => {
-    await removeImageAPI(index, formData, setFormData, isEditMode, propertyId)
+  const removeImage = (index: number) => {
+    const imageToRemove = formData.images[index]
+    
+    if (!isEditMode || !propertyId || !imageToRemove.url.startsWith('http')) {
+      // For new properties or local images, remove from state immediately
+      setFormData((prev) => {
+        const newImages = prev.images.filter((_, i) => i !== index)
+        // If we removed the primary image, make the first remaining image primary
+        if (prev.images[index]?.isPrimary && newImages.length > 0) {
+          newImages[0].isPrimary = true
+        }
+        return {
+          ...prev,
+          images: newImages,
+        }
+      })
+    } else {
+      // For existing properties, show optimistic update then sync with server
+      const imageId = imageToRemove.url.split('/').pop() || index.toString()
+      
+      // Optimistic update: Remove immediately from UI
+      const originalImages = formData.images
+      setFormData((prev) => {
+        const newImages = prev.images.filter((_, i) => i !== index)
+        if (prev.images[index]?.isPrimary && newImages.length > 0) {
+          newImages[0].isPrimary = true
+        }
+        return {
+          ...prev,
+          images: newImages,
+        }
+      })
+
+      // Remove from server
+      removeImageMutation.mutate(
+        { id: propertyId, imageId },
+        {
+          onSuccess: (updatedProperty) => {
+            setFormData(updatedProperty)
+          },
+          onError: () => {
+            // Revert optimistic update on failure
+            setFormData((prev) => ({
+              ...prev,
+              images: originalImages,
+            }))
+          },
+        }
+      )
+    }
   }
 
-  const setPrimaryImage = async (index: number) => {
-    await setPrimaryImageAPI(index, formData, setFormData, isEditMode, propertyId)
+  const setPrimaryImage = (index: number) => {
+    const imageToSetPrimary = formData.images[index]
+    
+    if (!isEditMode || !propertyId || !imageToSetPrimary.url.startsWith('http')) {
+      // For new properties or local images, update state immediately
+      setFormData((prev) => ({
+        ...prev,
+        images: prev.images.map((img, i) => ({
+          ...img,
+          isPrimary: i === index,
+        })),
+      }))
+    } else {
+      // For existing properties, optimistic update then sync with server
+      const imageId = imageToSetPrimary.url.split('/').pop() || index.toString()
+      
+      // Optimistic update: Set primary immediately
+      const originalImages = formData.images
+      setFormData((prev) => ({
+        ...prev,
+        images: prev.images.map((img, i) => ({
+          ...img,
+          isPrimary: i === index,
+        })),
+      }))
+
+      // Update on server
+      setPrimaryImageMutation.mutate(
+        { id: propertyId, imageId },
+        {
+          onSuccess: (updatedProperty) => {
+            setFormData(updatedProperty)
+          },
+          onError: () => {
+            // Revert optimistic update on failure
+            setFormData((prev) => ({
+              ...prev,
+              images: originalImages,
+            }))
+          },
+        }
+      )
+    }
   }
 
   const updateImageCaption = (index: number, caption: string) => {
@@ -310,11 +472,185 @@ const CreateProperty: React.FC = () => {
     }))
   }
 
-  const handleSave = async () => {
-    const result = await saveProperty(formData, isEditMode, propertyId)
+  // Helper function to sanitize property data for server
+  const sanitizePropertyData = (data: Property): Omit<Property, '_id'> => {
+    const sanitizedData = { ...data }
+    
+    // Remove client-side properties from images
+    sanitizedData.images = data.images
+      .filter(img => !img.url.startsWith('blob:')) // Remove local blob images
+      .map(img => ({
+        url: img.url,
+        caption: img.caption,
+        isPrimary: img.isPrimary,
+        uploadedAt: img.uploadedAt,
+        // Remove client-side properties: file, uploading
+      }))
+    
+    // Ensure numeric fields are properly typed
+    sanitizedData.bedrooms = typeof data.bedrooms === 'string' ? parseFloat(data.bedrooms) || 0 : data.bedrooms
+    sanitizedData.bathrooms = typeof data.bathrooms === 'string' ? parseFloat(data.bathrooms) || 0 : data.bathrooms
+    sanitizedData.squareFootage = typeof data.squareFootage === 'string' ? parseFloat(data.squareFootage) || 0 : data.squareFootage
+    sanitizedData.yearBuilt = typeof data.yearBuilt === 'string' ? parseFloat(data.yearBuilt) || 0 : data.yearBuilt
+    sanitizedData.lotSize = typeof data.lotSize === 'string' ? parseFloat(data.lotSize) || 0 : data.lotSize
+    
+    // Sanitize financial data
+    const financials = { ...data.financials }
+    const financialKeys = Object.keys(financials) as Array<keyof typeof financials>
+    financialKeys.forEach(key => {
+      const value = financials[key]
+      if (typeof value === 'string' && key !== 'purchaseDate') {
+        (financials as Record<string, number | string>)[key] = parseFloat(value) || 0
+      }
+    })
+    sanitizedData.financials = financials
+    
+    // Sanitize occupancy data
+    const occupancy = { ...data.occupancy }
+    if (typeof occupancy.rentDueDate === 'string') {
+      occupancy.rentDueDate = parseFloat(occupancy.rentDueDate) || 1
+    }
+    sanitizedData.occupancy = occupancy
+    
+    // Sanitize pet policy
+    const petPolicy = { ...data.features.petPolicy }
+    if (typeof petPolicy.maxPets === 'string') {
+      petPolicy.maxPets = parseFloat(petPolicy.maxPets) || 0
+    }
+    sanitizedData.features = {
+      ...data.features,
+      petPolicy
+    }
+    
+    // Sanitize units
+    sanitizedData.units = data.units.map(unit => ({
+      ...unit,
+      bedrooms: typeof unit.bedrooms === 'string' ? parseFloat(unit.bedrooms) || 0 : unit.bedrooms,
+      bathrooms: typeof unit.bathrooms === 'string' ? parseFloat(unit.bathrooms) || 0 : unit.bathrooms,
+      squareFootage: typeof unit.squareFootage === 'string' ? parseFloat(unit.squareFootage) || 0 : unit.squareFootage,
+      monthlyRent: typeof unit.monthlyRent === 'string' ? parseFloat(unit.monthlyRent) || 0 : unit.monthlyRent,
+      securityDeposit: typeof unit.securityDeposit === 'string' ? parseFloat(unit.securityDeposit) || 0 : unit.securityDeposit,
+      occupancy: {
+        ...unit.occupancy,
+        rentDueDate: typeof unit.occupancy.rentDueDate === 'string' ? parseFloat(unit.occupancy.rentDueDate) || 1 : unit.occupancy.rentDueDate
+      }
+    }))
+    
+    // Remove _id for create operations
+    delete sanitizedData._id
+    
+    console.log('Sanitized property data:', sanitizedData)
+    return sanitizedData
+  }
 
-    if (result.success) {
-      // Small delay before redirect to show success message
+  // Validation function
+  const validatePropertyData = (data: Property): string[] => {
+    const errors: string[] = []
+    
+    if (!data.title?.trim()) errors.push('Property title is required')
+    if (!data.address?.street?.trim()) errors.push('Street address is required')
+    if (!data.address?.city?.trim()) errors.push('City is required')
+    if (!data.address?.state?.trim()) errors.push('State is required')
+    if (!data.address?.zipCode?.trim()) errors.push('Zip code is required')
+    if (!data.propertyType) errors.push('Property type is required')
+    
+    return errors
+  }
+
+  const handleSave = () => {
+    // Validate data first
+    const validationErrors = validatePropertyData(formData)
+    if (validationErrors.length > 0) {
+      console.error('Validation errors:', validationErrors)
+      // You could show these errors in the UI
+      return
+    }
+
+    if (isEditMode && propertyId) {
+      // For updates, save property data (images are handled separately via mutations)
+      const sanitizedData = sanitizePropertyData(formData)
+      updatePropertyMutation.mutate(
+        { id: propertyId, data: sanitizedData },
+        {
+          onSuccess: () => {
+            setTimeout(() => {
+              void navigate('/properties')
+            }, 1500)
+          },
+        }
+      )
+    } else {
+      // For new properties, save without blob images first, then upload images
+      const localImages = formData.images.filter(img => img.url.startsWith('blob:'))
+      const sanitizedData = sanitizePropertyData(formData)
+      
+      createPropertyMutation.mutate(sanitizedData, {
+        onSuccess: (newProperty) => {
+          // If there are local images to upload, upload them now
+          if (localImages.length > 0 && newProperty._id) {
+            void uploadLocalImages(newProperty._id, localImages)
+          } else {
+            setTimeout(() => {
+              void navigate('/properties')
+            }, 1500)
+          }
+        },
+      })
+    }
+  }
+
+  // Helper function to upload local images after property creation
+  const uploadLocalImages = async (propertyId: string, localImages: typeof formData.images) => {
+    try {
+      // Create FormData with all local images
+      const formDataObj = new FormData()
+      const captions: string[] = []
+
+      // Process all local images
+      await Promise.all(
+        localImages.map(async (image, index) => {
+          // Check if we have a stored file
+          if ('file' in image && image.file instanceof File) {
+            // Use stored file object
+            formDataObj.append('images', image.file)
+            captions.push(image.caption || '')
+          } else {
+            // Fallback: fetch blob URL
+            const response = await fetch(image.url)
+            const blob = await response.blob()
+            const fileName = `image-${index}.${blob.type.split('/')[1] || 'jpg'}`
+            const file = new File([blob], fileName, { type: blob.type })
+            formDataObj.append('images', file)
+            captions.push(image.caption || '')
+          }
+        })
+      )
+
+      // Append captions
+      captions.forEach((caption) => {
+        formDataObj.append('captions', caption)
+      })
+
+      // Upload all images
+      addImagesMutation.mutate(
+        { id: propertyId, images: formDataObj },
+        {
+          onSuccess: () => {
+            setTimeout(() => {
+              void navigate('/properties')
+            }, 1500)
+          },
+          onError: (error) => {
+            console.error('Failed to upload images after property creation:', error)
+            // Still navigate but show warning
+            setTimeout(() => {
+              void navigate('/properties')
+            }, 1500)
+          },
+        }
+      )
+    } catch (error) {
+      console.error('Error processing local images:', error)
       setTimeout(() => {
         void navigate('/properties')
       }, 1500)
@@ -379,15 +715,29 @@ const CreateProperty: React.FC = () => {
 
             {/* Error Alert */}
             {error && (
-              <Alert severity="error" onClose={clearMessages} sx={{ mb: 3 }}>
-                {error}
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {error instanceof Error ? error.message : 'An error occurred'}
+              </Alert>
+            )}
+
+            {/* Image Error Alert */}
+            {imageError && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {imageError instanceof Error ? imageError.message : 'Image operation failed'}
               </Alert>
             )}
 
             {/* Success Alert */}
             {success && (
-              <Alert severity="success" onClose={clearMessages} sx={{ mb: 3 }}>
-                {success}
+              <Alert severity="success" sx={{ mb: 3 }}>
+                {isEditMode ? 'Property updated successfully!' : 'Property created successfully!'}
+              </Alert>
+            )}
+
+            {/* Image Upload Progress */}
+            {imageUploading && (
+              <Alert severity="info" sx={{ mb: 3 }}>
+                Uploading images...
               </Alert>
             )}
 

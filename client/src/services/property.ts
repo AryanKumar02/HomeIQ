@@ -71,6 +71,8 @@ export interface Property {
     caption: string
     isPrimary: boolean
     uploadedAt: string
+    file?: File // For local images before upload
+    uploading?: boolean // For optimistic updates
   }[]
 
   units: Unit[]

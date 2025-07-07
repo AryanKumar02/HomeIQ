@@ -1,7 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { ThemeProvider, CssBaseline } from '@mui/material'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import theme from './theme'
 import { AuthProvider } from './context/AuthContext.tsx'
+import { queryClient } from './lib/queryClient'
 import Login from './pages/Auth/Login.tsx'
 import Signup from './pages/Auth/Signup.tsx'
 import ForgotPassword from './pages/Auth/ForgotPassword.tsx'
@@ -25,12 +28,13 @@ const SettingsPage = () => <div>Settings Page</div>
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <ErrorBoundary>
-        <AuthProvider>
-          <Router>
-            <Routes>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <ErrorBoundary>
+          <AuthProvider>
+            <Router>
+              <Routes>
               {/* Public Routes */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
@@ -123,11 +127,13 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-            </Routes>
-          </Router>
-        </AuthProvider>
-      </ErrorBoundary>
-    </ThemeProvider>
+              </Routes>
+            </Router>
+          </AuthProvider>
+        </ErrorBoundary>
+      </ThemeProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   )
 }
 
