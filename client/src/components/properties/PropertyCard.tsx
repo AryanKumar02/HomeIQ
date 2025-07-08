@@ -244,7 +244,13 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       }}
     >
       {/* Image Section - 50% of card height */}
-      <Box sx={{ position: 'relative', height: { xs: '150px', sm: '167px', md: '177px' }, flex: '0 0 auto' }}>
+      <Box
+        sx={{
+          position: 'relative',
+          height: { xs: '150px', sm: '167px', md: '177px' },
+          flex: '0 0 auto',
+        }}
+      >
         <PropertyImage
           images={property.images?.map((img) => img.url) || []}
           title={property.title}

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { Box, Typography, TextField, Button, Alert } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
-import { forgotPassword } from '../../services/auth'
+import { useForgotPassword } from '../../hooks/useAuth'
 import { useFormGsapAnimation } from '../../animation/useFormGsapAnimation'
 
 interface ForgotPasswordFormProps {
@@ -11,8 +11,11 @@ interface ForgotPasswordFormProps {
 
 const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onError }) => {
   const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  // React Query hook
+  const forgotPasswordMutation = useForgotPassword()
+  const loading = forgotPasswordMutation.isPending
 
   // GSAP refs
   const formRef = useRef<HTMLDivElement>(null)
@@ -28,42 +31,39 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onEr
     extraRefs: [rememberPasswordRef as React.RefObject<HTMLElement>],
   })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setMessage(null)
-
-    try {
-      await forgotPassword(email)
+  // Handle mutation results
+  React.useEffect(() => {
+    if (forgotPasswordMutation.isSuccess) {
       const successMessage = 'Password reset email sent! Check your inbox.'
       setMessage({
         type: 'success',
         text: successMessage,
       })
-      // Clear form
       setEmail('')
       onSuccess?.()
-    } catch (error: unknown) {
+    }
+    if (forgotPasswordMutation.error) {
       let errorMessage = 'Something went wrong. Please try again.'
+      const error = forgotPasswordMutation.error
       if (typeof error === 'object' && error !== null) {
         const customError = error as {
           response?: { data?: { message?: string } }
-          message?: string
         }
-        if (customError.response?.data?.message) {
-          errorMessage = customError.response.data.message
-        } else if (customError.message) {
-          errorMessage = customError.message
-        }
+        errorMessage = customError.response?.data?.message || errorMessage
       }
       setMessage({
         type: 'error',
         text: errorMessage,
       })
       onError?.(errorMessage)
-    } finally {
-      setLoading(false)
     }
+  }, [forgotPasswordMutation.isSuccess, forgotPasswordMutation.error, onSuccess, onError])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setMessage(null)
+
+    forgotPasswordMutation.mutate({ email })
   }
 
   return (

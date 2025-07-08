@@ -1,14 +1,14 @@
 import React from 'react'
 import { Navigate } from 'react-router-dom'
 import { Box, CircularProgress, Typography } from '@mui/material'
-import { useAuth } from '../../context/AuthContext'
+import { useAuthContext } from '../../context/AuthContext'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, isLoading, user } = useAuth()
+  const { isAuthenticated, isLoading, user } = useAuthContext()
 
   console.log(
     'ProtectedRoute - isAuthenticated:',

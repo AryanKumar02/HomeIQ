@@ -15,6 +15,7 @@ import { generalLimiter } from './middleware/rateLimitMiddleware.js';
 import { csrfProtection } from './middleware/csrfMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 import propertyRoutes from './routes/propertyRoutes.js';
+import tenantRoutes from './routes/tenantRoutes.js';
 import logger from './utils/logger.js';
 import AppError from './utils/appError.js';
 import globalErrorHandler from './controllers/errorController.js';
@@ -77,6 +78,7 @@ if (process.env.NODE_ENV !== 'production') {
 // Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/property', propertyRoutes);
+app.use('/api/v1/tenant', tenantRoutes);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // 404 handler

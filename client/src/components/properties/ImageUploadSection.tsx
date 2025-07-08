@@ -1,5 +1,13 @@
 import React from 'react'
-import { Box, TextField, Button, IconButton, Typography, CircularProgress, Backdrop } from '@mui/material'
+import {
+  Box,
+  TextField,
+  Button,
+  IconButton,
+  Typography,
+  CircularProgress,
+  Backdrop,
+} from '@mui/material'
 import Grid from '@mui/material/Grid'
 import {
   CloudUpload as CloudUploadIcon,
@@ -212,7 +220,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                       transition: 'opacity 0.3s ease',
                     }}
                   />
-                  
+
                   {/* Upload Progress Overlay */}
                   {image.uploading && (
                     <Backdrop

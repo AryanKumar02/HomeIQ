@@ -35,98 +35,98 @@ function App() {
           <AuthProvider>
             <Router>
               <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password/:token" element={<ResetPassword />} />
-              <Route path="/verify-email/:token" element={<VerifyEmail />} />
-              <Route path="/resend-verification" element={<ResendVerification />} />
-              <Route path="/terms-of-service" element={<TermsOfService />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                {/* Public Routes */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
+                <Route path="/verify-email/:token" element={<VerifyEmail />} />
+                <Route path="/resend-verification" element={<ResendVerification />} />
+                <Route path="/terms-of-service" element={<TermsOfService />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
-              {/* Protected Routes */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/properties"
-                element={
-                  <ProtectedRoute>
-                    <PropertyDetails />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/properties/:id"
-                element={
-                  <ProtectedRoute>
-                    <PropertyDetails />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/properties/edit"
-                element={
-                  <ProtectedRoute>
-                    <EditProperty />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/properties/edit/:id"
-                element={
-                  <ProtectedRoute>
-                    <EditProperty />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/properties/add"
-                element={
-                  <ProtectedRoute>
-                    <EditProperty />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/tenants"
-                element={
-                  <ProtectedRoute>
-                    <TenantsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/analytics"
-                element={
-                  <ProtectedRoute>
-                    <AnalyticsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/maintenance"
-                element={
-                  <ProtectedRoute>
-                    <MaintenancePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <SettingsPage />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Protected Routes */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/properties"
+                  element={
+                    <ProtectedRoute>
+                      <PropertyDetails />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/properties/:id"
+                  element={
+                    <ProtectedRoute>
+                      <PropertyDetails />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/properties/edit"
+                  element={
+                    <ProtectedRoute>
+                      <EditProperty />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/properties/edit/:id"
+                  element={
+                    <ProtectedRoute>
+                      <EditProperty />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/properties/add"
+                  element={
+                    <ProtectedRoute>
+                      <EditProperty />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tenants"
+                  element={
+                    <ProtectedRoute>
+                      <TenantsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/analytics"
+                  element={
+                    <ProtectedRoute>
+                      <AnalyticsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/maintenance"
+                  element={
+                    <ProtectedRoute>
+                      <MaintenancePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <SettingsPage />
+                    </ProtectedRoute>
+                  }
+                />
               </Routes>
             </Router>
           </AuthProvider>

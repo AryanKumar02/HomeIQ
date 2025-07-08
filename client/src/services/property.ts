@@ -67,6 +67,7 @@ export interface Property {
   }
 
   images: {
+    _id?: string // MongoDB-generated ID for image subdocument
     url: string
     caption: string
     isPrimary: boolean

@@ -1,6 +1,9 @@
 import React from 'react'
 import { Box, IconButton, Chip } from '@mui/material'
-import { ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from '@mui/icons-material'
+import {
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+} from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
 
 interface PageNavigationProps {
@@ -15,7 +18,7 @@ const PageNavigation: React.FC<PageNavigationProps> = ({
   onPageChange,
 }) => {
   const theme = useTheme()
-  
+
   if (totalPages <= 1) return null
 
   const handlePrevious = () => {
@@ -31,12 +34,14 @@ const PageNavigation: React.FC<PageNavigationProps> = ({
   }
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      alignItems: 'center', 
-      gap: 1,
-      ml: 2, // Add some margin from the filters
-    }}>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        ml: 2, // Add some margin from the filters
+      }}
+    >
       <IconButton
         size="small"
         onClick={handlePrevious}
@@ -61,7 +66,7 @@ const PageNavigation: React.FC<PageNavigationProps> = ({
       >
         <ChevronLeftIcon fontSize="small" />
       </IconButton>
-      
+
       <Chip
         label={`${currentPage} / ${totalPages}`}
         size="small"
@@ -76,7 +81,7 @@ const PageNavigation: React.FC<PageNavigationProps> = ({
           },
         }}
       />
-      
+
       <IconButton
         size="small"
         onClick={handleNext}

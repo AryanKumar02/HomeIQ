@@ -12,7 +12,7 @@ import {
   InputAdornment,
 } from '@mui/material'
 import gsap from 'gsap'
-import { signup } from '../../services/auth'
+import { useSignup } from '../../hooks/useAuth'
 import { Link as RouterLink } from 'react-router-dom'
 import { useFormGsapAnimation } from '../animation/useFormGsapAnimation'
 import CheckIcon from '@mui/icons-material/Check'
@@ -92,8 +92,8 @@ const SignupForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [acceptTerms, setAcceptTerms] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
   const formRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const firstNameRef = useRef<HTMLDivElement>(null)
@@ -104,6 +104,10 @@ const SignupForm: React.FC = () => {
   const loginRef = useRef<HTMLParagraphElement>(null)
   const theme = useTheme()
   const [showPassword, setShowPassword] = useState(false)
+
+  // React Query hook
+  const signupMutation = useSignup()
+  const loading = signupMutation.isPending
 
   useFormGsapAnimation({
     formRef: formRef as React.RefObject<HTMLElement>,
@@ -119,6 +123,24 @@ const SignupForm: React.FC = () => {
       loginRef as React.RefObject<HTMLElement>,
     ],
   })
+
+  // Handle signup mutation results
+  useEffect(() => {
+    if (signupMutation.isSuccess) {
+      setSuccess(true)
+      setError(null)
+      // Clear form fields on success
+      setFirstName('')
+      setSecondName('')
+      setEmail('')
+      setPassword('')
+      setAcceptTerms(false)
+    }
+    if (signupMutation.error) {
+      setError(getFriendlyErrorMessage(signupMutation.error))
+      setSuccess(false)
+    }
+  }, [signupMutation.isSuccess, signupMutation.error])
 
   // Shake animation on error
   useEffect(() => {
@@ -156,10 +178,11 @@ const SignupForm: React.FC = () => {
     return 'Unable to sign up. Please check your details and try again.'
   }
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
     setError(null)
-    setLoading(true)
+    setSuccess(false)
+
     if (buttonRef.current) {
       gsap.to(buttonRef.current, {
         scale: 0.96,
@@ -169,14 +192,13 @@ const SignupForm: React.FC = () => {
         ease: 'power1.inOut',
       })
     }
-    try {
-      await signup(firstName, secondName, email, password)
-      // Optionally redirect or show success
-    } catch (err: unknown) {
-      setError(getFriendlyErrorMessage(err))
-    } finally {
-      setLoading(false)
-    }
+
+    signupMutation.mutate({
+      firstName,
+      secondName,
+      email,
+      password,
+    })
   }
 
   const handleTogglePassword = () => {
@@ -238,6 +260,11 @@ const SignupForm: React.FC = () => {
         {error && (
           <Alert severity="error" sx={{ mb: 1.5 }}>
             {error}
+          </Alert>
+        )}
+        {success && (
+          <Alert severity="success" sx={{ mb: 1.5 }}>
+            Account created successfully! Please check your email to verify your account.
           </Alert>
         )}
         <Box sx={{ display: 'flex', gap: 1.5, mb: 1.1 }}>

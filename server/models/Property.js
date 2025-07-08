@@ -174,7 +174,7 @@ const propertySchema = new mongoose.Schema({
     },
     tenant: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Tenant', // Updated to reference Tenant model
     },
     leaseStart: {
       type: Date,
@@ -237,7 +237,7 @@ const propertySchema = new mongoose.Schema({
         },
         tenant: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
+          ref: 'Tenant', // Updated to reference Tenant model
         },
         leaseStart: {
           type: Date,

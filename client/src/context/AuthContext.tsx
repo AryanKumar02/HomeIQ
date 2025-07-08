@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import type { ReactNode } from 'react'
+import { useCurrentUser, useLogin, useLogout } from '../hooks/useAuth'
 
 // Types for user data
 export interface User {
@@ -13,18 +14,13 @@ export interface User {
   emailVerified: boolean
 }
 
-// API response types
-interface ErrorResponse {
-  message?: string
-}
-
 // Auth context type
 interface AuthContextType {
   user: User | null
   token: string | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>
   logout: () => void
   refreshUserData: () => Promise<void>
   updateUser: (userData: Partial<User>) => void
@@ -38,65 +34,33 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
-// API base URL - environment based for deployment
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3001/api/v1'
-
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isInitialized, setIsInitialized] = useState(false)
 
-  // Logout function (moved up so it can be used by refreshUserData)
-  const logout = () => {
-    setUser(null)
+  // React Query hooks
+  const loginMutation = useLogin()
+  const logoutMutation = useLogout()
+
+  // Get current user data with React Query
+  const {
+    data: currentUserData,
+    isLoading: isLoadingUser,
+    refetch: refetchUser,
+    error: userError,
+  } = useCurrentUser(isInitialized && !!token)
+
+  const user = currentUserData?.user || null
+
+  // Logout function using React Query
+  const handleLogout = useCallback(() => {
     setToken(null)
-    localStorage.removeItem('authToken')
-    localStorage.removeItem('userData')
-  }
-
-  // Refresh user data from server
-  const refreshUserData = async (authToken?: string): Promise<void> => {
-    const tokenToUse = authToken || token
-
-    if (!tokenToUse) {
-      throw new Error('No authentication token available')
-    }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/me`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${tokenToUse}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          // Token is invalid, logout user
-          logout()
-          throw new Error('Session expired')
-        }
-        throw new Error('Failed to fetch user data')
-      }
-
-      const responseData = (await response.json()) as { user?: User } & User
-      console.log('Auth/me response:', responseData)
-
-      // Handle different response formats (backend might return {user: {...}} or just {...})
-      const userData: User = responseData.user || responseData
-
-      setUser(userData)
-      localStorage.setItem('userData', JSON.stringify(userData))
-    } catch (error) {
-      console.error('Error refreshing user data:', error)
-      throw error
-    }
-  }
+    logoutMutation.mutate()
+  }, [logoutMutation])
 
   // Initialize auth state from localStorage
   useEffect(() => {
-    const initializeAuth = async () => {
+    const initializeAuth = () => {
       try {
         const storedToken = localStorage.getItem('authToken')
         const storedUser = localStorage.getItem('userData')
@@ -105,25 +69,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (storedUser === 'undefined' || storedUser === 'null') {
           localStorage.removeItem('authToken')
           localStorage.removeItem('userData')
-          setIsLoading(false)
+          setIsInitialized(true)
           return
         }
 
         if (storedToken && storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
           try {
-            const parsedUser = JSON.parse(storedUser) as User
-            // Set user data immediately for faster load
             setToken(storedToken)
-            setUser(parsedUser)
-
-            // Then verify token is still valid in the background
-            try {
-              await refreshUserData(storedToken)
-            } catch (refreshError) {
-              // Only clear data if it's a 401 (handled in refreshUserData)
-              // For other errors (network, etc), keep the cached data
-              console.error('Error refreshing user data:', refreshError)
-            }
+            // React Query will automatically fetch user data once token is set and isInitialized is true
           } catch (parseError) {
             console.error('Error parsing stored user data:', parseError)
             // Clear invalid data
@@ -134,72 +87,55 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         console.error('Error initializing auth:', error)
       } finally {
-        setIsLoading(false)
+        setIsInitialized(true)
       }
     }
 
-    void initializeAuth()
+    initializeAuth()
   }, [])
 
-  // Login function
-  const login = async (email: string, password: string): Promise<void> => {
-    setIsLoading(true)
+  // Handle user query errors (like 401)
+  useEffect(() => {
+    if (userError && token) {
+      // If there's an error fetching user data and we have a token, it's likely invalid
+      console.error('Error fetching user data:', userError)
+
+      // Check if it's a 401 error
+      if (userError && typeof userError === 'object' && 'response' in userError) {
+        const axiosError = userError as { response?: { status?: number } }
+        if (axiosError.response?.status === 401) {
+          // Token is invalid, clear auth data
+          handleLogout()
+        }
+      }
+    }
+  }, [userError, token, handleLogout])
+
+  // Login function using React Query
+  const login = async (email: string, password: string, rememberMe = false): Promise<void> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      const result = await loginMutation.mutateAsync({
+        email,
+        password,
+        rememberMe,
       })
 
-      if (!response.ok) {
-        const errorData = (await response.json()) as ErrorResponse
-        throw new Error(errorData.message || 'Login failed')
+      if (result.token) {
+        setToken(result.token)
       }
-
-      const data = (await response.json()) as { success: boolean; token: string }
-
-      console.log('Raw login response:', data)
-
-      // Extract token from response
-      const authToken = data.token
-
-      console.log('Extracted token:', authToken)
-
-      // Store token first
-      setToken(authToken)
-      localStorage.setItem('authToken', authToken)
-
-      // Fetch user data using the token
-      const userResponse = await fetch(`${API_BASE_URL}/auth/me`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!userResponse.ok) {
-        throw new Error('Failed to fetch user data after login')
-      }
-
-      const userDataResponse = (await userResponse.json()) as { user: User }
-      const userData = userDataResponse.user
-
-      console.log('Fetched user data:', userData)
-
-      // Store user data
-      setUser(userData)
-      localStorage.setItem('userData', JSON.stringify(userData))
-
-      console.log('Login successful, user data:', userData)
-      console.log('Authentication state updated')
     } catch (error) {
       console.error('Login error:', error)
       throw error
-    } finally {
-      setIsLoading(false)
+    }
+  }
+
+  // Refresh user data
+  const refreshUserData = async (): Promise<void> => {
+    try {
+      await refetchUser()
+    } catch (error) {
+      console.error('Error refreshing user data:', error)
+      throw error
     }
   }
 
@@ -207,10 +143,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const updateUser = (userData: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...userData }
-      setUser(updatedUser)
       localStorage.setItem('userData', JSON.stringify(updatedUser))
+      // Note: React Query will handle the cache update
     }
   }
+
+  // Calculate loading state
+  const isLoading =
+    !isInitialized || (isInitialized && token && isLoadingUser) || loginMutation.isPending
 
   const value: AuthContextType = {
     user,
@@ -218,7 +158,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!user && !!token,
     isLoading,
     login,
-    logout,
+    logout: handleLogout,
     refreshUserData,
     updateUser,
   }
@@ -227,10 +167,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 }
 
 // Custom hook to use auth context
-export const useAuth = (): AuthContextType => {
+export const useAuthContext = (): AuthContextType => {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error('useAuthContext must be used within an AuthProvider')
   }
   return context
 }
@@ -238,7 +178,7 @@ export const useAuth = (): AuthContextType => {
 // HOC for protected routes
 export const withAuth = <P extends object>(Component: React.ComponentType<P>) => {
   const WrappedComponent = (props: P) => {
-    const { isAuthenticated, isLoading } = useAuth()
+    const { isAuthenticated, isLoading } = useAuthContext()
 
     if (isLoading) {
       return (

@@ -168,7 +168,11 @@ export const propertiesApi = {
     return property
   },
 
-  updateUnit: async (propertyId: string, unitId: string, unitData: Partial<Unit>): Promise<Property> => {
+  updateUnit: async (
+    propertyId: string,
+    unitId: string,
+    unitData: Partial<Unit>
+  ): Promise<Property> => {
     const response = await apiClient.put<PropertyResponse>(
       `/api/v1/property/${propertyId}/units/${unitId}`,
       unitData

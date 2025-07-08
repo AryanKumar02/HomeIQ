@@ -150,7 +150,9 @@ const PropertyDetails: React.FC = () => {
           {/* Error State */}
           {error && (
             <Alert severity="error" sx={{ mb: 3 }}>
-              {error instanceof Error ? error.message : 'Failed to load properties. Please try again.'}
+              {error instanceof Error
+                ? error.message
+                : 'Failed to load properties. Please try again.'}
             </Alert>
           )}
 

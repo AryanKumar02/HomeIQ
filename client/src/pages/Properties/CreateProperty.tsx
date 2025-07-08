@@ -14,13 +14,13 @@ import PropertyStatusOccupancyForm from '../../components/properties/PropertySta
 import FinancialInformationForm from '../../components/properties/FinancialInformationForm'
 import PropertyFeaturesForm from '../../components/properties/PropertyFeaturesForm'
 import { type Property, type Unit } from '../../types/property'
-import { 
-  useProperty, 
-  useCreateProperty, 
+import {
+  useProperty,
+  useCreateProperty,
   useUpdateProperty,
   useAddPropertyImages,
   useRemovePropertyImage,
-  useSetPrimaryPropertyImage
+  useSetPrimaryPropertyImage,
 } from '../../hooks/useProperties'
 
 // Use Property type from service
@@ -34,26 +34,27 @@ const CreateProperty: React.FC = () => {
   const { id: propertyId } = useParams<{ id: string }>()
 
   const [isEditMode] = useState(!!propertyId)
-  
+
   // React Query hooks
   const { data: propertyData, isLoading: loading } = useProperty(propertyId || '', {
     enabled: !!propertyId,
   })
   const createPropertyMutation = useCreateProperty()
   const updatePropertyMutation = useUpdateProperty()
-  
+
   // Image management mutations
   const addImagesMutation = useAddPropertyImages()
   const removeImageMutation = useRemovePropertyImage()
   const setPrimaryImageMutation = useSetPrimaryPropertyImage()
-  
+
   const saving = createPropertyMutation.isPending || updatePropertyMutation.isPending
   const error = createPropertyMutation.error || updatePropertyMutation.error
   const success = createPropertyMutation.isSuccess || updatePropertyMutation.isSuccess
-  
+
   // Image operation states
   const imageUploading = addImagesMutation.isPending
-  const imageError = addImagesMutation.error || removeImageMutation.error || setPrimaryImageMutation.error
+  const imageError =
+    addImagesMutation.error || removeImageMutation.error || setPrimaryImageMutation.error
 
   // Load property data if editing
   useEffect(() => {
@@ -303,12 +304,12 @@ const CreateProperty: React.FC = () => {
     // Validate file
     const maxSize = 10 * 1024 * 1024 // 10MB
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-    
+
     if (file.size > maxSize) {
       console.error('File too large. Maximum size is 10MB.')
       return
     }
-    
+
     if (!allowedTypes.includes(file.type)) {
       console.error('Invalid file type. Only JPEG, PNG, and WebP are allowed.')
       return
@@ -333,7 +334,7 @@ const CreateProperty: React.FC = () => {
       const formDataObj = new FormData()
       formDataObj.append('images', file)
       formDataObj.append('captions', '') // Default empty caption
-      
+
       // Optimistic update: Add image to UI immediately
       const optimisticImage = {
         url: URL.createObjectURL(file),
@@ -342,7 +343,7 @@ const CreateProperty: React.FC = () => {
         uploadedAt: new Date().toISOString(),
         uploading: true, // Flag to show upload progress
       }
-      
+
       setFormData((prev) => ({
         ...prev,
         images: [...prev.images, optimisticImage],
@@ -356,7 +357,8 @@ const CreateProperty: React.FC = () => {
             // Update with real server data
             setFormData(updatedProperty)
           },
-          onError: () => {
+          onError: (error: unknown) => {
+            console.error('Failed to upload image:', error)
             // Remove optimistic image on failure
             setFormData((prev) => ({
               ...prev,
@@ -370,8 +372,8 @@ const CreateProperty: React.FC = () => {
 
   const removeImage = (index: number) => {
     const imageToRemove = formData.images[index]
-    
-    if (!isEditMode || !propertyId || !imageToRemove.url.startsWith('http')) {
+
+    if (!isEditMode || !propertyId || !imageToRemove._id) {
       // For new properties or local images, remove from state immediately
       setFormData((prev) => {
         const newImages = prev.images.filter((_, i) => i !== index)
@@ -386,8 +388,15 @@ const CreateProperty: React.FC = () => {
       })
     } else {
       // For existing properties, show optimistic update then sync with server
-      const imageId = imageToRemove.url.split('/').pop() || index.toString()
-      
+      // At this point we know imageToRemove._id exists due to the condition above
+      if (!imageToRemove._id || typeof imageToRemove._id !== 'string') {
+        console.error('Image ID not found for deletion')
+        return
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const imageId = imageToRemove._id
+
       // Optimistic update: Remove immediately from UI
       const originalImages = formData.images
       setFormData((prev) => {
@@ -403,12 +412,14 @@ const CreateProperty: React.FC = () => {
 
       // Remove from server
       removeImageMutation.mutate(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         { id: propertyId, imageId },
         {
           onSuccess: (updatedProperty) => {
             setFormData(updatedProperty)
           },
-          onError: () => {
+          onError: (error: unknown) => {
+            console.error('Failed to remove image:', error)
             // Revert optimistic update on failure
             setFormData((prev) => ({
               ...prev,
@@ -422,8 +433,8 @@ const CreateProperty: React.FC = () => {
 
   const setPrimaryImage = (index: number) => {
     const imageToSetPrimary = formData.images[index]
-    
-    if (!isEditMode || !propertyId || !imageToSetPrimary.url.startsWith('http')) {
+
+    if (!isEditMode || !propertyId || !imageToSetPrimary._id) {
       // For new properties or local images, update state immediately
       setFormData((prev) => ({
         ...prev,
@@ -434,8 +445,14 @@ const CreateProperty: React.FC = () => {
       }))
     } else {
       // For existing properties, optimistic update then sync with server
-      const imageId = imageToSetPrimary.url.split('/').pop() || index.toString()
-      
+      if (!imageToSetPrimary._id || typeof imageToSetPrimary._id !== 'string') {
+        console.error('Image ID not found for setting primary')
+        return
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const imageId = imageToSetPrimary._id
+
       // Optimistic update: Set primary immediately
       const originalImages = formData.images
       setFormData((prev) => ({
@@ -448,12 +465,14 @@ const CreateProperty: React.FC = () => {
 
       // Update on server
       setPrimaryImageMutation.mutate(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         { id: propertyId, imageId },
         {
           onSuccess: (updatedProperty) => {
             setFormData(updatedProperty)
           },
-          onError: () => {
+          onError: (error: unknown) => {
+            console.error('Failed to set primary image:', error)
             // Revert optimistic update on failure
             setFormData((prev) => ({
               ...prev,
@@ -475,43 +494,50 @@ const CreateProperty: React.FC = () => {
   // Helper function to sanitize property data for server
   const sanitizePropertyData = (data: Property): Omit<Property, '_id'> => {
     const sanitizedData = { ...data }
-    
+
     // Remove client-side properties from images
     sanitizedData.images = data.images
-      .filter(img => !img.url.startsWith('blob:')) // Remove local blob images
-      .map(img => ({
+      .filter((img) => !img.url.startsWith('blob:')) // Remove local blob images
+      .map((img) => ({
         url: img.url,
         caption: img.caption,
         isPrimary: img.isPrimary,
         uploadedAt: img.uploadedAt,
         // Remove client-side properties: file, uploading
       }))
-    
+
     // Ensure numeric fields are properly typed
-    sanitizedData.bedrooms = typeof data.bedrooms === 'string' ? parseFloat(data.bedrooms) || 0 : data.bedrooms
-    sanitizedData.bathrooms = typeof data.bathrooms === 'string' ? parseFloat(data.bathrooms) || 0 : data.bathrooms
-    sanitizedData.squareFootage = typeof data.squareFootage === 'string' ? parseFloat(data.squareFootage) || 0 : data.squareFootage
-    sanitizedData.yearBuilt = typeof data.yearBuilt === 'string' ? parseFloat(data.yearBuilt) || 0 : data.yearBuilt
-    sanitizedData.lotSize = typeof data.lotSize === 'string' ? parseFloat(data.lotSize) || 0 : data.lotSize
-    
+    sanitizedData.bedrooms =
+      typeof data.bedrooms === 'string' ? parseFloat(data.bedrooms) || 0 : data.bedrooms
+    sanitizedData.bathrooms =
+      typeof data.bathrooms === 'string' ? parseFloat(data.bathrooms) || 0 : data.bathrooms
+    sanitizedData.squareFootage =
+      typeof data.squareFootage === 'string'
+        ? parseFloat(data.squareFootage) || 0
+        : data.squareFootage
+    sanitizedData.yearBuilt =
+      typeof data.yearBuilt === 'string' ? parseFloat(data.yearBuilt) || 0 : data.yearBuilt
+    sanitizedData.lotSize =
+      typeof data.lotSize === 'string' ? parseFloat(data.lotSize) || 0 : data.lotSize
+
     // Sanitize financial data
     const financials = { ...data.financials }
     const financialKeys = Object.keys(financials) as Array<keyof typeof financials>
-    financialKeys.forEach(key => {
+    financialKeys.forEach((key) => {
       const value = financials[key]
       if (typeof value === 'string' && key !== 'purchaseDate') {
-        (financials as Record<string, number | string>)[key] = parseFloat(value) || 0
+        ;(financials as Record<string, number | string>)[key] = parseFloat(value) || 0
       }
     })
     sanitizedData.financials = financials
-    
+
     // Sanitize occupancy data
     const occupancy = { ...data.occupancy }
     if (typeof occupancy.rentDueDate === 'string') {
       occupancy.rentDueDate = parseFloat(occupancy.rentDueDate) || 1
     }
     sanitizedData.occupancy = occupancy
-    
+
     // Sanitize pet policy
     const petPolicy = { ...data.features.petPolicy }
     if (typeof petPolicy.maxPets === 'string') {
@@ -519,26 +545,37 @@ const CreateProperty: React.FC = () => {
     }
     sanitizedData.features = {
       ...data.features,
-      petPolicy
+      petPolicy,
     }
-    
+
     // Sanitize units
-    sanitizedData.units = data.units.map(unit => ({
+    sanitizedData.units = data.units.map((unit) => ({
       ...unit,
       bedrooms: typeof unit.bedrooms === 'string' ? parseFloat(unit.bedrooms) || 0 : unit.bedrooms,
-      bathrooms: typeof unit.bathrooms === 'string' ? parseFloat(unit.bathrooms) || 0 : unit.bathrooms,
-      squareFootage: typeof unit.squareFootage === 'string' ? parseFloat(unit.squareFootage) || 0 : unit.squareFootage,
-      monthlyRent: typeof unit.monthlyRent === 'string' ? parseFloat(unit.monthlyRent) || 0 : unit.monthlyRent,
-      securityDeposit: typeof unit.securityDeposit === 'string' ? parseFloat(unit.securityDeposit) || 0 : unit.securityDeposit,
+      bathrooms:
+        typeof unit.bathrooms === 'string' ? parseFloat(unit.bathrooms) || 0 : unit.bathrooms,
+      squareFootage:
+        typeof unit.squareFootage === 'string'
+          ? parseFloat(unit.squareFootage) || 0
+          : unit.squareFootage,
+      monthlyRent:
+        typeof unit.monthlyRent === 'string' ? parseFloat(unit.monthlyRent) || 0 : unit.monthlyRent,
+      securityDeposit:
+        typeof unit.securityDeposit === 'string'
+          ? parseFloat(unit.securityDeposit) || 0
+          : unit.securityDeposit,
       occupancy: {
         ...unit.occupancy,
-        rentDueDate: typeof unit.occupancy.rentDueDate === 'string' ? parseFloat(unit.occupancy.rentDueDate) || 1 : unit.occupancy.rentDueDate
-      }
+        rentDueDate:
+          typeof unit.occupancy.rentDueDate === 'string'
+            ? parseFloat(unit.occupancy.rentDueDate) || 1
+            : unit.occupancy.rentDueDate,
+      },
     }))
-    
+
     // Remove _id for create operations
     delete sanitizedData._id
-    
+
     console.log('Sanitized property data:', sanitizedData)
     return sanitizedData
   }
@@ -546,14 +583,14 @@ const CreateProperty: React.FC = () => {
   // Validation function
   const validatePropertyData = (data: Property): string[] => {
     const errors: string[] = []
-    
+
     if (!data.title?.trim()) errors.push('Property title is required')
     if (!data.address?.street?.trim()) errors.push('Street address is required')
     if (!data.address?.city?.trim()) errors.push('City is required')
     if (!data.address?.state?.trim()) errors.push('State is required')
     if (!data.address?.zipCode?.trim()) errors.push('Zip code is required')
     if (!data.propertyType) errors.push('Property type is required')
-    
+
     return errors
   }
 
@@ -581,9 +618,9 @@ const CreateProperty: React.FC = () => {
       )
     } else {
       // For new properties, save without blob images first, then upload images
-      const localImages = formData.images.filter(img => img.url.startsWith('blob:'))
+      const localImages = formData.images.filter((img) => img.url.startsWith('blob:'))
       const sanitizedData = sanitizePropertyData(formData)
-      
+
       createPropertyMutation.mutate(sanitizedData, {
         onSuccess: (newProperty) => {
           // If there are local images to upload, upload them now
@@ -640,7 +677,7 @@ const CreateProperty: React.FC = () => {
               void navigate('/properties')
             }, 1500)
           },
-          onError: (error) => {
+          onError: (error: unknown) => {
             console.error('Failed to upload images after property creation:', error)
             // Still navigate but show warning
             setTimeout(() => {

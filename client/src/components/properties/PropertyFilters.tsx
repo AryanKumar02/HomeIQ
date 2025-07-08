@@ -100,7 +100,15 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
         backgroundColor: 'background.paper',
       }}
     >
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 1,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
           {/* All Properties - First */}
           <Chip

@@ -14,7 +14,9 @@ export const propertyKeys = {
 }
 
 // Queries
-export const useProperties = (options?: Omit<UseQueryOptions<Property[], Error>, 'queryKey' | 'queryFn'>) => {
+export const useProperties = (
+  options?: Omit<UseQueryOptions<Property[], Error>, 'queryKey' | 'queryFn'>
+) => {
   return useQuery({
     queryKey: propertyKeys.lists(),
     queryFn: propertiesApi.getAll,
@@ -109,7 +111,7 @@ export const useDeleteProperty = () => {
 
       // Optimistically remove the property from the list
       if (previousProperties) {
-        const optimisticProperties = previousProperties.filter(property => property._id !== id)
+        const optimisticProperties = previousProperties.filter((property) => property._id !== id)
         queryClient.setQueryData(propertyKeys.lists(), optimisticProperties)
       }
 
@@ -214,8 +216,15 @@ export const useUpdateUnit = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ propertyId, unitId, unitData }: { propertyId: string; unitId: string; unitData: Partial<Unit> }) =>
-      propertiesApi.updateUnit(propertyId, unitId, unitData),
+    mutationFn: ({
+      propertyId,
+      unitId,
+      unitData,
+    }: {
+      propertyId: string
+      unitId: string
+      unitData: Partial<Unit>
+    }) => propertiesApi.updateUnit(propertyId, unitId, unitData),
     onSuccess: (updatedProperty) => {
       void queryClient.invalidateQueries({ queryKey: propertyKeys.lists() })
       queryClient.setQueryData(propertyKeys.detail(updatedProperty._id!), updatedProperty)

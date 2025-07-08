@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 import Property from '../models/Property.js';
+import Tenant from '../models/Tenant.js';
 import AppError from '../utils/appError.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import logger from '../utils/logger.js';
@@ -29,7 +30,7 @@ export const getProperty = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-  }).populate('occupancy.tenant', 'firstName secondName email');
+  }).populate('occupancy.tenant', 'personalInfo.firstName personalInfo.lastName contactInfo.email');
 
   if (!property) {
     return next(new AppError('Property not found', 404));
@@ -305,6 +306,19 @@ export const updateOccupancy = catchAsync(async (req, res, next) => {
     return next(new AppError('Occupancy data is required', 400));
   }
 
+  // If assigning a tenant, verify tenant exists and belongs to the user
+  if (occupancy.tenant) {
+    const tenant = await Tenant.findOne({
+      _id: occupancy.tenant,
+      createdBy: req.user.id,
+      isActive: true,
+    });
+
+    if (!tenant) {
+      return next(new AppError('Tenant not found or you do not have access to it', 404));
+    }
+  }
+
   // Update occupancy information
   Object.keys(occupancy).forEach(key => {
     property.occupancy[key] = occupancy[key];
@@ -528,7 +542,10 @@ export const getUnits = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-  }).populate('units.occupancy.tenant', 'firstName secondName email');
+  }).populate(
+    'units.occupancy.tenant',
+    'personalInfo.firstName personalInfo.lastName contactInfo.email',
+  );
 
   if (!property) {
     return next(new AppError('Property not found', 404));
@@ -687,6 +704,17 @@ export const assignTenantToUnit = catchAsync(async (req, res, next) => {
   const { occupancy } = req.body;
   if (!occupancy || !occupancy.tenant) {
     return next(new AppError('Tenant information is required', 400));
+  }
+
+  // Verify tenant exists and belongs to the user
+  const tenant = await Tenant.findOne({
+    _id: occupancy.tenant,
+    createdBy: req.user.id,
+    isActive: true,
+  });
+
+  if (!tenant) {
+    return next(new AppError('Tenant not found or you do not have access to it', 404));
   }
 
   // Update unit occupancy

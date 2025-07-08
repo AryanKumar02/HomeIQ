@@ -13,7 +13,8 @@ import {
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
-import { useAuth } from '../../context/AuthContext'
+import { useAuthContext } from '../../context/AuthContext'
+import { useLogin } from '../../hooks/useAuth'
 import gsap from 'gsap'
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useFormGsapAnimation } from '../animation/useFormGsapAnimation'
@@ -22,7 +23,6 @@ import { useTheme } from '@mui/material/styles'
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [rememberMe, setRememberMe] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -36,7 +36,10 @@ const LoginForm: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const theme = useTheme()
-  const { login } = useAuth()
+
+  // Use React Query hooks
+  const loginMutation = useLogin()
+  const { login } = useAuthContext()
 
   // Memoize refs array to avoid triggering animation on every render
   const fieldRefs = [emailRef, passwordRef]
@@ -78,11 +81,23 @@ const LoginForm: React.FC = () => {
     return 'Unable to log in. Please check your details and try again.'
   }
 
-  // Renamed original handleSubmit to handleSubmitLogic
+  // Get loading state from React Query
+  const loading = loginMutation.isPending
+
+  // Handle login mutation results
+  React.useEffect(() => {
+    if (loginMutation.error) {
+      setError(getFriendlyErrorMessage(loginMutation.error))
+    } else if (loginMutation.isSuccess) {
+      setError(null)
+    }
+  }, [loginMutation.error, loginMutation.isSuccess])
+
+  // Submit logic using React Query
   const handleSubmitLogic = async (event: React.FormEvent) => {
     event.preventDefault()
     setError(null)
-    setLoading(true)
+
     if (buttonRef.current) {
       gsap.to(buttonRef.current, {
         scale: 0.96,
@@ -92,6 +107,7 @@ const LoginForm: React.FC = () => {
         ease: 'power1.inOut',
       })
     }
+
     try {
       await login(email, password, rememberMe)
 
@@ -99,9 +115,8 @@ const LoginForm: React.FC = () => {
       const from = (location.state as { from?: Location })?.from?.pathname || '/dashboard'
       void navigate(from, { replace: true })
     } catch (err: unknown) {
-      setError(getFriendlyErrorMessage(err))
-    } finally {
-      setLoading(false)
+      // Error is handled by the useEffect above
+      console.error('Login failed:', err)
     }
   }
 
