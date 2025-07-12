@@ -13,15 +13,15 @@ import VerifyEmail from './pages/Auth/VerifyEmail'
 import ResendVerification from './pages/Auth/ResendVerification.tsx'
 import TermsOfService from './pages/Legal/TermsOfService.tsx'
 import PrivacyPolicy from './pages/Legal/PrivacyPolicy.tsx'
-import LandingPage from './pages/LandingPage'
+import LandingPage from './pages/Landing/LandingPage.tsx'
 import PropertyDetails from './pages/Properties/Property.tsx'
-import Dashboard from './pages/Dashboard'
+import Dashboard from './pages/Dashboard/Dashboard'
 import EditProperty from './pages/Properties/CreateProperty.tsx'
+import Tenants from './pages/Tenants/Tenants.tsx'
 import ProtectedRoute from './components/common/ProtectedRoute.tsx'
 import ErrorBoundary from './components/common/ErrorBoundary.tsx'
 
 // Temporary placeholder components - replace with actual pages
-const TenantsPage = () => <div>Tenants Page</div>
 const AnalyticsPage = () => <div>Analytics Page</div>
 const MaintenancePage = () => <div>Maintenance Page</div>
 const SettingsPage = () => <div>Settings Page</div>
@@ -99,7 +99,15 @@ function App() {
                   path="/tenants"
                   element={
                     <ProtectedRoute>
-                      <TenantsPage />
+                      <Tenants />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tenants/add"
+                  element={
+                    <ProtectedRoute>
+                      <Tenants />
                     </ProtectedRoute>
                   }
                 />
