@@ -66,7 +66,7 @@ const tenantSchema = new mongoose.Schema({
       sparse: true,
       maxlength: [16, 'UK driving licence number cannot exceed 16 characters'],
       match: [
-        /^[A-Z]{1,5}[0-9]{6}[A-Z]{0,3}[0-9]{2}$/,
+        /^[A-Z9]{5}[0-9]{6}[A-Z9]{2}[0-9A-Z]{3}$/,
         'Please provide a valid UK driving licence number',
       ],
     },
@@ -1199,8 +1199,6 @@ const tenantSchema = new mongoose.Schema({
 });
 
 // Indexes for better query performance
-tenantSchema.index({ 'contactInfo.email': 1 });
-tenantSchema.index({ tenantId: 1 });
 tenantSchema.index({ createdBy: 1 });
 tenantSchema.index({ 'leases.property': 1 });
 tenantSchema.index({ 'leases.status': 1 });

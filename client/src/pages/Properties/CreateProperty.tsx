@@ -394,7 +394,6 @@ const CreateProperty: React.FC = () => {
         return
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const imageId = imageToRemove._id
 
       // Optimistic update: Remove immediately from UI
@@ -412,7 +411,6 @@ const CreateProperty: React.FC = () => {
 
       // Remove from server
       removeImageMutation.mutate(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         { id: propertyId, imageId },
         {
           onSuccess: (updatedProperty) => {
@@ -450,7 +448,6 @@ const CreateProperty: React.FC = () => {
         return
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const imageId = imageToSetPrimary._id
 
       // Optimistic update: Set primary immediately
@@ -465,7 +462,6 @@ const CreateProperty: React.FC = () => {
 
       // Update on server
       setPrimaryImageMutation.mutate(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         { id: propertyId, imageId },
         {
           onSuccess: (updatedProperty) => {

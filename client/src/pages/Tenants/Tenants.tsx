@@ -1,13 +1,17 @@
 import React, { useState } from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box, Typography, CircularProgress, Alert } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import Sidebar from '../../components/common/Sidebar'
 import Titlebar from '../../components/basic/Titlebar'
 import { SkipLink } from '../../components/common'
+import { useTenants } from '../../hooks/useTenants'
 
 const Tenants: React.FC = () => {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
+
+  // Fetch tenants from backend
+  const { data: tenants = [], isLoading, error } = useTenants()
 
   const handleAddTenant = () => {
     console.log('Add tenant clicked')
@@ -51,33 +55,58 @@ const Tenants: React.FC = () => {
       <Box sx={{ display: 'flex', flexGrow: 1, pt: { xs: '80px', md: '80px' } }}>
         <Sidebar />
         <Box component="main" id="main-content" tabIndex={-1} sx={{ flexGrow: 1, p: 3, mt: 2 }}>
+          {/* Loading State */}
+          {isLoading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error instanceof Error ? error.message : 'Failed to load tenants'}
+            </Alert>
+          )}
+
           {/* Tenants content */}
-          <Box
-            role="status"
-            aria-live="polite"
-            sx={{
-              textAlign: 'center',
-              py: 8,
-              backgroundColor: 'grey.50',
-              borderRadius: 2,
-              border: '2px dashed',
-              borderColor: 'grey.300',
-            }}
-          >
-            <Typography variant="h6" sx={{ mb: 1, color: 'grey.600' }}>
-              {searchTerm ? 'No tenants found' : 'No tenants yet'}
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'grey.500' }}>
-              {searchTerm
-                ? 'Try adjusting your search terms'
-                : 'Get started by adding your first tenant'}
-            </Typography>
-            {searchTerm && (
-              <Typography variant="body2" sx={{ color: 'grey.500', mt: 1 }}>
-                Searching for: &quot;{searchTerm}&quot;
+          {!isLoading && !error && (
+            <Box
+              role="status"
+              aria-live="polite"
+              sx={{
+                textAlign: 'center',
+                py: 8,
+                backgroundColor: 'grey.50',
+                borderRadius: 2,
+                border: '2px dashed',
+                borderColor: 'grey.300',
+              }}
+            >
+              <Typography variant="h6" sx={{ mb: 1, color: 'grey.600' }}>
+                {tenants.length === 0
+                  ? searchTerm
+                    ? 'No tenants found'
+                    : 'No tenants yet'
+                  : `${tenants.length} tenant${tenants.length === 1 ? '' : 's'} found`}
               </Typography>
-            )}
-          </Box>
+              <Typography variant="body2" sx={{ color: 'grey.500' }}>
+                {tenants.length === 0
+                  ? searchTerm
+                    ? 'Try adjusting your search terms'
+                    : 'Get started by adding your first tenant'
+                  : 'Tenant list and assignment available in property forms'}
+              </Typography>
+              {searchTerm && (
+                <Typography variant="body2" sx={{ color: 'grey.500', mt: 1 }}>
+                  Searching for: &quot;{searchTerm}&quot;
+                </Typography>
+              )}
+              <Typography variant="body2" sx={{ color: 'grey.500', mt: 2, fontStyle: 'italic' }}>
+                💡 To assign tenants to properties, edit a property and mark it as "occupied"
+              </Typography>
+            </Box>
+          )}
         </Box>
       </Box>
     </Box>

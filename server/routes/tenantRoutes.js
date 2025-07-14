@@ -18,6 +18,8 @@ import {
   updateAffordabilityAssessment,
   updateRightToRent,
   bulkUpdateTenants,
+  assignTenantToProperty,
+  unassignTenantFromProperty,
 } from '../controllers/tenantController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import {
@@ -47,6 +49,10 @@ router.route('/stats').get(getTenantStats);
 router.route('/search').get(validateTenantSearch, searchTenants);
 
 router.route('/bulk-update').patch(validateBulkOperation, bulkUpdateTenants);
+
+// Property assignment routes
+router.route('/assign-to-property').post(assignTenantToProperty);
+router.route('/unassign-from-property').post(unassignTenantFromProperty);
 
 router
   .route('/:id')

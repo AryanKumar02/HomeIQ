@@ -88,7 +88,7 @@ export const validateCreateTenant = [
     .optional()
     .isLength({ max: 16 })
     .withMessage('UK driving licence number cannot exceed 16 characters')
-    .matches(/^[A-Z]{1,5}[0-9]{6}[A-Z]{0,3}[0-9]{2}$/)
+    .matches(/^[A-Z9]{5}[0-9]{6}[A-Z9]{2}[0-9A-Z]{3}$/)
     .withMessage('Please provide a valid UK driving licence number')
     .trim(),
 

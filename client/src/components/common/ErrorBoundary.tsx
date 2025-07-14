@@ -1,6 +1,7 @@
 import React from 'react'
 import { Box, Typography, Button, Alert } from '@mui/material'
 import { Refresh as RefreshIcon, Home as HomeIcon } from '@mui/icons-material'
+import { useNavigate } from 'react-router-dom'
 
 /**
  * Internal state for the ErrorBoundary component
@@ -78,14 +79,16 @@ const DefaultErrorFallback: React.FC<{ error?: Error; resetError: () => void }> 
   error,
   resetError,
 }) => {
+  const navigate = useNavigate()
+
   const handleGoHome = () => {
     resetError()
-    window.location.href = '/dashboard'
+    void navigate('/dashboard')
   }
 
   const handleRefresh = () => {
     resetError()
-    window.location.reload()
+    void window.location.reload()
   }
 
   return (

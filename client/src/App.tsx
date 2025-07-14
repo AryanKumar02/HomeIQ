@@ -18,6 +18,7 @@ import PropertyDetails from './pages/Properties/Property.tsx'
 import Dashboard from './pages/Dashboard/Dashboard'
 import EditProperty from './pages/Properties/CreateProperty.tsx'
 import Tenants from './pages/Tenants/Tenants.tsx'
+import CreateTenant from './pages/Tenants/CreateTenant.tsx'
 import ProtectedRoute from './components/common/ProtectedRoute.tsx'
 import ErrorBoundary from './components/common/ErrorBoundary.tsx'
 
@@ -107,7 +108,7 @@ function App() {
                   path="/tenants/add"
                   element={
                     <ProtectedRoute>
-                      <Tenants />
+                      <CreateTenant />
                     </ProtectedRoute>
                   }
                 />

@@ -78,7 +78,7 @@ if (process.env.NODE_ENV !== 'production') {
 // Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/property', propertyRoutes);
-app.use('/api/v1/tenant', tenantRoutes);
+app.use('/api/v1/tenants', tenantRoutes);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // 404 handler

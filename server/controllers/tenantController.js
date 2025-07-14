@@ -227,6 +227,153 @@ export const deleteTenant = catchAsync(async (req, res, next) => {
   });
 });
 
+// Assign tenant to property (simplified endpoint)
+export const assignTenantToProperty = catchAsync(async (req, res, next) => {
+  const { tenantId, propertyId, unitId, leaseData } = req.body;
+
+  const tenant = await Tenant.findOne({
+    _id: tenantId,
+    createdBy: req.user.id,
+    isActive: true,
+  });
+
+  if (!tenant) {
+    return next(new AppError('Tenant not found', 404));
+  }
+
+  const property = await Property.findOne({
+    _id: propertyId,
+    owner: req.user.id,
+  });
+
+  if (!property) {
+    return next(new AppError('Property not found', 404));
+  }
+
+  // Check availability
+  if (unitId) {
+    const unit = property.units.id(unitId);
+    if (!unit || unit.occupancy.isOccupied) {
+      return next(new AppError('Unit not found or already occupied', 400));
+    }
+  } else if (property.occupancy.isOccupied) {
+    return next(new AppError('Property is already occupied', 400));
+  }
+
+  // Create lease data with defaults
+  const lease = {
+    property: propertyId,
+    unit: unitId,
+    startDate: leaseData?.startDate || new Date(),
+    endDate: leaseData?.endDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year default
+    monthlyRent: leaseData?.monthlyRent || property.financials?.monthlyRent || 0,
+    securityDeposit: leaseData?.securityDeposit || property.financials?.securityDeposit || 0,
+    tenancyType: leaseData?.tenancyType || 'assured-shorthold',
+    status: 'active',
+    ...leaseData,
+  };
+
+  // Add lease to tenant
+  tenant.leases.push(lease);
+  await tenant.save();
+
+  // Update property occupancy
+  if (unitId) {
+    const unit = property.units.id(unitId);
+    unit.occupancy.isOccupied = true;
+    unit.occupancy.tenant = tenant._id;
+    unit.occupancy.leaseStart = lease.startDate;
+    unit.occupancy.leaseEnd = lease.endDate;
+    unit.status = 'occupied';
+  } else {
+    property.occupancy.isOccupied = true;
+    property.occupancy.tenant = tenant._id;
+    property.occupancy.leaseStart = lease.startDate;
+    property.occupancy.leaseEnd = lease.endDate;
+    property.status = 'occupied';
+  }
+
+  await property.save();
+
+  // Populate and return updated data
+  await tenant.populate('leases.property', 'title address propertyType');
+  await property.populate('occupancy.tenant', 'personalInfo.firstName personalInfo.lastName contactInfo.email');
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tenant,
+      property,
+      lease: tenant.leases[tenant.leases.length - 1], // Return the newly created lease
+    },
+  });
+});
+
+// Unassign tenant from property
+export const unassignTenantFromProperty = catchAsync(async (req, res, next) => {
+  const { tenantId, propertyId, unitId } = req.body;
+
+  const tenant = await Tenant.findOne({
+    _id: tenantId,
+    createdBy: req.user.id,
+    isActive: true,
+  });
+
+  if (!tenant) {
+    return next(new AppError('Tenant not found', 404));
+  }
+
+  const property = await Property.findOne({
+    _id: propertyId,
+    owner: req.user.id,
+  });
+
+  if (!property) {
+    return next(new AppError('Property not found', 404));
+  }
+
+  // Find and terminate the lease
+  const lease = tenant.leases.find(l => 
+    l.property.toString() === propertyId && 
+    l.status === 'active' &&
+    (!unitId || l.unit === unitId)
+  );
+
+  if (!lease) {
+    return next(new AppError('Active lease not found', 404));
+  }
+
+  // Update lease status
+  lease.status = 'terminated';
+  lease.terminationDate = new Date();
+  await tenant.save();
+
+  // Update property occupancy
+  if (unitId) {
+    const unit = property.units.id(unitId);
+    if (unit) {
+      unit.occupancy.isOccupied = false;
+      unit.occupancy.tenant = null;
+      unit.status = 'available';
+    }
+  } else {
+    property.occupancy.isOccupied = false;
+    property.occupancy.tenant = null;
+    property.status = 'available';
+  }
+
+  await property.save();
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      message: 'Tenant unassigned successfully',
+      tenant,
+      property,
+    },
+  });
+});
+
 // Add a lease to a tenant
 export const addLease = catchAsync(async (req, res, next) => {
   const tenant = await Tenant.findOne({
