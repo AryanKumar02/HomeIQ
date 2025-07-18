@@ -33,6 +33,7 @@ export interface Property {
 
   occupancy: {
     isOccupied: boolean
+    tenant?: string
     leaseStart: string
     leaseEnd: string
     leaseType: 'month-to-month' | 'fixed-term' | 'week-to-week'
@@ -90,6 +91,7 @@ export interface Unit {
   status: 'available' | 'occupied' | 'maintenance' | 'off-market'
   occupancy: {
     isOccupied: boolean
+    tenant?: string
     leaseStart: string
     leaseEnd: string
     leaseType: 'month-to-month' | 'fixed-term' | 'week-to-week'

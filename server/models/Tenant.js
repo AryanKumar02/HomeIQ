@@ -98,7 +98,6 @@ const tenantSchema = new mongoose.Schema({
       verified: {
         type: Boolean,
         default: false,
-        required: [true, 'Right to rent verification is mandatory'],
       },
       verificationDate: {
         type: Date,
@@ -1240,6 +1239,48 @@ tenantSchema.pre('save', function (next) {
   next();
 });
 
+// Pre-save middleware to auto-update application status based on qualification
+tenantSchema.pre('save', function (next) {
+  try {
+    // Skip qualification checks if essential data is missing
+    if (!this.applicationStatus || !this.personalInfo || !this.contactInfo) {
+      return next();
+    }
+
+    // Only auto-update if status is currently pending or under-review
+    const currentStatus = this.applicationStatus.status;
+    if (['pending', 'under-review'].includes(currentStatus)) {
+      // Only run qualification if we have enough data
+      if (this.getQualificationStatus && typeof this.getQualificationStatus === 'function') {
+        const qualification = this.getQualificationStatus();
+        const newStatus = this.computedApplicationStatus;
+
+        // Update status if it changed
+        if (newStatus && newStatus !== currentStatus) {
+          this.applicationStatus.status = newStatus;
+          this.applicationStatus.reviewDate = new Date();
+
+          // Set approval date if auto-approved
+          if (newStatus === 'approved') {
+            this.applicationStatus.approvalDate = new Date();
+            if (qualification?.summary) {
+              this.applicationStatus.notes = `Auto-approved: ${qualification.summary}`;
+            }
+          } else if (newStatus === 'under-review') {
+            if (qualification?.summary) {
+              this.applicationStatus.notes = `Auto-review required: ${qualification.summary}`;
+            }
+          }
+        }
+      }
+    }
+  } catch (error) {
+    // Don't break tenant saving if qualification check fails
+    console.warn('Qualification check failed during save:', error.message);
+  }
+  next();
+});
+
 // Virtual for full name
 tenantSchema.virtual('fullName').get(function () {
   const { firstName, lastName, preferredName } = this.personalInfo;
@@ -1328,6 +1369,44 @@ tenantSchema.virtual('applicationAgeInDays').get(function () {
   const appDate = new Date(this.applicationStatus.applicationDate);
   const diffTime = Math.abs(today - appDate);
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+});
+
+// Virtual for automatic qualification status
+tenantSchema.virtual('qualificationStatus').get(function () {
+  try {
+    return this.getQualificationStatus();
+  } catch (error) {
+    console.warn('Qualification status virtual failed:', error.message);
+    return { status: 'unknown', issues: ['Error calculating qualification status'] };
+  }
+});
+
+// Virtual for computed application status based on qualification
+tenantSchema.virtual('computedApplicationStatus').get(function () {
+  try {
+    const qualification = this.getQualificationStatus();
+    const currentStatus = this.applicationStatus?.status || 'pending';
+
+    // Don't override manual rejections or withdrawals
+    if (['rejected', 'withdrawn', 'expired'].includes(currentStatus)) {
+      return currentStatus;
+    }
+
+    // Auto-determine status based on qualification
+    switch (qualification.status) {
+      case 'qualified':
+        return currentStatus === 'pending' ? 'approved' : currentStatus;
+      case 'needs-review':
+        return currentStatus === 'pending' ? 'under-review' : currentStatus;
+      case 'not-qualified':
+        return currentStatus === 'pending' ? 'under-review' : currentStatus; // Let landlord manually reject
+      default:
+        return currentStatus;
+    }
+  } catch (error) {
+    console.warn('Computed application status virtual failed:', error.message);
+    return this.applicationStatus?.status || 'pending';
+  }
 });
 
 // Ensure virtuals are included in JSON output
@@ -1422,6 +1501,112 @@ tenantSchema.methods.checkAffordability = function (monthlyRent) {
     affordable: false,
     reason: `Insufficient disposable income (£${disposableIncome}) for rent (£${monthlyRent})`,
     shortfall: monthlyRent - disposableIncome,
+  };
+};
+
+// Instance method to get overall qualification status (without rent-specific checks)
+tenantSchema.methods.getQualificationStatus = function () {
+  const issues = [];
+  let status = 'qualified';
+
+  // Check basic requirements that apply regardless of property
+
+  // 1. Right to rent (mandatory in UK)
+  if (!this.personalInfo?.rightToRent?.verified) {
+    issues.push('Right to rent not verified - mandatory requirement in UK');
+    status = 'not-qualified';
+  }
+
+  // 2. Check if referencing has been completed and passed
+  const referencingOutcome = this.referencing?.outcome;
+  if (referencingOutcome === 'fail') {
+    issues.push('Failed referencing checks');
+    status = 'not-qualified';
+  } else if (referencingOutcome === 'pending' || !referencingOutcome) {
+    issues.push('Referencing checks pending');
+    if (status === 'qualified') {
+      status = 'needs-review';
+    }
+  } else if (referencingOutcome === 'pass-with-conditions') {
+    issues.push(`Referencing passed with conditions: ${this.referencing?.conditions || ''}`);
+    if (status === 'qualified') {
+      status = 'needs-review';
+    }
+  }
+
+  // 3. Check basic income information exists
+  const hasIncome =
+    this.employment?.current?.income?.gross?.monthly ||
+    this.employment?.current?.income?.net?.monthly ||
+    this.financialInfo?.affordabilityAssessment?.monthlyIncome;
+
+  if (!hasIncome) {
+    issues.push('No income information provided');
+    status = 'not-qualified';
+  }
+
+  // 4. Check guarantor requirement if needed
+  if (this.financialInfo?.guarantor?.required && !this.financialInfo?.guarantor?.provided) {
+    issues.push('Guarantor required but not provided');
+    status = 'not-qualified';
+  }
+
+  // 5. Check employment status for red flags
+  if (
+    this.employment?.current?.status === 'unemployed' &&
+    !this.employment?.current?.benefits?.receives
+  ) {
+    issues.push('Unemployed with no benefits - income verification needed');
+    if (status === 'qualified') {
+      status = 'needs-review';
+    }
+  }
+
+  return {
+    status, // 'qualified', 'needs-review', 'not-qualified'
+    issues,
+    summary: issues.length === 0 ? 'All basic requirements met' : `${issues.length} issue(s) found`,
+  };
+};
+
+// Instance method to check qualification for a specific property/rent
+tenantSchema.methods.checkPropertyQualification = function (monthlyRent) {
+  const baseQualification = this.getQualificationStatus();
+  const incomeCheck = this.checkIncomeQualification(monthlyRent);
+  const affordabilityCheck = this.checkAffordability(monthlyRent);
+
+  const allIssues = [...baseQualification.issues];
+  let finalStatus = baseQualification.status;
+
+  // Add rent-specific checks
+  if (!incomeCheck.qualified) {
+    allIssues.push(incomeCheck.reason);
+    finalStatus = 'not-qualified';
+  }
+
+  if (!affordabilityCheck.affordable) {
+    allIssues.push(affordabilityCheck.reason);
+    finalStatus = 'not-qualified';
+  }
+
+  return {
+    status: finalStatus,
+    issues: allIssues,
+    summary:
+      allIssues.length === 0
+        ? `Qualified for £${monthlyRent}/month`
+        : `${allIssues.length} issue(s) for £${monthlyRent}/month`,
+    incomeRatio: incomeCheck.ratio,
+    affordabilityRatio: affordabilityCheck.affordabilityRatio,
+    checks: {
+      rightToRent: this.personalInfo?.rightToRent?.verified || false,
+      referencing: this.referencing?.outcome || 'pending',
+      income: incomeCheck.qualified,
+      affordability: affordabilityCheck.affordable,
+      guarantor: this.financialInfo?.guarantor?.required
+        ? this.financialInfo?.guarantor?.provided
+        : true,
+    },
   };
 };
 

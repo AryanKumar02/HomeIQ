@@ -36,7 +36,11 @@ const CreateProperty: React.FC = () => {
   const [isEditMode] = useState(!!propertyId)
 
   // React Query hooks
-  const { data: propertyData, isLoading: loading } = useProperty(propertyId || '', {
+  const {
+    data: propertyData,
+    isLoading: loading,
+    refetch: refetchProperty,
+  } = useProperty(propertyId || '', {
     enabled: !!propertyId,
   })
   const createPropertyMutation = useCreateProperty()
@@ -59,7 +63,66 @@ const CreateProperty: React.FC = () => {
   // Load property data if editing
   useEffect(() => {
     if (propertyData) {
-      setFormData(propertyData)
+      // Convert ISO date strings to YYYY-MM-DD format for HTML date inputs
+      const convertedData = { ...propertyData }
+
+      // Convert property-level occupancy dates and tenant
+      if (convertedData.occupancy) {
+        if (convertedData.occupancy.leaseStart) {
+          convertedData.occupancy.leaseStart = new Date(convertedData.occupancy.leaseStart)
+            .toISOString()
+            .split('T')[0]
+        }
+        if (convertedData.occupancy.leaseEnd) {
+          convertedData.occupancy.leaseEnd = new Date(convertedData.occupancy.leaseEnd)
+            .toISOString()
+            .split('T')[0]
+        }
+        // Ensure tenant is stored as ID string, not full object
+        if (convertedData.occupancy.tenant) {
+          if (typeof convertedData.occupancy.tenant === 'string') {
+            // Already a string ID, keep as is
+            // No assignment needed
+          } else {
+            // It's a populated tenant object, extract the ID
+            const tenantWithId = convertedData.occupancy.tenant as { _id?: string }
+            convertedData.occupancy.tenant = tenantWithId._id || undefined
+          }
+        }
+      }
+
+      // Convert unit-level occupancy dates
+      if (convertedData.units && convertedData.units.length > 0) {
+        convertedData.units = convertedData.units.map((unit) => {
+          const updatedUnit = { ...unit }
+          if (unit.occupancy) {
+            updatedUnit.occupancy = {
+              ...unit.occupancy,
+              leaseStart: unit.occupancy.leaseStart
+                ? new Date(unit.occupancy.leaseStart).toISOString().split('T')[0]
+                : '',
+              leaseEnd: unit.occupancy.leaseEnd
+                ? new Date(unit.occupancy.leaseEnd).toISOString().split('T')[0]
+                : '',
+            }
+            // Handle tenant conversion separately
+            if (unit.occupancy.tenant) {
+              if (typeof unit.occupancy.tenant === 'string') {
+                updatedUnit.occupancy.tenant = unit.occupancy.tenant
+              } else {
+                // It's a populated tenant object, extract the ID
+                const tenantWithId = unit.occupancy.tenant as { _id?: string }
+                updatedUnit.occupancy.tenant = tenantWithId._id || undefined
+              }
+            } else {
+              updatedUnit.occupancy.tenant = undefined
+            }
+          }
+          return updatedUnit
+        })
+      }
+
+      setFormData(convertedData)
     }
   }, [propertyData])
 
@@ -532,6 +595,20 @@ const CreateProperty: React.FC = () => {
     if (typeof occupancy.rentDueDate === 'string') {
       occupancy.rentDueDate = parseFloat(occupancy.rentDueDate) || 1
     }
+
+    // Convert lease date strings to ISO strings or empty strings
+    if (occupancy.leaseStart && occupancy.leaseStart !== '') {
+      occupancy.leaseStart = new Date(occupancy.leaseStart).toISOString()
+    } else {
+      occupancy.leaseStart = ''
+    }
+
+    if (occupancy.leaseEnd && occupancy.leaseEnd !== '') {
+      occupancy.leaseEnd = new Date(occupancy.leaseEnd).toISOString()
+    } else {
+      occupancy.leaseEnd = ''
+    }
+
     sanitizedData.occupancy = occupancy
 
     // Sanitize pet policy
@@ -562,6 +639,14 @@ const CreateProperty: React.FC = () => {
           : unit.securityDeposit,
       occupancy: {
         ...unit.occupancy,
+        leaseStart:
+          unit.occupancy.leaseStart && unit.occupancy.leaseStart !== ''
+            ? new Date(unit.occupancy.leaseStart).toISOString()
+            : '',
+        leaseEnd:
+          unit.occupancy.leaseEnd && unit.occupancy.leaseEnd !== ''
+            ? new Date(unit.occupancy.leaseEnd).toISOString()
+            : '',
         rentDueDate:
           typeof unit.occupancy.rentDueDate === 'string'
             ? parseFloat(unit.occupancy.rentDueDate) || 1
@@ -815,22 +900,27 @@ const CreateProperty: React.FC = () => {
                 {/* Property Status & Occupancy Card */}
                 <PropertyStatusOccupancyForm
                   formData={{
+                    _id: formData._id,
                     status: formData.status,
                     propertyType: formData.propertyType,
                     occupancy: formData.occupancy,
+                    financials: formData.financials,
                   }}
                   onInputChange={handleInputChange}
                   textFieldStyles={textFieldStyles}
+                  onPropertyUpdate={() => void refetchProperty()}
                 />
 
                 {/* Units Management Section */}
                 <UnitManagement
                   units={formData.units}
                   propertyType={formData.propertyType}
+                  propertyId={formData._id}
                   onAddUnit={addUnit}
                   onRemoveUnit={removeUnit}
                   onInputChange={handleInputChange}
                   textFieldStyles={textFieldStyles}
+                  onPropertyUpdate={() => void refetchProperty()}
                 />
 
                 {/* Financial Information Card */}

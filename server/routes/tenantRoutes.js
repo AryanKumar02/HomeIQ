@@ -14,12 +14,14 @@ import {
   getTenantStats,
   searchTenants,
   checkQualification,
+  getTenantQualification,
   updateReferencingStatus,
   updateAffordabilityAssessment,
   updateRightToRent,
   bulkUpdateTenants,
   assignTenantToProperty,
   unassignTenantFromProperty,
+  reevaluateQualifications,
 } from '../controllers/tenantController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import {
@@ -50,6 +52,9 @@ router.route('/search').get(validateTenantSearch, searchTenants);
 
 router.route('/bulk-update').patch(validateBulkOperation, bulkUpdateTenants);
 
+// Qualification management
+router.route('/reevaluate-qualifications').post(reevaluateQualifications);
+
 // Property assignment routes
 router.route('/assign-to-property').post(assignTenantToProperty);
 router.route('/unassign-from-property').post(unassignTenantFromProperty);
@@ -75,6 +80,9 @@ router.route('/:tenantId/documents/:documentId/verify').patch(verifyDocument);
 
 // Qualification check (UK standards)
 router.route('/:id/qualification').post(validateIncomeQualification, checkQualification);
+
+// Get general qualification status
+router.route('/:id/qualification-status').get(getTenantQualification);
 
 // UK-specific tenant management routes
 router.route('/:id/referencing').patch(validateReferencingOutcome, updateReferencingStatus);

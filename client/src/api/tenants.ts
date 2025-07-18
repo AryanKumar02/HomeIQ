@@ -1,5 +1,21 @@
 import axios from 'axios'
 
+// Lease interface
+export interface Lease {
+  _id?: string
+  property: string
+  unit?: string
+  tenancyType?: string
+  startDate: string
+  endDate: string
+  monthlyRent: number
+  securityDeposit?: number
+  status: 'active' | 'pending' | 'terminated' | 'expired' | 'renewed'
+  rentDueDate?: number
+  createdAt?: string
+  updatedAt?: string
+}
+
 // Tenant interfaces
 export interface Tenant {
   _id?: string
@@ -168,6 +184,7 @@ export interface Tenant {
     dataRetentionConsent: boolean
     consentDate?: string
   }
+  leases?: Lease[]
   applicationStatus: {
     status: string
     applicationDate: string
@@ -390,14 +407,25 @@ export const tenantsApi = {
       securityDeposit?: number
       tenancyType?: string
     }
-  }): Promise<{ tenant: Tenant; property: any; lease: any }> => {
+  }): Promise<{ tenant: Tenant; property: unknown; lease: unknown }> => {
     try {
-      console.log('ASSIGN TENANT TO PROPERTY API CALL:', '/api/v1/tenants/assign-to-property', assignment)
-      const response = await apiClient.post('/api/v1/tenants/assign-to-property', assignment)
+      console.log(
+        'ASSIGN TENANT TO PROPERTY API CALL:',
+        '/api/v1/tenants/assign-to-property',
+        assignment
+      )
+      const response = await apiClient.post<{
+        data: { tenant: Tenant; property: unknown; lease: unknown }
+      }>('/api/v1/tenants/assign-to-property', assignment)
       console.log('ASSIGN TENANT TO PROPERTY API RESPONSE:', response)
       return response.data.data
     } catch (error) {
       console.error('ASSIGN TENANT TO PROPERTY API ERROR:', error)
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: unknown; status?: number } }
+        console.error('ASSIGN TENANT API ERROR RESPONSE:', axiosError.response)
+        console.error('ASSIGN TENANT API ERROR DATA:', axiosError.response?.data)
+      }
       throw error
     }
   },
@@ -407,10 +435,17 @@ export const tenantsApi = {
     tenantId: string
     propertyId: string
     unitId?: string
-  }): Promise<{ tenant: Tenant; property: any }> => {
+  }): Promise<{ tenant: Tenant; property: unknown }> => {
     try {
-      console.log('UNASSIGN TENANT FROM PROPERTY API CALL:', '/api/v1/tenants/unassign-from-property', assignment)
-      const response = await apiClient.post('/api/v1/tenants/unassign-from-property', assignment)
+      console.log(
+        'UNASSIGN TENANT FROM PROPERTY API CALL:',
+        '/api/v1/tenants/unassign-from-property',
+        assignment
+      )
+      const response = await apiClient.post<{ data: { tenant: Tenant; property: unknown } }>(
+        '/api/v1/tenants/unassign-from-property',
+        assignment
+      )
       console.log('UNASSIGN TENANT FROM PROPERTY API RESPONSE:', response)
       return response.data.data
     } catch (error) {

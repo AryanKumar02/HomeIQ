@@ -103,7 +103,8 @@ const Tenants: React.FC = () => {
                 </Typography>
               )}
               <Typography variant="body2" sx={{ color: 'grey.500', mt: 2, fontStyle: 'italic' }}>
-                💡 To assign tenants to properties, edit a property and mark it as "occupied"
+                💡 To assign tenants to properties, edit a property and mark it as
+                &quot;occupied&quot;
               </Typography>
             </Box>
           )}

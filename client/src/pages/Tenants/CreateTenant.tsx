@@ -706,7 +706,7 @@ const CreateTenant: React.FC = () => {
     }
 
     // Income verification validation
-    if (data.employment?.current?.income?.verified) {
+    if (data.employment?.current?.income?.verified === true) {
       if (!data.employment.current.income.verificationDate?.trim()) {
         errors.push('Verification date is required when income is verified')
       }
@@ -723,7 +723,7 @@ const CreateTenant: React.FC = () => {
     }
 
     // Financial information validation
-    if (data.financialInfo?.bankAccount?.verified) {
+    if (data.financialInfo?.bankAccount?.verified === true) {
       if (!data.financialInfo.bankAccount.verificationDate?.trim()) {
         errors.push('Bank verification date is required when account is verified')
       }

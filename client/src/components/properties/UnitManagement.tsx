@@ -1,4 +1,5 @@
-import React from 'react'
+/* eslint-disable react/prop-types */
+import { useState } from 'react'
 import {
   Box,
   TextField,
@@ -8,35 +9,254 @@ import {
   IconButton,
   Switch,
   FormControlLabel,
+  Autocomplete,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+  Snackbar,
 } from '@mui/material'
 import Grid from '@mui/material/Grid'
-import { Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material'
+import { Add as AddIcon, Remove as RemoveIcon, Person } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
 import Card from '../basic/Card'
 import type { Unit } from '../../services/property'
+import { useTenants } from '../../hooks/useTenants'
+import { tenantsApi } from '../../api/tenants'
 
 interface UnitManagementProps {
   units: Unit[]
   propertyType: string
+  propertyId?: string
   onAddUnit: () => void
   onRemoveUnit: (index: number) => void
   onInputChange: (field: string, value: string | boolean) => void
   textFieldStyles: object
+  onPropertyUpdate?: () => void
 }
 
 const UnitManagement: React.FC<UnitManagementProps> = ({
   units,
   propertyType,
+  propertyId,
   onAddUnit,
   onRemoveUnit,
   onInputChange,
   textFieldStyles,
+  onPropertyUpdate,
 }) => {
   const theme = useTheme()
+
+  // State for tenant assignment
+  const [selectedTenant, setSelectedTenant] = useState<{
+    _id: string
+    personalInfo: { firstName: string; lastName: string }
+  } | null>(null)
+  const [selectedUnitIndex, setSelectedUnitIndex] = useState<number | null>(null)
+  const [leaseDialogOpen, setLeaseDialogOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [notification, setNotification] = useState<{
+    open: boolean
+    message: string
+    severity: 'success' | 'error' | 'warning' | 'info'
+  }>({
+    open: false,
+    message: '',
+    severity: 'info',
+  })
+
+  // Fetch tenants
+  const { data: tenants = [], refetch: refetchTenants } = useTenants()
 
   // Helper function to determine if rental fields should be shown
   const shouldShowRentalFields = (status: string) => {
     return status === 'occupied' || status === 'pending'
+  }
+
+  // Helper functions from PropertyStatusOccupancyForm
+  const getTenantName = (tenant: { personalInfo: { firstName: string; lastName: string } }) => {
+    return `${tenant.personalInfo.firstName} ${tenant.personalInfo.lastName}`
+  }
+
+  const getQualificationStatus = (tenant: {
+    qualification?: { status?: string; issues?: unknown[] }
+  }) => {
+    if (!tenant.qualification) {
+      return { status: 'unknown', color: 'default', label: 'Unknown' }
+    }
+
+    const qualification = tenant.qualification
+
+    switch (qualification.status) {
+      case 'qualified':
+        return {
+          status: 'qualified',
+          color: 'success',
+          label: '✅ Qualified',
+          issues: qualification.issues,
+        }
+      case 'needs-review':
+        return {
+          status: 'needs-review',
+          color: 'warning',
+          label: '⚠️ Needs Review',
+          issues: qualification.issues,
+        }
+      case 'not-qualified':
+        return {
+          status: 'not-qualified',
+          color: 'error',
+          label: '❌ Not Qualified',
+          issues: qualification.issues,
+        }
+      default:
+        return { status: 'unknown', color: 'default', label: 'Unknown' }
+    }
+  }
+
+  const getCurrentTenant = (unit: Unit) => {
+    if (!unit.occupancy.tenant) return null
+    return (tenants as { _id: string }[]).find((t) => t._id === unit.occupancy.tenant)
+  }
+
+  // Filter available tenants (qualified or approved, and not currently leased)
+  const availableTenants = (
+    tenants as { leases?: { status: string }[]; applicationStatus?: { status: string } }[]
+  ).filter((tenant) => {
+    const hasNoActiveLease =
+      !tenant.leases ||
+      !Array.isArray(tenant.leases) ||
+      !tenant.leases.some((lease) => lease.status === 'active')
+    const qualification = getQualificationStatus(tenant)
+
+    // Include tenants that are either manually approved or automatically qualified
+    const isApproved = tenant.applicationStatus?.status === 'approved'
+    const isQualified = qualification.status === 'qualified'
+    const needsReview = qualification.status === 'needs-review'
+
+    return hasNoActiveLease && (isApproved || isQualified || needsReview)
+  })
+
+  const showNotification = (
+    message: string,
+    severity: 'success' | 'error' | 'warning' | 'info'
+  ) => {
+    setNotification({ open: true, message, severity })
+  }
+
+  const handleTenantSelect = (
+    unitIndex: number,
+    tenant: { _id: string; personalInfo: { firstName: string; lastName: string } } | null
+  ) => {
+    if (!tenant) {
+      setSelectedTenant(null)
+      onInputChange(`units.${unitIndex}.occupancy.tenant`, '')
+      return
+    }
+
+    setSelectedTenant(tenant)
+    setSelectedUnitIndex(unitIndex)
+    setLeaseDialogOpen(true)
+  }
+
+  const handleAssignTenant = async () => {
+    if (!selectedTenant || selectedUnitIndex === null || !propertyId) return
+
+    const unit = units[selectedUnitIndex]
+    const startDate = new Date(unit.occupancy.leaseStart || new Date()).toISOString().split('T')[0]
+    const endDate = new Date(
+      unit.occupancy.leaseEnd || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+    )
+      .toISOString()
+      .split('T')[0]
+
+    // Validate dates
+    if (new Date(startDate) >= new Date(endDate)) {
+      showNotification('Lease start date must be before end date', 'error')
+      return
+    }
+
+    if (new Date(endDate) <= new Date()) {
+      showNotification('Lease end date must be in the future', 'error')
+      return
+    }
+
+    setLoading(true)
+    try {
+      await tenantsApi.assignToProperty({
+        tenantId: selectedTenant._id,
+        propertyId: propertyId,
+        unitId: unit._id,
+        leaseData: {
+          startDate: startDate,
+          endDate: endDate,
+          monthlyRent: Number(unit.monthlyRent) || 0,
+          securityDeposit: Number(unit.securityDeposit) || 0,
+          tenancyType: 'assured-shorthold',
+        },
+      })
+
+      onInputChange(`units.${selectedUnitIndex}.occupancy.tenant`, selectedTenant._id)
+      onInputChange(`units.${selectedUnitIndex}.occupancy.isOccupied`, true)
+      onInputChange(`units.${selectedUnitIndex}.status`, 'occupied')
+      setLeaseDialogOpen(false)
+      void refetchTenants()
+
+      // Refresh property data to get latest occupancy info
+      if (onPropertyUpdate) {
+        onPropertyUpdate()
+      }
+
+      showNotification(
+        `${getTenantName(selectedTenant)} assigned to unit ${unit.unitNumber} successfully!`,
+        'success'
+      )
+    } catch (error: unknown) {
+      console.error('Assignment error:', error)
+      const errorMessage =
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Failed to assign tenant'
+      showNotification(errorMessage, 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUnassignTenant = async (unitIndex: number) => {
+    const unit = units[unitIndex]
+    const currentTenant = getCurrentTenant(unit)
+    if (!currentTenant || !propertyId || !unit._id) return
+
+    setLoading(true)
+    try {
+      await tenantsApi.unassignFromProperty({
+        tenantId: currentTenant._id,
+        propertyId: propertyId,
+        unitId: unit._id,
+      })
+
+      onInputChange(`units.${unitIndex}.occupancy.tenant`, '')
+      onInputChange(`units.${unitIndex}.occupancy.isOccupied`, false)
+      onInputChange(`units.${unitIndex}.status`, 'available')
+      void refetchTenants()
+
+      // Refresh property data
+      if (onPropertyUpdate) {
+        onPropertyUpdate()
+      }
+
+      showNotification(
+        `${getTenantName(currentTenant)} unassigned from unit ${unit.unitNumber} successfully!`,
+        'success'
+      )
+    } catch (error) {
+      console.error('Unassignment error:', error)
+      showNotification('Failed to unassign tenant', 'error')
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Unit status options
@@ -235,6 +455,98 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
             </Grid>
           </Grid>
 
+          {/* Tenant Assignment - only show when unit is occupied/pending */}
+          {shouldShowRentalFields(unit.status) && (
+            <>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
+                Tenant Assignment
+              </Typography>
+              <Grid container spacing={3} sx={{ mb: 3 }}>
+                <Grid size={{ xs: 12 }}>
+                  {getCurrentTenant(unit) ? (
+                    <Box
+                      sx={{
+                        p: 2,
+                        border: 1,
+                        borderColor: 'grey.300',
+                        borderRadius: 1,
+                        bgcolor: 'grey.50',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Person color="primary" />
+                        <Box>
+                          <Typography variant="subtitle1" fontWeight="medium">
+                            {getTenantName(getCurrentTenant(unit)!)}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Assigned to Unit {unit.unitNumber}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        onClick={() => void handleUnassignTenant(index)}
+                        disabled={loading}
+                      >
+                        Remove Tenant
+                      </Button>
+                    </Box>
+                  ) : (
+                    <Autocomplete
+                      options={availableTenants}
+                      getOptionLabel={(tenant) => getTenantName(tenant)}
+                      onChange={(_, tenant) => handleTenantSelect(index, tenant)}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Select Tenant"
+                          placeholder="Search for qualified tenants..."
+                          variant="outlined"
+                          sx={textFieldStyles}
+                        />
+                      )}
+                      renderOption={(props, tenant) => {
+                        const qualification = getQualificationStatus(tenant)
+                        return (
+                          <Box
+                            component="li"
+                            {...props}
+                            sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                          >
+                            <Box sx={{ flexGrow: 1 }}>
+                              <Typography variant="body1">{getTenantName(tenant)}</Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {
+                                  (tenant as { contactInfo?: { email?: string } }).contactInfo
+                                    ?.email
+                                }
+                              </Typography>
+                            </Box>
+                            <Chip
+                              label={qualification.label}
+                              size="small"
+                              color={
+                                qualification.color as 'success' | 'error' | 'warning' | 'default'
+                              }
+                              variant="outlined"
+                            />
+                          </Box>
+                        )
+                      }}
+                      noOptionsText="No qualified tenants available"
+                    />
+                  )}
+                </Grid>
+              </Grid>
+            </>
+          )}
+
           {/* Rental Information - only show when unit is occupied/pending */}
           {shouldShowRentalFields(unit.status) && (
             <>
@@ -408,6 +720,89 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
           </Grid>
         </Box>
       ))}
+
+      {/* Lease Assignment Dialog */}
+      <Dialog
+        open={leaseDialogOpen}
+        onClose={() => setLeaseDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Assign {selectedTenant && getTenantName(selectedTenant)} to Unit{' '}
+          {selectedUnitIndex !== null ? units[selectedUnitIndex]?.unitNumber : ''}
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 1 }}>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              This will create a new lease agreement with the current unit details:
+            </Typography>
+            {selectedUnitIndex !== null && (
+              <Box sx={{ bgcolor: 'grey.50', p: 2, borderRadius: 1 }}>
+                <Typography variant="body2">
+                  <strong>Unit:</strong> {units[selectedUnitIndex]?.unitNumber}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Lease Start:</strong>{' '}
+                  {units[selectedUnitIndex]?.occupancy.leaseStart || 'Today'}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Lease End:</strong>{' '}
+                  {units[selectedUnitIndex]?.occupancy.leaseEnd || '1 year from start'}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Lease Type:</strong>{' '}
+                  {units[selectedUnitIndex]?.occupancy.leaseType || 'month-to-month'}
+                </Typography>
+                {units[selectedUnitIndex]?.monthlyRent && (
+                  <Typography variant="body2">
+                    <strong>Monthly Rent:</strong> £{units[selectedUnitIndex]?.monthlyRent}
+                  </Typography>
+                )}
+                {units[selectedUnitIndex]?.securityDeposit && (
+                  <Typography variant="body2">
+                    <strong>Security Deposit:</strong> £{units[selectedUnitIndex]?.securityDeposit}
+                  </Typography>
+                )}
+              </Box>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setLeaseDialogOpen(false)} disabled={loading}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => void handleAssignTenant()}
+            variant="contained"
+            disabled={loading}
+            sx={{
+              backgroundColor: theme.palette.secondary.main,
+              '&:hover': {
+                backgroundColor: theme.palette.secondary.dark,
+              },
+            }}
+          >
+            {loading ? 'Assigning...' : 'Assign Tenant'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={() => setNotification((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setNotification((prev) => ({ ...prev, open: false }))}
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Card>
   )
 }

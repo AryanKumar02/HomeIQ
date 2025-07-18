@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import {
   Card,
   CardContent,
@@ -16,14 +16,13 @@ import {
   Select,
   MenuItem,
   TextField,
-  Grid,
   Box,
   IconButton,
-  Divider,
   Paper,
   Alert,
-  Snackbar
+  Snackbar,
 } from '@mui/material'
+import Grid from '@mui/material/Grid'
 import { Home, Person, AttachMoney, Close, Add } from '@mui/icons-material'
 import { tenantsApi } from '../../api/tenants'
 import type { Property } from '../../api/properties'
@@ -46,15 +45,19 @@ interface AssignmentFormData {
   tenancyType: string
 }
 
-export default function PropertyAssignment({ 
-  properties, 
-  tenants, 
-  onAssignmentChange 
+export default function PropertyAssignment({
+  properties,
+  tenants,
+  onAssignmentChange,
 }: PropertyAssignmentProps) {
   const [selectedProperty, setSelectedProperty] = useState<string>('')
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false)
   const [unassignDialogOpen, setUnassignDialogOpen] = useState(false)
-  const [currentAssignment, setCurrentAssignment] = useState<any>(null)
+  const [currentAssignment, setCurrentAssignment] = useState<{
+    property: Property
+    tenant: Tenant
+    unitId?: string
+  } | null>(null)
   const [loading, setLoading] = useState(false)
   const [notification, setNotification] = useState<{
     open: boolean
@@ -63,7 +66,7 @@ export default function PropertyAssignment({
   }>({
     open: false,
     message: '',
-    severity: 'info'
+    severity: 'info',
   })
   const [formData, setFormData] = useState<AssignmentFormData>({
     tenantId: '',
@@ -73,16 +76,23 @@ export default function PropertyAssignment({
     endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     monthlyRent: 0,
     securityDeposit: 0,
-    tenancyType: 'assured-shorthold'
+    tenancyType: 'assured-shorthold',
   })
 
-  const availableTenants = tenants.filter(tenant => 
-    tenant.applicationStatus.status === 'approved' &&
-    !tenant.leases?.some(lease => lease.status === 'active')
-  )
+  const availableTenants = tenants.filter((tenant) => {
+    const hasApprovedStatus =
+      (tenant as { applicationStatus?: { status?: string } }).applicationStatus?.status ===
+      'approved'
+    const tenantLeases = (tenant as { leases?: { status: string }[] }).leases
+    const hasNoActiveLeases =
+      !tenantLeases ||
+      !Array.isArray(tenantLeases) ||
+      !tenantLeases.some((lease) => lease.status === 'active')
+    return hasApprovedStatus && hasNoActiveLeases
+  })
 
-  const filteredProperties = selectedProperty 
-    ? properties.filter(p => p._id === selectedProperty)
+  const filteredProperties = selectedProperty
+    ? properties.filter((p) => p._id === selectedProperty)
     : properties
 
   const getPropertyStatus = (property: Property) => {
@@ -96,16 +106,18 @@ export default function PropertyAssignment({
   }
 
   const handleAssignTenant = (property: Property, unitId?: string) => {
-    const unit = unitId ? property.units?.find(u => u._id === unitId) : null
-    const monthlyRent = unit?.monthlyRent || property.financials?.monthlyRent || 0
-    const securityDeposit = unit?.securityDeposit || property.financials?.securityDeposit || 0
+    const unit = unitId ? property.units?.find((u) => u._id === unitId) : null
+    const monthlyRent = Number(unit?.monthlyRent || property.financials?.monthlyRent || 0)
+    const securityDeposit = Number(
+      unit?.securityDeposit || property.financials?.securityDeposit || 0
+    )
 
     setFormData({
       ...formData,
       propertyId: property._id!,
       unitId: unitId || '',
       monthlyRent,
-      securityDeposit
+      securityDeposit,
     })
     setAssignmentDialogOpen(true)
   }
@@ -115,7 +127,10 @@ export default function PropertyAssignment({
     setUnassignDialogOpen(true)
   }
 
-  const showNotification = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
+  const showNotification = (
+    message: string,
+    severity: 'success' | 'error' | 'warning' | 'info'
+  ) => {
     setNotification({ open: true, message, severity })
   }
 
@@ -136,14 +151,14 @@ export default function PropertyAssignment({
           endDate: formData.endDate,
           monthlyRent: formData.monthlyRent,
           securityDeposit: formData.securityDeposit,
-          tenancyType: formData.tenancyType
-        }
+          tenancyType: formData.tenancyType,
+        },
       })
 
       showNotification('Tenant assigned successfully!', 'success')
       setAssignmentDialogOpen(false)
       onAssignmentChange()
-      
+
       // Reset form
       setFormData({
         tenantId: '',
@@ -153,7 +168,7 @@ export default function PropertyAssignment({
         endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         monthlyRent: 0,
         securityDeposit: 0,
-        tenancyType: 'assured-shorthold'
+        tenancyType: 'assured-shorthold',
       })
     } catch (error) {
       console.error('Assignment error:', error)
@@ -169,9 +184,9 @@ export default function PropertyAssignment({
     setLoading(true)
     try {
       await tenantsApi.unassignFromProperty({
-        tenantId: currentAssignment.tenant._id,
-        propertyId: currentAssignment.property._id,
-        unitId: currentAssignment.unitId
+        tenantId: currentAssignment.tenant._id!,
+        propertyId: currentAssignment.property._id!,
+        unitId: currentAssignment.unitId,
       })
 
       showNotification('Tenant unassigned successfully!', 'success')
@@ -190,10 +205,6 @@ export default function PropertyAssignment({
     return `${tenant.personalInfo.firstName} ${tenant.personalInfo.lastName}`
   }
 
-  const getTenantInitials = (tenant: Tenant) => {
-    return `${tenant.personalInfo.firstName[0]}${tenant.personalInfo.lastName[0]}`
-  }
-
   return (
     <Box sx={{ py: 2 }}>
       {/* Header with filters */}
@@ -209,8 +220,8 @@ export default function PropertyAssignment({
             onChange={(e) => setSelectedProperty(e.target.value)}
           >
             <MenuItem value="">All Properties</MenuItem>
-            {properties.map(property => (
-              <MenuItem key={property._id} value={property._id!}>
+            {properties.map((property) => (
+              <MenuItem key={property._id} value={property._id}>
                 {property.title}
               </MenuItem>
             ))}
@@ -220,19 +231,28 @@ export default function PropertyAssignment({
 
       {/* Property Grid */}
       <Grid container spacing={3}>
-        {filteredProperties.map(property => (
-          <Grid item xs={12} md={6} lg={4} key={property._id}>
+        {filteredProperties.map((property) => (
+          <Grid size={{ xs: 12, md: 6, lg: 4 }} key={property._id}>
             <Card sx={{ height: 'fit-content' }}>
               <CardHeader>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                  }}
+                >
                   <Typography variant="h6" component="h3">
                     {property.title}
                   </Typography>
-                  <Chip 
+                  <Chip
                     label={getPropertyStatus(property)}
                     color={
-                      getPropertyStatus(property) === 'occupied' ? 'error' :
-                      getPropertyStatus(property) === 'available' ? 'success' : 'warning'
+                      getPropertyStatus(property) === 'occupied'
+                        ? 'error'
+                        : getPropertyStatus(property) === 'available'
+                          ? 'success'
+                          : 'warning'
                     }
                     size="small"
                   />
@@ -247,10 +267,11 @@ export default function PropertyAssignment({
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Home fontSize="small" color="action" />
                     <Typography variant="body2" color="text.secondary">
-                      {property.bedrooms}bed • {property.bathrooms}bath • {property.squareFootage}sq ft
+                      {property.bedrooms}bed • {property.bathrooms}bath • {property.squareFootage}sq
+                      ft
                     </Typography>
                   </Box>
-                  
+
                   {property.financials?.monthlyRent && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <AttachMoney fontSize="small" color="action" />
@@ -264,19 +285,31 @@ export default function PropertyAssignment({
                   {(!property.units || property.units.length === 0) && (
                     <Paper variant="outlined" sx={{ p: 2 }}>
                       {property.occupancy?.isOccupied && property.occupancy?.tenant ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Avatar sx={{ width: 32, height: 32 }}>T</Avatar>
                             <Box>
-                              <Typography variant="body2" fontWeight="medium">Occupied</Typography>
-                              <Typography variant="caption" color="text.secondary">Tenant assigned</Typography>
+                              <Typography variant="body2" fontWeight="medium">
+                                Occupied
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Tenant assigned
+                              </Typography>
                             </Box>
                           </Box>
                           <IconButton
                             size="small"
                             color="error"
                             onClick={() => {
-                              const tenant = tenants.find(t => t._id === property.occupancy?.tenant)
+                              const tenant = tenants.find(
+                                (t: Tenant) => t._id === property.occupancy?.tenant
+                              )
                               if (tenant) handleUnassignTenant(property, tenant)
                             }}
                           >
@@ -284,14 +317,24 @@ export default function PropertyAssignment({
                           </IconButton>
                         </Box>
                       ) : (
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Avatar sx={{ width: 32, height: 32, backgroundColor: 'grey.300' }}>
                               <Person sx={{ color: 'grey.500' }} />
                             </Avatar>
                             <Box>
-                              <Typography variant="body2" color="text.secondary">Available</Typography>
-                              <Typography variant="caption" color="text.secondary">No tenant assigned</Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Available
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                No tenant assigned
+                              </Typography>
                             </Box>
                           </Box>
                           {getPropertyStatus(property) === 'available' && (
@@ -311,33 +354,57 @@ export default function PropertyAssignment({
                   {/* Multi-Unit Property */}
                   {property.units && property.units.length > 0 && (
                     <Box>
-                      <Typography variant="body2" fontWeight="medium" sx={{ mb: 1 }}>Units:</Typography>
+                      <Typography variant="body2" fontWeight="medium" sx={{ mb: 1 }}>
+                        Units:
+                      </Typography>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        {property.units.map(unit => (
+                        {property.units.map((unit) => (
                           <Paper key={unit._id} variant="outlined" sx={{ p: 2 }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                              <Typography variant="body2" fontWeight="medium">Unit {unit.unitNumber}</Typography>
-                              <Chip 
-                                label={unit.status || 'available'} 
-                                size="small" 
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                mb: 1,
+                              }}
+                            >
+                              <Typography variant="body2" fontWeight="medium">
+                                Unit {unit.unitNumber}
+                              </Typography>
+                              <Chip
+                                label={unit.status || 'available'}
+                                size="small"
                                 color={
-                                  unit.status === 'occupied' ? 'error' :
-                                  unit.status === 'available' ? 'success' : 'warning'
+                                  unit.status === 'occupied'
+                                    ? 'error'
+                                    : unit.status === 'available'
+                                      ? 'success'
+                                      : 'warning'
                                 }
                               />
                             </Box>
-                            
+
                             {unit.occupancy?.isOccupied && unit.occupancy?.tenant ? (
-                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                }}
+                              >
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                   <Avatar sx={{ width: 24, height: 24 }}>T</Avatar>
-                                  <Typography variant="caption" color="text.secondary">Occupied</Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    Occupied
+                                  </Typography>
                                 </Box>
                                 <IconButton
                                   size="small"
                                   color="error"
                                   onClick={() => {
-                                    const tenant = tenants.find(t => t._id === unit.occupancy?.tenant)
+                                    const tenant = tenants.find(
+                                      (t: Tenant) => t._id === unit.occupancy?.tenant
+                                    )
                                     if (tenant) handleUnassignTenant(property, tenant, unit._id)
                                   }}
                                 >
@@ -345,8 +412,16 @@ export default function PropertyAssignment({
                                 </IconButton>
                               </Box>
                             ) : (
-                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Typography variant="caption" color="text.secondary">Available</Typography>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                }}
+                              >
+                                <Typography variant="caption" color="text.secondary">
+                                  Available
+                                </Typography>
                                 {unit.status === 'available' && (
                                   <IconButton
                                     size="small"
@@ -371,7 +446,12 @@ export default function PropertyAssignment({
       </Grid>
 
       {/* Assignment Dialog */}
-      <Dialog open={assignmentDialogOpen} onClose={() => setAssignmentDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={assignmentDialogOpen}
+        onClose={() => setAssignmentDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Assign Tenant to Property</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
@@ -380,10 +460,10 @@ export default function PropertyAssignment({
               <Select
                 value={formData.tenantId}
                 label="Select Tenant"
-                onChange={(e) => setFormData({...formData, tenantId: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, tenantId: e.target.value })}
               >
-                {availableTenants.map(tenant => (
-                  <MenuItem key={tenant._id} value={tenant._id!}>
+                {availableTenants.map((tenant) => (
+                  <MenuItem key={tenant._id} value={tenant._id}>
                     {getTenantName(tenant)}
                   </MenuItem>
                 ))}
@@ -391,45 +471,49 @@ export default function PropertyAssignment({
             </FormControl>
 
             <Grid container spacing={2}>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   fullWidth
                   label="Start Date"
                   type="date"
                   value={formData.startDate}
-                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                  InputLabelProps={{ shrink: true }}
+                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   fullWidth
                   label="End Date"
                   type="date"
                   value={formData.endDate}
-                  onChange={(e) => setFormData({...formData, endDate: e.target.value})}
-                  InputLabelProps={{ shrink: true }}
+                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
               </Grid>
             </Grid>
 
             <Grid container spacing={2}>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   fullWidth
                   label="Monthly Rent (£)"
                   type="number"
                   value={formData.monthlyRent}
-                  onChange={(e) => setFormData({...formData, monthlyRent: Number(e.target.value)})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, monthlyRent: Number(e.target.value) })
+                  }
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <TextField
                   fullWidth
                   label="Security Deposit (£)"
                   type="number"
                   value={formData.securityDeposit}
-                  onChange={(e) => setFormData({...formData, securityDeposit: Number(e.target.value)})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, securityDeposit: Number(e.target.value) })
+                  }
                 />
               </Grid>
             </Grid>
@@ -439,7 +523,7 @@ export default function PropertyAssignment({
               <Select
                 value={formData.tenancyType}
                 label="Tenancy Type"
-                onChange={(e) => setFormData({...formData, tenancyType: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, tenancyType: e.target.value })}
               >
                 <MenuItem value="assured-shorthold">Assured Shorthold</MenuItem>
                 <MenuItem value="assured">Assured</MenuItem>
@@ -451,24 +535,22 @@ export default function PropertyAssignment({
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button 
-            onClick={() => setAssignmentDialogOpen(false)}
-            disabled={loading}
-          >
+          <Button onClick={() => setAssignmentDialogOpen(false)} disabled={loading}>
             Cancel
           </Button>
-          <Button 
-            onClick={submitAssignment}
-            disabled={loading}
-            variant="contained"
-          >
+          <Button onClick={() => void submitAssignment()} disabled={loading} variant="contained">
             {loading ? 'Assigning...' : 'Assign Tenant'}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Unassignment Dialog */}
-      <Dialog open={unassignDialogOpen} onClose={() => setUnassignDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={unassignDialogOpen}
+        onClose={() => setUnassignDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Unassign Tenant</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1 }}>
@@ -477,29 +559,34 @@ export default function PropertyAssignment({
               <strong>
                 {currentAssignment?.tenant && getTenantName(currentAssignment.tenant)}
               </strong>{' '}
-              from{' '}
-              <strong>
-                {currentAssignment?.property?.title}
-              </strong>
+              from <strong>{currentAssignment?.property?.title}</strong>
               {currentAssignment?.unitId && (
-                <span> (Unit {currentAssignment.property.units?.find((u: any) => u._id === currentAssignment.unitId)?.unitNumber})</span>
-              )}?
+                <span>
+                  {' '}
+                  (Unit{' '}
+                  {
+                    currentAssignment.property.units?.find(
+                      (u: { _id?: string; unitNumber?: string }) =>
+                        u._id === currentAssignment.unitId
+                    )?.unitNumber
+                  }
+                  )
+                </span>
+              )}
+              ?
             </Typography>
-            
+
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               This will terminate the active lease and mark the property/unit as available.
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button 
-            onClick={() => setUnassignDialogOpen(false)}
-            disabled={loading}
-          >
+          <Button onClick={() => setUnassignDialogOpen(false)} disabled={loading}>
             Cancel
           </Button>
-          <Button 
-            onClick={submitUnassignment}
+          <Button
+            onClick={() => void submitUnassignment()}
             disabled={loading}
             variant="contained"
             color="error"
@@ -513,11 +600,11 @@ export default function PropertyAssignment({
       <Snackbar
         open={notification.open}
         autoHideDuration={6000}
-        onClose={() => setNotification(prev => ({ ...prev, open: false }))}
+        onClose={() => setNotification((prev) => ({ ...prev, open: false }))}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         <Alert
-          onClose={() => setNotification(prev => ({ ...prev, open: false }))}
+          onClose={() => setNotification((prev) => ({ ...prev, open: false }))}
           severity={notification.severity}
           sx={{ width: '100%' }}
         >

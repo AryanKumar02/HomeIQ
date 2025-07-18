@@ -3,6 +3,31 @@ import type { UseQueryOptions } from '@tanstack/react-query'
 import { tenantsApi } from '../api/tenants'
 import type { Tenant } from '../api/tenants'
 
+// Property interface for populated lease property
+interface PopulatedProperty {
+  _id: string
+  id?: string
+  title: string
+  address: object
+  propertyType: string
+}
+
+// Lease interface for tenant leases
+interface PopulatedLease {
+  _id?: string
+  property: string | PopulatedProperty
+  unit?: string
+  status: string
+  startDate?: string
+  endDate?: string
+  monthlyRent?: number
+}
+
+// Extended tenant interface with leases for type safety
+interface TenantWithLeases extends Omit<Tenant, 'leases'> {
+  leases?: PopulatedLease[]
+}
+
 // Query keys for consistent cache management
 export const tenantKeys = {
   all: ['tenants'] as const,
@@ -132,4 +157,38 @@ export const useUpdateTenantApplicationStatus = () => {
       console.error('Update tenant application status mutation error:', error)
     },
   })
+}
+
+// Get tenant count for a property
+export const usePropertyTenantCount = (propertyId: string) => {
+  const { data: tenants = [] } = useTenants()
+  
+  const tenantsWithLeases = tenants as TenantWithLeases[]
+  
+  if (!propertyId || tenants.length === 0) {
+    return 0
+  }
+  
+  const matchingTenants = tenantsWithLeases.filter(tenant => {
+    if (!tenant.leases || !Array.isArray(tenant.leases)) {
+      return false
+    }
+    
+    return tenant.leases.some(lease => {
+      // Handle both populated object and string ID cases
+      let leasePropertyId: string
+      
+      if (typeof lease.property === 'object' && lease.property !== null && '_id' in lease.property) {
+        leasePropertyId = lease.property._id || lease.property.id || ''
+      } else {
+        leasePropertyId = typeof lease.property === 'string' ? lease.property : ''
+      }
+      
+      return lease && 
+             leasePropertyId === propertyId && 
+             lease.status === 'active'
+    })
+  })
+  
+  return matchingTenants.length
 }

@@ -1,6 +1,9 @@
 import axios from 'axios'
 import type { Property, Unit, PropertyResponse } from '../types/property'
 
+// Re-export types for convenience
+export type { Property, Unit, PropertyResponse } from '../types/property'
+
 // Get auth token from localStorage
 const getAuthToken = () => {
   return localStorage.getItem('authToken')

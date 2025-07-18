@@ -382,10 +382,10 @@ describe('Tenant API', () => {
     });
   });
 
-  describe('POST /api/v1/tenant', () => {
+  describe('POST /api/v1/tenants', () => {
     it('should create a new tenant with valid UK data', async () => {
       const response = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(validTenantData)
         .expect(201);
@@ -413,7 +413,7 @@ describe('Tenant API', () => {
       };
 
       await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidData)
         .expect(400);
@@ -431,7 +431,7 @@ describe('Tenant API', () => {
       };
 
       await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidData)
         .expect(400);
@@ -447,22 +447,22 @@ describe('Tenant API', () => {
       };
 
       await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidData)
         .expect(400);
     });
 
     it('should require authentication', async () => {
-      await request(app).post('/api/v1/tenant').send(validTenantData).expect(401);
+      await request(app).post('/api/v1/tenants').send(validTenantData).expect(401);
     });
   });
 
-  describe('GET /api/v1/tenant', () => {
+  describe('GET /api/v1/tenants', () => {
     beforeEach(async () => {
       // Create test tenant
       const response = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(validTenantData);
 
@@ -471,7 +471,7 @@ describe('Tenant API', () => {
 
     it('should get all tenants for authenticated user', async () => {
       const response = await request(app)
-        .get('/api/v1/tenant')
+        .get('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -483,7 +483,7 @@ describe('Tenant API', () => {
 
     it('should support pagination', async () => {
       const response = await request(app)
-        .get('/api/v1/tenant?page=1&limit=5')
+        .get('/api/v1/tenants?page=1&limit=5')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -493,7 +493,7 @@ describe('Tenant API', () => {
 
     it('should support filtering by status', async () => {
       const response = await request(app)
-        .get('/api/v1/tenant?status=pending')
+        .get('/api/v1/tenants?status=pending')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -501,10 +501,10 @@ describe('Tenant API', () => {
     });
   });
 
-  describe('GET /api/v1/tenant/:id', () => {
+  describe('GET /api/v1/tenants/:id', () => {
     beforeEach(async () => {
       const response = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(validTenantData);
 
@@ -513,7 +513,7 @@ describe('Tenant API', () => {
 
     it('should get a specific tenant by ID', async () => {
       const response = await request(app)
-        .get(`/api/v1/tenant/${tenantId}`)
+        .get(`/api/v1/tenants/${tenantId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -525,23 +525,23 @@ describe('Tenant API', () => {
     it('should return 404 for non-existent tenant', async () => {
       const fakeId = new mongoose.Types.ObjectId();
       await request(app)
-        .get(`/api/v1/tenant/${fakeId}`)
+        .get(`/api/v1/tenants/${fakeId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
     });
 
     it('should reject invalid ObjectId format', async () => {
       await request(app)
-        .get('/api/v1/tenant/invalid-id')
+        .get('/api/v1/tenants/invalid-id')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(400);
     });
   });
 
-  describe('PATCH /api/v1/tenant/:id', () => {
+  describe('PATCH /api/v1/tenants/:id', () => {
     beforeEach(async () => {
       const response = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(validTenantData);
 
@@ -557,7 +557,7 @@ describe('Tenant API', () => {
       };
 
       const response = await request(app)
-        .patch(`/api/v1/tenant/${tenantId}`)
+        .patch(`/api/v1/tenants/${tenantId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(200);
@@ -582,7 +582,7 @@ describe('Tenant API', () => {
       };
 
       await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(anotherTenant);
 
@@ -594,17 +594,17 @@ describe('Tenant API', () => {
       };
 
       await request(app)
-        .patch(`/api/v1/tenant/${tenantId}`)
+        .patch(`/api/v1/tenants/${tenantId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(400);
     });
   });
 
-  describe('DELETE /api/v1/tenant/:id', () => {
+  describe('DELETE /api/v1/tenants/:id', () => {
     beforeEach(async () => {
       const response = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(validTenantData);
 
@@ -613,7 +613,7 @@ describe('Tenant API', () => {
 
     it('should soft delete a tenant', async () => {
       await request(app)
-        .delete(`/api/v1/tenant/${tenantId}`)
+        .delete(`/api/v1/tenants/${tenantId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(204);
 
@@ -633,7 +633,7 @@ describe('Tenant API', () => {
       };
 
       await request(app)
-        .post(`/api/v1/tenant/${tenantId}/leases`)
+        .post(`/api/v1/tenants/${tenantId}/leases`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(leaseData);
 
@@ -643,7 +643,7 @@ describe('Tenant API', () => {
       await tenant.save();
 
       await request(app)
-        .delete(`/api/v1/tenant/${tenantId}`)
+        .delete(`/api/v1/tenants/${tenantId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(400);
     });
@@ -652,21 +652,433 @@ describe('Tenant API', () => {
   describe('UK-Specific Endpoints', () => {
     beforeEach(async () => {
       const response = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(validTenantData);
 
       tenantId = response.body.data.tenant._id;
     });
 
-    describe('POST /api/v1/tenant/:id/qualification', () => {
+    describe('Automatic Qualification System', () => {
+      it('should auto-approve qualified tenant on creation', async () => {
+        const qualifiedTenantData = {
+          ...validTenantData,
+          contactInfo: {
+            ...validTenantData.contactInfo,
+            email: 'qualified.tenant@example.com',
+          },
+          personalInfo: {
+            ...validTenantData.personalInfo,
+            firstName: 'Qualified',
+            lastName: 'Tenant',
+            rightToRent: {
+              verified: true,
+              documentType: 'uk-passport',
+              verificationDate: new Date().toISOString(),
+            },
+          },
+          employment: {
+            current: {
+              status: 'employed-full-time',
+              employer: {
+                name: 'High Paying Company',
+                position: 'Senior Engineer',
+                contractType: 'permanent',
+              },
+              income: {
+                gross: {
+                  monthly: 6000, // Well above qualification threshold
+                  annual: 72000,
+                },
+                net: {
+                  monthly: 4800,
+                  annual: 57600,
+                },
+                currency: 'GBP',
+                payFrequency: 'monthly',
+                verified: true,
+                verificationMethod: 'payslip',
+                verificationDate: new Date().toISOString(),
+              },
+              benefits: {
+                receives: false,
+              },
+            },
+          },
+          financialInfo: {
+            creditScore: {
+              score: 850,
+              provider: 'Experian',
+              date: new Date().toISOString(),
+            },
+            bankAccount: {
+              verified: true,
+              verificationDate: new Date().toISOString(),
+            },
+          },
+          referencing: {
+            status: 'completed',
+            outcome: 'pass',
+          },
+        };
+
+        const response = await request(app)
+          .post('/api/v1/tenants')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(qualifiedTenantData)
+          .expect(201);
+
+        expect(response.body.status).toBe('success');
+        expect(response.body.data.tenant.applicationStatus.status).toBe('approved');
+        expect(response.body.data.tenant.qualificationStatus.status).toBe('qualified');
+      });
+
+      it('should mark unqualified tenant for review', async () => {
+        const unqualifiedTenantData = {
+          ...validTenantData,
+          contactInfo: {
+            ...validTenantData.contactInfo,
+            email: 'unqualified.tenant@example.com',
+          },
+          personalInfo: {
+            ...validTenantData.personalInfo,
+            firstName: 'Unqualified',
+            lastName: 'Tenant',
+            rightToRent: {
+              verified: false, // Major disqualifier
+            },
+          },
+          employment: {
+            current: {
+              status: 'employed-part-time',
+              employer: {
+                name: 'Low Paying Company',
+                position: 'Junior Role',
+                contractType: 'fixed-term',
+              },
+              income: {
+                gross: {
+                  monthly: 1000, // Very low income
+                  annual: 12000,
+                },
+                net: {
+                  monthly: 900,
+                  annual: 10800,
+                },
+                currency: 'GBP',
+                payFrequency: 'monthly',
+                verified: false,
+              },
+              benefits: {
+                receives: false,
+              },
+            },
+          },
+        };
+
+        const response = await request(app)
+          .post('/api/v1/tenants')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(unqualifiedTenantData)
+          .expect(201);
+
+        expect(response.body.status).toBe('success');
+        expect(response.body.data.tenant.applicationStatus.status).toBe('under-review');
+        expect(response.body.data.tenant.qualificationStatus.status).toBe('not-qualified');
+        expect(response.body.data.tenant.qualificationStatus.issues).toContain(
+          'Right to rent not verified - mandatory requirement in UK',
+        );
+      });
+
+      it('should handle partial qualification (needs review)', async () => {
+        const partialTenantData = {
+          ...validTenantData,
+          contactInfo: {
+            ...validTenantData.contactInfo,
+            email: 'partial.tenant@example.com',
+          },
+          personalInfo: {
+            ...validTenantData.personalInfo,
+            firstName: 'Partial',
+            lastName: 'Tenant',
+            rightToRent: {
+              verified: true,
+              documentType: 'uk-passport',
+              verificationDate: new Date().toISOString(),
+            },
+          },
+          employment: {
+            current: {
+              status: 'employed-full-time',
+              employer: {
+                name: 'Medium Company',
+                position: 'Engineer',
+                contractType: 'permanent',
+              },
+              income: {
+                gross: {
+                  monthly: 3000,
+                  annual: 36000,
+                },
+                net: {
+                  monthly: 2400,
+                  annual: 28800,
+                },
+                currency: 'GBP',
+                payFrequency: 'monthly',
+                verified: false, // Income not verified
+              },
+              benefits: {
+                receives: false,
+              },
+            },
+          },
+          financialInfo: {
+            creditScore: {
+              score: 550, // Below good credit threshold
+              provider: 'Experian',
+              date: new Date().toISOString(),
+            },
+          },
+        };
+
+        const response = await request(app)
+          .post('/api/v1/tenants')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(partialTenantData)
+          .expect(201);
+
+        expect(response.body.status).toBe('success');
+        expect(response.body.data.tenant.applicationStatus.status).toBe('under-review');
+        expect(response.body.data.tenant.qualificationStatus.status).toBe('needs-review');
+        expect(response.body.data.tenant.qualificationStatus.issues).toContain(
+          'Referencing checks pending',
+        );
+      });
+    });
+
+    describe('GET /api/v1/tenants/:id/qualification-status', () => {
+      it('should return general qualification status', async () => {
+        const response = await request(app)
+          .get(`/api/v1/tenants/${tenantId}/qualification-status`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .expect(200);
+
+        expect(response.body.status).toBe('success');
+        expect(response.body.data.qualification).toBeDefined();
+        expect(response.body.data.qualification.status).toMatch(
+          /^(qualified|needs-review|not-qualified)$/,
+        );
+        expect(response.body.data.computedApplicationStatus).toBeDefined();
+      });
+    });
+
+    describe('POST /api/v1/tenants/reevaluate-qualifications', () => {
+      beforeEach(async () => {
+        // Create a few tenants with pending status for bulk re-evaluation
+        const pendingTenants = [
+          {
+            ...validTenantData,
+            contactInfo: { ...validTenantData.contactInfo, email: 'pending1@example.com' },
+            personalInfo: { ...validTenantData.personalInfo, firstName: 'Pending1' },
+            applicationStatus: { status: 'pending' },
+          },
+          {
+            ...validTenantData,
+            contactInfo: { ...validTenantData.contactInfo, email: 'pending2@example.com' },
+            personalInfo: { ...validTenantData.personalInfo, firstName: 'Pending2' },
+            applicationStatus: { status: 'under-review' },
+          },
+        ];
+
+        for (const tenant of pendingTenants) {
+          await request(app)
+            .post('/api/v1/tenants')
+            .set('Authorization', `Bearer ${authToken}`)
+            .send(tenant);
+        }
+      });
+
+      it('should re-evaluate all pending tenant qualifications', async () => {
+        const response = await request(app)
+          .post('/api/v1/tenants/reevaluate-qualifications')
+          .set('Authorization', `Bearer ${authToken}`)
+          .expect(200);
+
+        expect(response.body.status).toBe('success');
+        expect(response.body.data.message).toBe('Qualification re-evaluation completed');
+        expect(response.body.data.processed).toBeGreaterThanOrEqual(2);
+        expect(typeof response.body.data.autoApproved).toBe('number');
+        expect(typeof response.body.data.markedForReview).toBe('number');
+      });
+    });
+
+    describe('Property Qualification Check', () => {
+      it('should check qualification for specific property rent', async () => {
+        const qualificationData = {
+          monthlyRent: 1200, // Affordable for test tenant
+        };
+
+        const response = await request(app)
+          .post(`/api/v1/tenants/${tenantId}/qualification`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(qualificationData)
+          .expect(200);
+
+        expect(response.body.status).toBe('success');
+        expect(response.body.data.qualification.monthlyRent).toBe(1200);
+        expect(response.body.data.qualification.overallQualifies).toBe(true);
+        expect(response.body.data.qualification.tenant.grossIncome).toBe(4000);
+      });
+
+      it('should fail qualification for unaffordable rent', async () => {
+        const qualificationData = {
+          monthlyRent: 2500, // Too expensive for test tenant
+        };
+
+        const response = await request(app)
+          .post(`/api/v1/tenants/${tenantId}/qualification`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(qualificationData)
+          .expect(200);
+
+        expect(response.body.status).toBe('success');
+        expect(response.body.data.qualification.overallQualifies).toBe(false);
+        expect(response.body.data.qualification.summary).toContain('less than 2.5x rent');
+      });
+    });
+
+    describe('Tenant Assignment to Property', () => {
+      it('should assign qualified tenant to property', async () => {
+        const assignmentData = {
+          tenantId: tenantId,
+          propertyId: propertyId,
+          leaseData: {
+            startDate: new Date().toISOString(),
+            endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            monthlyRent: 1500,
+            securityDeposit: 1500,
+            tenancyType: 'assured-shorthold',
+          },
+        };
+
+        const response = await request(app)
+          .post('/api/v1/tenants/assign-to-property')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(assignmentData)
+          .expect(200);
+
+        expect(response.body.status).toBe('success');
+        expect(response.body.data.tenant._id).toBe(tenantId);
+        expect(response.body.data.property._id).toBe(propertyId);
+        expect(response.body.data.lease.monthlyRent).toBe(1500);
+
+        // Verify property is now occupied
+        expect(response.body.data.property.occupancy.isOccupied).toBe(true);
+        expect(response.body.data.property.occupancy.tenant).toBe(tenantId);
+      });
+
+      it('should unassign tenant from property', async () => {
+        // First assign the tenant
+        const assignmentData = {
+          tenantId: tenantId,
+          propertyId: propertyId,
+          leaseData: {
+            startDate: new Date().toISOString(),
+            endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            monthlyRent: 1500,
+            securityDeposit: 1500,
+            tenancyType: 'assured-shorthold',
+          },
+        };
+
+        await request(app)
+          .post('/api/v1/tenants/assign-to-property')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(assignmentData);
+
+        // Now unassign
+        const unassignData = {
+          tenantId: tenantId,
+          propertyId: propertyId,
+        };
+
+        const response = await request(app)
+          .post('/api/v1/tenants/unassign-from-property')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(unassignData)
+          .expect(200);
+
+        expect(response.body.status).toBe('success');
+        expect(response.body.data.message).toBe('Tenant unassigned successfully');
+
+        // Verify property is no longer occupied
+        expect(response.body.data.property.occupancy.isOccupied).toBe(false);
+        expect(response.body.data.property.occupancy.tenant).toBeNull();
+      });
+
+      it('should prevent assignment to already occupied property', async () => {
+        // First assignment
+        const assignmentData = {
+          tenantId: tenantId,
+          propertyId: propertyId,
+          leaseData: {
+            startDate: new Date().toISOString(),
+            endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            monthlyRent: 1500,
+            securityDeposit: 1500,
+            tenancyType: 'assured-shorthold',
+          },
+        };
+
+        await request(app)
+          .post('/api/v1/tenants/assign-to-property')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(assignmentData);
+
+        // Create another tenant
+        const anotherTenantData = {
+          ...validTenantData,
+          contactInfo: { ...validTenantData.contactInfo, email: 'another.tenant@example.com' },
+          personalInfo: { ...validTenantData.personalInfo, firstName: 'Another' },
+        };
+
+        const anotherTenantResponse = await request(app)
+          .post('/api/v1/tenants')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(anotherTenantData);
+
+        const anotherTenantId = anotherTenantResponse.body.data.tenant._id;
+
+        // Try to assign second tenant to same property
+        const secondAssignment = {
+          tenantId: anotherTenantId,
+          propertyId: propertyId,
+          leaseData: {
+            startDate: new Date().toISOString(),
+            endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            monthlyRent: 1500,
+            securityDeposit: 1500,
+            tenancyType: 'assured-shorthold',
+          },
+        };
+
+        await request(app)
+          .post('/api/v1/tenants/assign-to-property')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(secondAssignment)
+          .expect(400);
+      });
+    });
+
+    describe('POST /api/v1/tenants/:id/qualification', () => {
       it('should check tenant qualification with UK standards', async () => {
         const qualificationData = {
           monthlyRent: 1500,
         };
 
         const response = await request(app)
-          .post(`/api/v1/tenant/${tenantId}/qualification`)
+          .post(`/api/v1/tenants/${tenantId}/qualification`)
           .set('Authorization', `Bearer ${authToken}`)
           .send(qualificationData)
           .expect(200);
@@ -683,7 +1095,7 @@ describe('Tenant API', () => {
         };
 
         const response = await request(app)
-          .post(`/api/v1/tenant/${tenantId}/qualification`)
+          .post(`/api/v1/tenants/${tenantId}/qualification`)
           .set('Authorization', `Bearer ${authToken}`)
           .send(qualificationData)
           .expect(200);
@@ -693,7 +1105,7 @@ describe('Tenant API', () => {
       });
     });
 
-    describe('PATCH /api/v1/tenant/:id/right-to-rent', () => {
+    describe('PATCH /api/v1/tenants/:id/right-to-rent', () => {
       it('should update right to rent verification', async () => {
         const rightToRentData = {
           verified: true,
@@ -703,7 +1115,7 @@ describe('Tenant API', () => {
         };
 
         const response = await request(app)
-          .patch(`/api/v1/tenant/${tenantId}/right-to-rent`)
+          .patch(`/api/v1/tenants/${tenantId}/right-to-rent`)
           .set('Authorization', `Bearer ${authToken}`)
           .send(rightToRentData)
           .expect(200);
@@ -714,7 +1126,7 @@ describe('Tenant API', () => {
       });
     });
 
-    describe('PATCH /api/v1/tenant/:id/referencing', () => {
+    describe('PATCH /api/v1/tenants/:id/referencing', () => {
       it('should update referencing status', async () => {
         const referencingData = {
           status: 'completed',
@@ -725,7 +1137,7 @@ describe('Tenant API', () => {
         };
 
         const response = await request(app)
-          .patch(`/api/v1/tenant/${tenantId}/referencing`)
+          .patch(`/api/v1/tenants/${tenantId}/referencing`)
           .set('Authorization', `Bearer ${authToken}`)
           .send(referencingData)
           .expect(200);
@@ -736,7 +1148,7 @@ describe('Tenant API', () => {
       });
     });
 
-    describe('PATCH /api/v1/tenant/:id/affordability', () => {
+    describe('PATCH /api/v1/tenants/:id/affordability', () => {
       it('should update affordability assessment', async () => {
         const affordabilityData = {
           monthlyIncome: 4500,
@@ -745,7 +1157,7 @@ describe('Tenant API', () => {
         };
 
         const response = await request(app)
-          .patch(`/api/v1/tenant/${tenantId}/affordability`)
+          .patch(`/api/v1/tenants/${tenantId}/affordability`)
           .set('Authorization', `Bearer ${authToken}`)
           .send(affordabilityData)
           .expect(200);
@@ -767,7 +1179,7 @@ describe('Tenant API', () => {
     beforeEach(async () => {
       // Create two test tenants
       const response1 = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(validTenantData);
 
@@ -787,14 +1199,14 @@ describe('Tenant API', () => {
       };
 
       const response2 = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(tenant2Data);
 
       tenant2Id = response2.body.data.tenant._id;
     });
 
-    describe('PATCH /api/v1/tenant/bulk-update', () => {
+    describe('PATCH /api/v1/tenants/bulk-update', () => {
       it('should approve multiple tenants', async () => {
         const bulkData = {
           tenantIds: [tenant1Id, tenant2Id],
@@ -802,7 +1214,7 @@ describe('Tenant API', () => {
         };
 
         const response = await request(app)
-          .patch('/api/v1/tenant/bulk-update')
+          .patch('/api/v1/tenants/bulk-update')
           .set('Authorization', `Bearer ${authToken}`)
           .send(bulkData)
           .expect(200);
@@ -825,7 +1237,7 @@ describe('Tenant API', () => {
         };
 
         await request(app)
-          .patch('/api/v1/tenant/bulk-update')
+          .patch('/api/v1/tenants/bulk-update')
           .set('Authorization', `Bearer ${authToken}`)
           .send(bulkData)
           .expect(400);
@@ -836,14 +1248,14 @@ describe('Tenant API', () => {
   describe('Lease Management', () => {
     beforeEach(async () => {
       const response = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(validTenantData);
 
       tenantId = response.body.data.tenant._id;
     });
 
-    describe('POST /api/v1/tenant/:id/leases', () => {
+    describe('POST /api/v1/tenants/:id/leases', () => {
       it('should add a new lease to tenant', async () => {
         const leaseData = {
           property: propertyId,
@@ -856,7 +1268,7 @@ describe('Tenant API', () => {
         };
 
         const response = await request(app)
-          .post(`/api/v1/tenant/${tenantId}/leases`)
+          .post(`/api/v1/tenants/${tenantId}/leases`)
           .set('Authorization', `Bearer ${authToken}`)
           .send(leaseData)
           .expect(200);
@@ -877,7 +1289,7 @@ describe('Tenant API', () => {
         };
 
         await request(app)
-          .post(`/api/v1/tenant/${tenantId}/leases`)
+          .post(`/api/v1/tenants/${tenantId}/leases`)
           .set('Authorization', `Bearer ${authToken}`)
           .send(leaseData)
           .expect(400);
@@ -893,7 +1305,7 @@ describe('Tenant API', () => {
         };
 
         await request(app)
-          .post(`/api/v1/tenant/${tenantId}/leases`)
+          .post(`/api/v1/tenants/${tenantId}/leases`)
           .set('Authorization', `Bearer ${authToken}`)
           .send(leaseData)
           .expect(400);
@@ -923,16 +1335,16 @@ describe('Tenant API', () => {
 
       for (const tenant of tenants) {
         await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(tenant);
       }
     });
 
-    describe('GET /api/v1/tenant/search', () => {
+    describe('GET /api/v1/tenants/search', () => {
       it('should search tenants by name', async () => {
         const response = await request(app)
-          .get('/api/v1/tenant/search?name=Alice')
+          .get('/api/v1/tenants/search?name=Alice')
           .set('Authorization', `Bearer ${authToken}`)
           .expect(200);
 
@@ -943,7 +1355,7 @@ describe('Tenant API', () => {
 
       it('should search tenants by email', async () => {
         const response = await request(app)
-          .get('/api/v1/tenant/search?email=bob@example.com')
+          .get('/api/v1/tenants/search?email=bob@example.com')
           .set('Authorization', `Bearer ${authToken}`)
           .expect(200);
 
@@ -953,10 +1365,10 @@ describe('Tenant API', () => {
       });
     });
 
-    describe('GET /api/v1/tenant/stats', () => {
+    describe('GET /api/v1/tenants/stats', () => {
       it('should return tenant statistics', async () => {
         const response = await request(app)
-          .get('/api/v1/tenant/stats')
+          .get('/api/v1/tenants/stats')
           .set('Authorization', `Bearer ${authToken}`)
           .expect(200);
 

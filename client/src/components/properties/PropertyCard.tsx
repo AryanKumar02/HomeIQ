@@ -37,6 +37,7 @@ import { useCurrency } from '../../hooks/useCurrency'
 import { PropertyImage } from '../common'
 import { propertiesApi } from '../../api/properties'
 import { propertyKeys } from '../../hooks/useProperties'
+import { usePropertyTenantCount } from '../../hooks/useTenants'
 
 /**
  * Props for the PropertyCard component
@@ -78,6 +79,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   const queryClient = useQueryClient()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const tenantCount = usePropertyTenantCount(property._id || '')
 
   const menuOpen = Boolean(anchorEl)
 
@@ -332,6 +334,29 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         >
           <MoreVertIcon sx={{ fontSize: '1.2rem' }} />
         </IconButton>
+
+        {/* Tenant Count Indicator */}
+        {tenantCount > 0 && (
+          <Chip
+            label={`${tenantCount} tenant${tenantCount !== 1 ? 's' : ''}`}
+            aria-label={`${tenantCount} tenant${tenantCount !== 1 ? 's' : ''} occupying this property`}
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              backgroundColor: theme.palette.primary.main,
+              color: 'white',
+              fontWeight: 600,
+              fontSize: '0.7rem',
+              height: 22,
+              '& .MuiChip-label': {
+                px: 1,
+                py: 0,
+                color: 'white',
+              },
+            }}
+          />
+        )}
       </Box>
 
       {/* Content Section - 50% of card height */}

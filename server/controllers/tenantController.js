@@ -250,13 +250,20 @@ export const assignTenantToProperty = catchAsync(async (req, res, next) => {
     return next(new AppError('Property not found', 404));
   }
 
+  // Validate that multi-unit properties require a unit ID
+  if (property.propertyType === 'apartment' || property.propertyType === 'duplex') {
+    if (!unitId) {
+      return next(new AppError('Unit ID is required for multi-unit properties (apartments/duplexes)', 400));
+    }
+  }
+
   // Check availability
   if (unitId) {
     const unit = property.units.id(unitId);
-    if (!unit || unit.occupancy.isOccupied) {
+    if (!unit || (unit.occupancy.isOccupied && unit.occupancy.tenant)) {
       return next(new AppError('Unit not found or already occupied', 400));
     }
-  } else if (property.occupancy.isOccupied) {
+  } else if (property.occupancy.isOccupied && property.occupancy.tenant) {
     return next(new AppError('Property is already occupied', 400));
   }
 
@@ -297,7 +304,10 @@ export const assignTenantToProperty = catchAsync(async (req, res, next) => {
 
   // Populate and return updated data
   await tenant.populate('leases.property', 'title address propertyType');
-  await property.populate('occupancy.tenant', 'personalInfo.firstName personalInfo.lastName contactInfo.email');
+  await property.populate(
+    'occupancy.tenant',
+    'personalInfo.firstName personalInfo.lastName contactInfo.email',
+  );
 
   res.status(200).json({
     status: 'success',
@@ -332,11 +342,19 @@ export const unassignTenantFromProperty = catchAsync(async (req, res, next) => {
     return next(new AppError('Property not found', 404));
   }
 
+  // Validate that multi-unit properties require a unit ID
+  if (property.propertyType === 'apartment' || property.propertyType === 'duplex') {
+    if (!unitId) {
+      return next(new AppError('Unit ID is required for multi-unit properties (apartments/duplexes)', 400));
+    }
+  }
+
   // Find and terminate the lease
-  const lease = tenant.leases.find(l => 
-    l.property.toString() === propertyId && 
-    l.status === 'active' &&
-    (!unitId || l.unit === unitId)
+  const lease = tenant.leases.find(
+    l =>
+      l.property.toString() === propertyId &&
+      l.status === 'active' &&
+      (!unitId || l.unit === unitId),
   );
 
   if (!lease) {
@@ -761,6 +779,29 @@ export const searchTenants = catchAsync(async (req, res, next) => {
   });
 });
 
+// Get tenant qualification status (general, not property-specific)
+export const getTenantQualification = catchAsync(async (req, res, next) => {
+  const tenant = await Tenant.findOne({
+    _id: req.params.id,
+    createdBy: req.user.id,
+    isActive: true,
+  });
+
+  if (!tenant) {
+    return next(new AppError('Tenant not found', 404));
+  }
+
+  const qualification = tenant.getQualificationStatus();
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      qualification,
+      computedApplicationStatus: tenant.computedApplicationStatus,
+    },
+  });
+});
+
 // Check tenant qualification for a property (UK standards)
 export const checkQualification = catchAsync(async (req, res, next) => {
   const tenant = await Tenant.findOne({
@@ -779,71 +820,26 @@ export const checkQualification = catchAsync(async (req, res, next) => {
     return next(new AppError('Valid monthly rent is required', 400));
   }
 
-  // Use tenant model methods for UK standards
-  const incomeQualification = tenant.checkIncomeQualification(monthlyRent);
-  const affordabilityCheck = tenant.checkAffordability(monthlyRent);
+  // Use new qualification method
+  const qualification = tenant.checkPropertyQualification(monthlyRent);
 
-  const qualification = {
+  // Add additional context for response
+  const qualificationResponse = {
+    ...qualification,
     monthlyRent,
     tenant: {
-      grossIncome: tenant.employment.current.income.gross.monthly,
-      netIncome: tenant.employment.current.income.net.monthly,
-      benefits: tenant.employment.current.benefits?.monthlyAmount || 0,
+      grossIncome: tenant.employment?.current?.income?.gross?.monthly || null,
+      netIncome: tenant.employment?.current?.income?.net?.monthly || null,
+      benefits: tenant.employment?.current?.benefits?.monthlyAmount || 0,
     },
-    checks: {
-      income: incomeQualification,
-      affordability: affordabilityCheck,
-      rightToRent: tenant.personalInfo.rightToRent.verified,
-      referencing: tenant.referencing?.outcome || 'pending',
-    },
-    overallQualifies: false,
-    summary: [],
+    overallQualifies: qualification.status === 'qualified',
+    summary: qualification.issues,
   };
-
-  // Determine overall qualification
-  let qualifies = true;
-  const reasons = [];
-
-  // Income qualification check
-  if (!incomeQualification.qualified) {
-    qualifies = false;
-    reasons.push(incomeQualification.reason);
-  }
-
-  // Affordability check
-  if (!affordabilityCheck.affordable) {
-    qualifies = false;
-    reasons.push(affordabilityCheck.reason);
-  }
-
-  // Right to rent check (mandatory in UK)
-  if (!tenant.personalInfo.rightToRent.verified) {
-    qualifies = false;
-    reasons.push('Right to rent not verified - mandatory requirement in UK');
-  }
-
-  // Referencing check
-  const referencingOutcome = tenant.referencing?.outcome;
-  if (referencingOutcome === 'fail') {
-    qualifies = false;
-    reasons.push('Failed referencing checks');
-  } else if (referencingOutcome === 'pass-with-conditions') {
-    reasons.push(`Referencing passed with conditions: ${tenant.referencing?.conditions || ''}`);
-  }
-
-  // Check for guarantor requirement
-  if (tenant.financialInfo?.guarantor?.required && !tenant.financialInfo?.guarantor?.provided) {
-    qualifies = false;
-    reasons.push('Guarantor required but not provided');
-  }
-
-  qualification.overallQualifies = qualifies;
-  qualification.summary = reasons;
 
   res.status(200).json({
     status: 'success',
     data: {
-      qualification,
+      qualification: qualificationResponse,
     },
   });
 });
@@ -977,6 +973,44 @@ export const updateRightToRent = catchAsync(async (req, res, next) => {
     status: 'success',
     data: {
       tenant,
+    },
+  });
+});
+
+// Re-evaluate all tenant qualifications and update statuses
+export const reevaluateQualifications = catchAsync(async (req, res, next) => {
+  const tenants = await Tenant.find({
+    createdBy: req.user.id,
+    isActive: true,
+    'applicationStatus.status': { $in: ['pending', 'under-review'] },
+  });
+
+  let autoApproved = 0;
+  let markedForReview = 0;
+
+  for (const tenant of tenants) {
+    const oldStatus = tenant.applicationStatus.status;
+
+    // Trigger save to run qualification middleware
+    await tenant.save();
+
+    const newStatus = tenant.applicationStatus.status;
+    if (oldStatus !== newStatus) {
+      if (newStatus === 'approved') {
+        autoApproved++;
+      } else if (newStatus === 'under-review') {
+        markedForReview++;
+      }
+    }
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      message: 'Qualification re-evaluation completed',
+      processed: tenants.length,
+      autoApproved,
+      markedForReview,
     },
   });
 });
