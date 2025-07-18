@@ -162,33 +162,35 @@ export const useUpdateTenantApplicationStatus = () => {
 // Get tenant count for a property
 export const usePropertyTenantCount = (propertyId: string) => {
   const { data: tenants = [] } = useTenants()
-  
+
   const tenantsWithLeases = tenants as TenantWithLeases[]
-  
+
   if (!propertyId || tenants.length === 0) {
     return 0
   }
-  
-  const matchingTenants = tenantsWithLeases.filter(tenant => {
+
+  const matchingTenants = tenantsWithLeases.filter((tenant) => {
     if (!tenant.leases || !Array.isArray(tenant.leases)) {
       return false
     }
-    
-    return tenant.leases.some(lease => {
+
+    return tenant.leases.some((lease) => {
       // Handle both populated object and string ID cases
       let leasePropertyId: string
-      
-      if (typeof lease.property === 'object' && lease.property !== null && '_id' in lease.property) {
+
+      if (
+        typeof lease.property === 'object' &&
+        lease.property !== null &&
+        '_id' in lease.property
+      ) {
         leasePropertyId = lease.property._id || lease.property.id || ''
       } else {
         leasePropertyId = typeof lease.property === 'string' ? lease.property : ''
       }
-      
-      return lease && 
-             leasePropertyId === propertyId && 
-             lease.status === 'active'
+
+      return lease && leasePropertyId === propertyId && lease.status === 'active'
     })
   })
-  
+
   return matchingTenants.length
 }

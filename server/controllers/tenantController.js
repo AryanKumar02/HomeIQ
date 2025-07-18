@@ -253,7 +253,9 @@ export const assignTenantToProperty = catchAsync(async (req, res, next) => {
   // Validate that multi-unit properties require a unit ID
   if (property.propertyType === 'apartment' || property.propertyType === 'duplex') {
     if (!unitId) {
-      return next(new AppError('Unit ID is required for multi-unit properties (apartments/duplexes)', 400));
+      return next(
+        new AppError('Unit ID is required for multi-unit properties (apartments/duplexes)', 400),
+      );
     }
   }
 
@@ -345,7 +347,9 @@ export const unassignTenantFromProperty = catchAsync(async (req, res, next) => {
   // Validate that multi-unit properties require a unit ID
   if (property.propertyType === 'apartment' || property.propertyType === 'duplex') {
     if (!unitId) {
-      return next(new AppError('Unit ID is required for multi-unit properties (apartments/duplexes)', 400));
+      return next(
+        new AppError('Unit ID is required for multi-unit properties (apartments/duplexes)', 400),
+      );
     }
   }
 
