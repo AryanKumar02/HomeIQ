@@ -113,6 +113,14 @@ function App() {
                   }
                 />
                 <Route
+                  path="/tenants/:tenantId/edit"
+                  element={
+                    <ProtectedRoute>
+                      <CreateTenant />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/analytics"
                   element={
                     <ProtectedRoute>

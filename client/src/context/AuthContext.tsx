@@ -150,7 +150,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Calculate loading state
   const isLoading =
-    !isInitialized || (isInitialized && token && isLoadingUser) || loginMutation.isPending
+    !isInitialized || 
+    (isInitialized && token && !user && isLoadingUser) || 
+    loginMutation.isPending
 
   const value: AuthContextType = {
     user,

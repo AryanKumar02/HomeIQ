@@ -1,8 +1,14 @@
 import { body } from 'express-validator';
 import mongoose from 'mongoose';
 
-// Helper function to validate MongoDB ObjectId
-const isValidObjectId = value => mongoose.Types.ObjectId.isValid(value);
+// Helper function to validate MongoDB ObjectId (allows null/empty for unassigning)
+const isValidObjectId = value => {
+  // Allow null, undefined, or empty string for unassigning tenants
+  if (value === null || value === undefined || value === '') {
+    return true;
+  }
+  return mongoose.Types.ObjectId.isValid(value);
+};
 
 // Create property validators
 export const createPropertyValidators = [

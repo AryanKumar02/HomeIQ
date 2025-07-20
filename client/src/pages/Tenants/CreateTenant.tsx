@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
-import { Box, Alert } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Box, Alert, Skeleton } from '@mui/material'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
 import Sidebar from '../../components/common/Sidebar'
 import Titlebar from '../../components/basic/Titlebar'
@@ -16,7 +16,7 @@ import PetsInfoForm from '../../components/tenants/PetsInfoForm'
 import VehiclesInfoForm from '../../components/tenants/VehiclesInfoForm'
 import PrivacyConsentForm from '../../components/tenants/PrivacyConsentForm'
 import { SkipLink } from '../../components/common'
-import { useCreateTenant } from '../../hooks/useTenants'
+import { useCreateTenant, useTenant, useUpdateTenant } from '../../hooks/useTenants'
 import type { Tenant, PreviousAddress } from '../../types/tenant'
 
 // Create a form-specific type that ensures all sections are present for form state
@@ -190,10 +190,23 @@ type TenantFormData = {
 const CreateTenant: React.FC = () => {
   const navigate = useNavigate()
   const theme = useTheme()
+  const { tenantId } = useParams<{ tenantId: string }>()
 
-  // React Query mutation for creating tenant
+  // Determine if we're in edit mode
+  const [isEditMode] = useState(!!tenantId)
+
+  // React Query hooks
   const createTenantMutation = useCreateTenant()
-  const { isPending: saving, error: mutationError, isSuccess: success } = createTenantMutation
+  const updateTenantMutation = useUpdateTenant()
+  const { 
+    data: tenantData, 
+    isLoading: isLoadingTenant, 
+    error: fetchError 
+  } = useTenant(tenantId!, { enabled: !!tenantId })
+
+  // Get the appropriate mutation based on mode
+  const mutation = isEditMode ? updateTenantMutation : createTenantMutation
+  const { isPending: saving, error: mutationError, isSuccess: success } = mutation
 
   // Common TextField styles matching property form styling
   const textFieldStyles = {
@@ -377,6 +390,142 @@ const CreateTenant: React.FC = () => {
       consentDate: '',
     },
   })
+
+  // Load tenant data when editing
+  useEffect(() => {
+    if (isEditMode && tenantData) {
+      console.log('Loading tenant data for editing:', tenantData)
+      
+      // Convert tenant data to form format
+      const convertedData: TenantFormData = {
+        personalInfo: {
+          firstName: tenantData.personalInfo?.firstName || '',
+          lastName: tenantData.personalInfo?.lastName || '',
+          dateOfBirth: tenantData.personalInfo?.dateOfBirth || '',
+          title: tenantData.personalInfo?.title || '',
+          middleName: tenantData.personalInfo?.middleName || '',
+          preferredName: tenantData.personalInfo?.preferredName || '',
+          nationalInsuranceNumber: tenantData.personalInfo?.nationalInsuranceNumber || '',
+          passportNumber: tenantData.personalInfo?.passportNumber || '',
+          drivingLicenceNumber: tenantData.personalInfo?.drivingLicenceNumber || '',
+          nationality: tenantData.personalInfo?.nationality || 'British',
+          immigrationStatus: tenantData.personalInfo?.immigrationStatus || 'british-citizen',
+          rightToRent: {
+            verified: tenantData.personalInfo?.rightToRent?.verified || false,
+            verificationDate: tenantData.personalInfo?.rightToRent?.verificationDate || '',
+            documentType: tenantData.personalInfo?.rightToRent?.documentType || '',
+            documentExpiryDate: tenantData.personalInfo?.rightToRent?.documentExpiryDate || '',
+            recheckRequired: tenantData.personalInfo?.rightToRent?.recheckRequired || false,
+            recheckDate: tenantData.personalInfo?.rightToRent?.recheckDate || '',
+            notes: tenantData.personalInfo?.rightToRent?.notes || '',
+          },
+        },
+        contactInfo: {
+          email: tenantData.contactInfo?.email || '',
+          phone: {
+            primary: {
+              number: tenantData.contactInfo?.phone?.primary?.number || '',
+              type: tenantData.contactInfo?.phone?.primary?.type || 'mobile',
+            },
+            secondary: {
+              number: tenantData.contactInfo?.phone?.secondary?.number || '',
+              type: tenantData.contactInfo?.phone?.secondary?.type || 'mobile',
+            },
+          },
+          emergencyContact: {
+            name: tenantData.contactInfo?.emergencyContact?.name || '',
+            relationship: tenantData.contactInfo?.emergencyContact?.relationship || 'parent',
+            phone: tenantData.contactInfo?.emergencyContact?.phone || '',
+            email: tenantData.contactInfo?.emergencyContact?.email || '',
+            address: tenantData.contactInfo?.emergencyContact?.address || '',
+          },
+        },
+        addresses: {
+          current: tenantData.addresses?.current || {
+            addressLine1: '',
+            addressLine2: '',
+            city: '',
+            county: '',
+            postcode: '',
+            country: 'United Kingdom',
+          },
+          previous: tenantData.addresses?.previous || [],
+        },
+        employment: tenantData.employment || {
+          current: {
+            status: 'employed-full-time',
+            employer: {
+              name: '',
+              position: '',
+              contractType: 'permanent',
+              startDate: '',
+              address: {
+                addressLine1: '',
+                addressLine2: '',
+                city: '',
+                county: '',
+                postcode: '',
+                country: 'United Kingdom',
+              },
+              phone: '',
+              hrContactName: '',
+              hrContactPhone: '',
+              hrContactEmail: '',
+            },
+            income: {
+              gross: { monthly: 0, annual: 0 },
+              net: { monthly: 0, annual: 0 },
+              currency: 'GBP',
+              payFrequency: 'monthly',
+              verified: false,
+              verificationDate: '',
+              verificationMethod: '',
+              probationPeriod: { inProbation: false, endDate: '' },
+            },
+            benefits: { receives: false, types: [], monthlyAmount: 0 },
+          },
+          previous: [],
+        },
+        financialInfo: tenantData.financialInfo || {
+          bankAccount: {
+            bankName: '',
+            accountType: 'current',
+            sortCode: '',
+            verified: false,
+            verificationDate: '',
+          },
+          guarantor: {
+            required: false,
+            provided: false,
+            name: '',
+            relationship: 'parent',
+            phone: '',
+            email: '',
+            address: '',
+            incomeVerified: false,
+          },
+          affordabilityAssessment: {
+            monthlyIncome: 0,
+            monthlyExpenses: 0,
+            monthlyCommitments: 0,
+            disposableIncome: 0,
+            rentToIncomeRatio: 0,
+          },
+        },
+        pets: tenantData.pets || [],
+        vehicles: tenantData.vehicles || [],
+        privacy: tenantData.privacy || {
+          profileVisibility: 'landlords-only',
+          allowBackgroundCheck: true,
+          allowCreditCheck: true,
+          dataRetentionConsent: false,
+          consentDate: '',
+        },
+      }
+      
+      setFormData(convertedData)
+    }
+  }, [isEditMode, tenantData])
 
   const handleInputChange = (field: string, value: string | boolean | number | string[]) => {
     if (field.includes('.')) {
@@ -823,7 +972,7 @@ const CreateTenant: React.FC = () => {
     }
 
     // Convert form data to API format - build clean object with only non-empty values
-    const tenantData: Omit<Tenant, '_id' | 'tenantId' | 'createdAt' | 'updatedAt'> = {
+    const tenantPayload: Omit<Tenant, '_id' | 'tenantId' | 'createdAt' | 'updatedAt'> = {
       personalInfo: {
         firstName: formData.personalInfo.firstName,
         lastName: formData.personalInfo.lastName,
@@ -906,30 +1055,148 @@ const CreateTenant: React.FC = () => {
       ...(formData.vehicles && formData.vehicles.length > 0 && { vehicles: formData.vehicles }),
       ...(formData.privacy && { privacy: formData.privacy }),
       isActive: true,
-      applicationStatus: {
-        status: 'pending',
-        applicationDate: new Date().toISOString(),
-      },
+      // Set application status for both new and existing tenants
+      applicationStatus: isEditMode && tenantData?.applicationStatus 
+        ? tenantData.applicationStatus
+        : {
+            status: 'pending',
+            applicationDate: new Date().toISOString(),
+          },
     }
 
-    console.log('Creating tenant with data:', tenantData)
+    console.log(`${isEditMode ? 'Updating' : 'Creating'} tenant with data:`, tenantPayload)
 
-    // Use React Query mutation
-    createTenantMutation.mutate(tenantData, {
-      onSuccess: () => {
-        console.log('Tenant created successfully')
-        setTimeout(() => {
-          void navigate('/tenants')
-        }, 1500)
-      },
-      onError: (error) => {
-        console.error('Failed to create tenant:', error)
-      },
-    })
+    if (isEditMode && tenantId) {
+      // Update existing tenant
+      updateTenantMutation.mutate(
+        { id: tenantId, data: tenantPayload },
+        {
+          onSuccess: () => {
+            console.log('Tenant updated successfully')
+            setTimeout(() => {
+              void navigate('/tenants')
+            }, 1500)
+          },
+          onError: (error) => {
+            console.error('Failed to update tenant:', error)
+          },
+        }
+      )
+    } else {
+      // Create new tenant
+      createTenantMutation.mutate(tenantPayload, {
+        onSuccess: () => {
+          console.log('Tenant created successfully')
+          setTimeout(() => {
+            void navigate('/tenants')
+          }, 1500)
+        },
+        onError: (error) => {
+          console.error('Failed to create tenant:', error)
+        },
+      })
+    }
   }
 
   const handleCancel = () => {
     void navigate('/tenants')
+  }
+
+  // Show loading spinner while fetching tenant data for editing
+  if (isEditMode && isLoadingTenant) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <SkipLink href="#main-content">Skip to main content</SkipLink>
+        
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: { xs: 0, md: '280px' },
+            right: 0,
+            zIndex: 1200,
+            backgroundColor: 'background.paper',
+            borderBottom: '1px solid rgba(0, 0, 0, 0.04)',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
+          }}
+        >
+          <Titlebar title="Edit Tenant" showSearch={false}>
+            <CustomButton text="Cancel" variant="outlined" onClick={handleCancel} />
+            <CustomButton text="Loading..." disabled />
+          </Titlebar>
+        </Box>
+
+        <Box sx={{ display: 'flex', flexGrow: 1, pt: { xs: '80px', md: '100px' } }}>
+          <Sidebar />
+          <Box
+            component="main"
+            id="main-content"
+            tabIndex={-1}
+            sx={{
+              flexGrow: 1,
+              p: { xs: 2, sm: 3, md: 4 },
+              backgroundColor: 'background.default',
+              minHeight: '100vh',
+            }}
+          >
+            <Box sx={{ maxWidth: '1200px', mx: 'auto', width: '100%' }}>
+              {Array.from({ length: 8 }).map((_, index) => (
+                <Box key={index} sx={{ mb: 3 }}>
+                  <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 2 }} />
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    )
+  }
+
+  // Show error state if failed to load tenant data
+  if (isEditMode && fetchError) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <SkipLink href="#main-content">Skip to main content</SkipLink>
+        
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: { xs: 0, md: '280px' },
+            right: 0,
+            zIndex: 1200,
+            backgroundColor: 'background.paper',
+            borderBottom: '1px solid rgba(0, 0, 0, 0.04)',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
+          }}
+        >
+          <Titlebar title="Edit Tenant" showSearch={false}>
+            <CustomButton text="Back to Tenants" onClick={handleCancel} />
+          </Titlebar>
+        </Box>
+
+        <Box sx={{ display: 'flex', flexGrow: 1, pt: { xs: '80px', md: '100px' } }}>
+          <Sidebar />
+          <Box
+            component="main"
+            id="main-content"
+            tabIndex={-1}
+            sx={{
+              flexGrow: 1,
+              p: { xs: 2, sm: 3, md: 4 },
+              backgroundColor: 'background.default',
+              minHeight: '100vh',
+            }}
+          >
+            <Box sx={{ maxWidth: '1200px', mx: 'auto', width: '100%' }}>
+              <Alert severity="error">
+                Failed to load tenant data. Please try again or contact support.
+              </Alert>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    )
   }
 
   return (
@@ -951,10 +1218,10 @@ const CreateTenant: React.FC = () => {
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
         }}
       >
-        <Titlebar title="Create Tenant" showSearch={false}>
+        <Titlebar title={isEditMode ? 'Edit Tenant' : 'Create Tenant'} showSearch={false}>
           <CustomButton text="Cancel" variant="outlined" onClick={handleCancel} />
           <CustomButton
-            text={saving ? 'Saving...' : 'Save Tenant'}
+            text={saving ? 'Saving...' : isEditMode ? 'Update Tenant' : 'Save Tenant'}
             onClick={handleSave}
             disabled={saving}
           />
@@ -993,7 +1260,7 @@ const CreateTenant: React.FC = () => {
             {/* Success Alert */}
             {success && (
               <Alert severity="success" sx={{ mb: 3 }}>
-                Tenant created successfully!
+                Tenant {isEditMode ? 'updated' : 'created'} successfully!
               </Alert>
             )}
 

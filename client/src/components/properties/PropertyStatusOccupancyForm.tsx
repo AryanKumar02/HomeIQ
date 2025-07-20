@@ -248,8 +248,9 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
         propertyId: formData._id,
       })
 
-      onInputChange('occupancy.tenant', '')
+      onInputChange('occupancy.tenant', null)
       onInputChange('occupancy.isOccupied', false)
+      onInputChange('status', 'available')
       void refetchTenants()
       showNotification(`${getTenantName(currentTenant)} unassigned successfully!`, 'success')
     } catch (error) {

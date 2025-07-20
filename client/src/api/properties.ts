@@ -64,8 +64,14 @@ export const propertiesApi = {
   // Update existing property
   update: async (id: string, data: Partial<Property>): Promise<Property> => {
     try {
-      console.log('Updating property with data:', JSON.stringify(data, null, 2))
-      const response = await apiClient.put<PropertyResponse>(`/api/v1/property/${id}`, data)
+      // Clean up empty string values for ObjectId fields
+      const cleanedData = { ...data }
+      if (cleanedData.occupancy?.tenant === '') {
+        cleanedData.occupancy.tenant = null
+      }
+      
+      console.log('Updating property with data:', JSON.stringify(cleanedData, null, 2))
+      const response = await apiClient.put<PropertyResponse>(`/api/v1/property/${id}`, cleanedData)
       const property = response.data.property || response.data.data?.property
       if (!property) {
         throw new Error('Failed to update property')

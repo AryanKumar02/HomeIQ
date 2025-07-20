@@ -87,6 +87,35 @@ export const updateProperty = catchAsync(async (req, res, next) => {
 
   await property.save();
 
+  // Synchronize lease dates with tenant records if occupancy lease dates changed
+  if (req.body.occupancy && (req.body.occupancy.leaseStart || req.body.occupancy.leaseEnd)) {
+    const tenantId = property.occupancy?.tenant;
+    if (tenantId) {
+      try {
+        await Tenant.findOneAndUpdate(
+          {
+            _id: tenantId,
+            'leases.property': property._id,
+            'leases.status': 'active',
+          },
+          {
+            $set: {
+              'leases.$.startDate': property.occupancy.leaseStart,
+              'leases.$.endDate': property.occupancy.leaseEnd,
+              'leases.$.updatedAt': new Date(),
+            },
+          },
+        );
+        logger.info(
+          `Synchronized lease dates for tenant ${tenantId} with property ${property._id}`,
+        );
+      } catch (syncError) {
+        logger.warn(`Failed to sync lease dates for tenant ${tenantId}: ${syncError.message}`);
+        // Don't fail the property update if sync fails
+      }
+    }
+  }
+
   logger.info(`Updated property ${property._id} for user ${req.user.id}`);
 
   res.status(200).json({

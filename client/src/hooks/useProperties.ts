@@ -92,6 +92,8 @@ export const useUpdateProperty = () => {
       if (updatedProperty) {
         void queryClient.invalidateQueries({ queryKey: propertyKeys.lists() })
         void queryClient.invalidateQueries({ queryKey: propertyKeys.detail(updatedProperty._id!) })
+        // Invalidate tenant table cache when property is updated (for lease date sync)
+        void queryClient.invalidateQueries({ queryKey: ['tenantsTable'] })
       }
     },
   })
