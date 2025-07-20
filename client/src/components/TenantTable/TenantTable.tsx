@@ -13,7 +13,6 @@ import {
   Typography,
   Pagination,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   Alert,
@@ -206,6 +205,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
       deleteMutation.mutate(tenantId)
       if (onTenantDelete && typeof onTenantDelete === 'function') {
 
+
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         onTenantDelete(tenantId)
       }
@@ -236,76 +236,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
 
   return (
     <Box sx={{ width: '100%', height: '100%' }}>
-      {/* Filters and Controls */}
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 2,
-          flexWrap: 'wrap',
-          gap: 2
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-          {!isLoading && !isEmpty && (
-            <Typography variant="body2" color="text.secondary">
-              {paginationText}
-            </Typography>
-          )}
-        </Box>
 
-        <FormControl
-          size="small"
-          sx={{
-            minWidth: 100,
-            '& .MuiOutlinedInput-root': {
-              background: `linear-gradient(135deg,
-                ${theme.palette.background.paper} 0%,
-                ${theme.palette.primary.main}04 100%)`,
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              '&:hover': {
-                background: `linear-gradient(135deg,
-                  ${theme.palette.primary.main}08 0%,
-                  ${theme.palette.secondary.main}06 100%)`,
-                boxShadow: `0 2px 8px rgba(3, 108, 163, 0.15)`,
-                '& .MuiOutlinedInput-notchedOutline': {
-                  borderColor: theme.palette.primary.main,
-                  borderWidth: '2px',
-                }
-              },
-              '&.Mui-focused': {
-                background: `linear-gradient(135deg,
-                  ${theme.palette.primary.main}12 0%,
-                  ${theme.palette.secondary.main}08 100%)`,
-                boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`,
-                '& .MuiOutlinedInput-notchedOutline': {
-                  borderColor: theme.palette.secondary.main,
-                }
-              }
-            },
-            '& .MuiInputLabel-root': {
-              '&.Mui-focused': {
-                color: theme.palette.secondary.main,
-              },
-            },
-          }}
-        >
-          <InputLabel id="page-size-label">Per page</InputLabel>
-          <Select
-            labelId="page-size-label"
-            value={pageSize}
-            label="Per page"
-            onChange={handlePageSizeChange}
-            disabled={isLoading}
-          >
-            <MenuItem value={5}>5</MenuItem>
-            <MenuItem value={10}>10</MenuItem>
-            <MenuItem value={25}>25</MenuItem>
-            <MenuItem value={50}>50</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
 
       {/* Table Container */}
       <TableContainer
@@ -317,6 +248,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
           maxWidth: '100%',
           minWidth: 650,
           flex: 1,
+          mt: 2,
           boxShadow: '0 2px 8px 0 rgba(0, 0, 0, 0.1)',
           transition: 'box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
@@ -484,26 +416,168 @@ const TenantTable: React.FC<TenantTableProps> = ({
         <EmptyState isSearch={!!isEmptySearch} searchTerm={searchTerm} />
       )}
 
-      {/* Pagination */}
-      {!isLoading && !isEmpty && pagination.totalPages > 1 && (
+      {/* Pagination and Controls */}
+      {!isLoading && !isEmpty && (
         <Box
           sx={{
             display: 'flex',
-            justifyContent: 'center',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             mt: 3,
-            mb: 2
+            mb: 2,
+            flexWrap: 'wrap',
+            gap: 3
           }}
         >
-          <Pagination
-            count={pagination.totalPages}
-            page={pagination.page}
-            onChange={handlePageChange}
-            color="primary"
-            size={isMobile ? 'small' : 'medium'}
-            showFirstButton
-            showLastButton
-            aria-label="Tenant table pagination"
-          />
+                              {/* Pagination Info */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              flexWrap: 'wrap',
+              minWidth: 'fit-content'
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{
+                color: theme.palette.text.secondary,
+                fontWeight: 500,
+                fontSize: '0.875rem',
+                letterSpacing: '0.02em'
+              }}
+            >
+              {paginationText}
+            </Typography>
+          </Box>
+
+          {/* Pagination Component */}
+          {pagination.totalPages > 1 && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                flex: '1',
+                justifyContent: 'center',
+                minWidth: 'fit-content'
+              }}
+            >
+              <Pagination
+                count={pagination.totalPages}
+                page={pagination.page}
+                onChange={handlePageChange}
+                color="primary"
+                size={isMobile ? 'small' : 'medium'}
+                showFirstButton
+                showLastButton
+                aria-label="Tenant table pagination"
+                sx={{
+                  '& .MuiPaginationItem-root': {
+                    fontWeight: 500,
+                    borderRadius: 2,
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    border: `1px solid transparent`,
+                    backdropFilter: 'blur(4px)',
+                    '&:hover': {
+                      background: `linear-gradient(135deg,
+                        ${theme.palette.primary.main}08 0%,
+                        ${theme.palette.secondary.main}06 100%)`,
+                      border: `1px solid ${theme.palette.primary.main}20`,
+                      transform: 'translateY(-1px)',
+                      boxShadow: `0 2px 8px rgba(3, 108, 163, 0.15)`
+                    },
+                    '&.Mui-selected': {
+                      background: `linear-gradient(135deg,
+                        ${theme.palette.primary.main} 0%,
+                        ${theme.palette.secondary.main} 100%)`,
+                      color: 'white',
+                      fontWeight: 600,
+                      boxShadow: `0 2px 12px rgba(3, 108, 163, 0.3)`,
+                      '&:hover': {
+                        background: `linear-gradient(135deg,
+                          ${theme.palette.primary.dark} 0%,
+                          ${theme.palette.secondary.dark} 100%)`,
+                        transform: 'translateY(-1px)'
+                      }
+                    }
+                  }
+                }}
+              />
+            </Box>
+          )}
+
+          {/* Page Size Selector */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 'fit-content' }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: theme.palette.text.secondary,
+                fontWeight: 500,
+                fontSize: '0.875rem',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Show:
+            </Typography>
+            <FormControl
+              size="small"
+              variant="outlined"
+              sx={{
+                minWidth: 80,
+                '& .MuiOutlinedInput-root': {
+                  background: `linear-gradient(135deg,
+                    ${theme.palette.background.paper} 0%,
+                    ${theme.palette.primary.main}04 100%)`,
+                  borderRadius: 2,
+                  fontWeight: 500,
+                  backdropFilter: 'blur(4px)',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  border: `1px solid ${theme.palette.divider}40`,
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    border: 'none'
+                  },
+                  '&:hover': {
+                    background: `linear-gradient(135deg,
+                      ${theme.palette.primary.main}06 0%,
+                      ${theme.palette.secondary.main}04 100%)`,
+                    border: `1px solid ${theme.palette.primary.main}30`,
+                    transform: 'translateY(-1px)',
+                    boxShadow: `0 2px 12px rgba(3, 108, 163, 0.12)`
+                  },
+                  '&.Mui-focused': {
+                    background: `linear-gradient(135deg,
+                      ${theme.palette.primary.main}08 0%,
+                      ${theme.palette.secondary.main}06 100%)`,
+                    border: `1px solid ${theme.palette.primary.main}50`,
+                    boxShadow: `0 0 0 3px ${theme.palette.primary.main}15`,
+                    transform: 'translateY(-1px)'
+                  }
+                }
+              }}
+            >
+              <Select
+                value={pageSize}
+                onChange={handlePageSizeChange}
+                disabled={isLoading}
+                displayEmpty
+                sx={{
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  '& .MuiSelect-select': {
+                    py: 1,
+                    px: 1.5
+                  }
+                }}
+              >
+                <MenuItem value={5}>5</MenuItem>
+                <MenuItem value={10}>10</MenuItem>
+                <MenuItem value={25}>25</MenuItem>
+                <MenuItem value={50}>50</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
         </Box>
       )}
     </Box>

@@ -14,10 +14,11 @@ import PreviousEmploymentForm from '../../components/tenants/PreviousEmploymentF
 import FinancialInfoForm from '../../components/tenants/FinancialInfoForm'
 import PetsInfoForm from '../../components/tenants/PetsInfoForm'
 import VehiclesInfoForm from '../../components/tenants/VehiclesInfoForm'
+import ReferenceChecksForm from '../../components/tenants/ReferenceChecksForm'
 import PrivacyConsentForm from '../../components/tenants/PrivacyConsentForm'
 import { SkipLink } from '../../components/common'
 import { useCreateTenant, useTenant, useUpdateTenant } from '../../hooks/useTenants'
-import type { Tenant, PreviousAddress } from '../../types/tenant'
+import type { Tenant, PreviousAddress, Reference } from '../../types/tenant'
 
 // Create a form-specific type that ensures all sections are present for form state
 type TenantFormData = {
@@ -185,6 +186,7 @@ type TenantFormData = {
     dataRetentionConsent: boolean
     consentDate?: string
   }
+  references: Reference[]
 }
 
 const CreateTenant: React.FC = () => {
@@ -198,10 +200,10 @@ const CreateTenant: React.FC = () => {
   // React Query hooks
   const createTenantMutation = useCreateTenant()
   const updateTenantMutation = useUpdateTenant()
-  const { 
-    data: tenantData, 
-    isLoading: isLoadingTenant, 
-    error: fetchError 
+  const {
+    data: tenantData,
+    isLoading: isLoadingTenant,
+    error: fetchError
   } = useTenant(tenantId!, { enabled: !!tenantId })
 
   // Get the appropriate mutation based on mode
@@ -389,13 +391,14 @@ const CreateTenant: React.FC = () => {
       dataRetentionConsent: false,
       consentDate: '',
     },
+    references: [],
   })
 
   // Load tenant data when editing
   useEffect(() => {
     if (isEditMode && tenantData) {
       console.log('Loading tenant data for editing:', tenantData)
-      
+
       // Convert tenant data to form format
       const convertedData: TenantFormData = {
         personalInfo: {
@@ -521,13 +524,14 @@ const CreateTenant: React.FC = () => {
           dataRetentionConsent: false,
           consentDate: '',
         },
+        references: tenantData.references || [],
       }
-      
+
       setFormData(convertedData)
     }
   }, [isEditMode, tenantData])
 
-  const handleInputChange = (field: string, value: string | boolean | number | string[]) => {
+  const handleInputChange = (field: string, value: unknown) => {
     if (field.includes('.')) {
       const parts = field.split('.')
 
@@ -571,6 +575,20 @@ const CreateTenant: React.FC = () => {
           vehicles: prev.vehicles.map((vehicle, i) =>
             i === index ? { ...vehicle, [fieldName]: value } : vehicle
           ),
+        }))
+      } else if (parts[0] === 'references' && parts.length === 3) {
+        const index = parseInt(parts[1])
+        const fieldName = parts[2]
+        setFormData((prev) => ({
+          ...prev,
+          references: prev.references.map((ref, i) => {
+            if (i === index) {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+              return { ...ref, [fieldName]: value }
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            return ref
+          }),
         }))
       } else if (parts.length === 2) {
         const [parent, child] = parts
@@ -1053,10 +1071,11 @@ const CreateTenant: React.FC = () => {
       ...(formData.financialInfo && { financialInfo: formData.financialInfo }),
       ...(formData.pets && formData.pets.length > 0 && { pets: formData.pets }),
       ...(formData.vehicles && formData.vehicles.length > 0 && { vehicles: formData.vehicles }),
+      ...(formData.references && formData.references.length > 0 && { references: formData.references }),
       ...(formData.privacy && { privacy: formData.privacy }),
       isActive: true,
       // Set application status for both new and existing tenants
-      applicationStatus: isEditMode && tenantData?.applicationStatus 
+      applicationStatus: isEditMode && tenantData?.applicationStatus
         ? tenantData.applicationStatus
         : {
             status: 'pending',
@@ -1107,7 +1126,7 @@ const CreateTenant: React.FC = () => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <SkipLink href="#main-content">Skip to main content</SkipLink>
-        
+
         <Box
           sx={{
             position: 'fixed',
@@ -1157,7 +1176,7 @@ const CreateTenant: React.FC = () => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <SkipLink href="#main-content">Skip to main content</SkipLink>
-        
+
         <Box
           sx={{
             position: 'fixed',
@@ -1342,6 +1361,14 @@ const CreateTenant: React.FC = () => {
               onAddVehicle={addVehicle}
               onRemoveVehicle={removeVehicle}
               textFieldStyles={textFieldStyles}
+            />
+
+            {/* Reference Checks Card */}
+            <ReferenceChecksForm
+              references={formData.references}
+              onInputChange={handleInputChange}
+              textFieldStyles={textFieldStyles}
+              showContactActions={isEditMode || process.env.NODE_ENV === 'development'}
             />
 
             {/* Privacy & Consent Card */}

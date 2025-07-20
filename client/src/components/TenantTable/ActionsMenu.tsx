@@ -73,6 +73,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({
     try {
       if (typeof onDelete === 'function') {
 
+
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         onDelete(tenantId)
       }

@@ -142,6 +142,16 @@ export const updateTenant = catchAsync(async (req, res, next) => {
     }
   }
 
+  // Clean existing tenant references data
+  if (tenant.references && tenant.references.length > 0) {
+    tenant.references = tenant.references.map(ref => {
+      if (ref.contactedBy && typeof ref.contactedBy === 'string' && ref.contactedBy === 'current-user') {
+        ref.contactedBy = undefined; // Clear invalid contactedBy field
+      }
+      return ref;
+    });
+  }
+
   // Handle nested updates properly
   if (req.body.personalInfo) {
     Object.assign(tenant.personalInfo, req.body.personalInfo);
@@ -167,6 +177,17 @@ export const updateTenant = catchAsync(async (req, res, next) => {
   if (req.body.privacy) {
     Object.assign(tenant.privacy, req.body.privacy);
   }
+  if (req.body.references) {
+    // Clean up any invalid contactedBy fields (should be ObjectId or null)
+    const cleanedReferences = req.body.references.map(ref => {
+      const cleanRef = { ...ref };
+      if (cleanRef.contactedBy && typeof cleanRef.contactedBy === 'string' && cleanRef.contactedBy === 'current-user') {
+        delete cleanRef.contactedBy; // Remove invalid contactedBy field
+      }
+      return cleanRef;
+    });
+    tenant.references = cleanedReferences;
+  }
 
   // Update other top-level fields
   const {
@@ -178,6 +199,7 @@ export const updateTenant = catchAsync(async (req, res, next) => {
     applicationStatus: _applicationStatus,
     referencing: _referencing,
     privacy: _privacy,
+    references: _references,
     ...otherFields
   } = req.body;
   Object.assign(tenant, otherFields);

@@ -32,9 +32,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <ErrorBoundary>
-          <AuthProvider>
-            <Router>
+        <AuthProvider>
+          <Router>
+            <ErrorBoundary>
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<LandingPage />} />
@@ -145,9 +145,9 @@ function App() {
                   }
                 />
               </Routes>
-            </Router>
-          </AuthProvider>
-        </ErrorBoundary>
+            </ErrorBoundary>
+          </Router>
+        </AuthProvider>
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

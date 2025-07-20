@@ -1,5 +1,22 @@
 import axios from 'axios'
 
+// Reference interface
+export interface Reference {
+  _id?: string
+  type: 'personal' | 'professional' | 'previous-landlord' | 'employer'
+  name: string
+  relationship: string
+  phone: string
+  email?: string
+  company?: string
+  yearsKnown?: number
+  contactedDate?: string
+  contactedBy?: string
+  response?: string
+  recommendation?: 'strongly-recommend' | 'recommend' | 'neutral' | 'not-recommend' | 'strongly-not-recommend'
+  notes?: string
+}
+
 // Lease interface
 export interface Lease {
   _id?: string
@@ -185,6 +202,7 @@ export interface Tenant {
     consentDate?: string
   }
   leases?: Lease[]
+  references?: Reference[]
   applicationStatus: {
     status: string
     applicationDate: string
@@ -312,7 +330,7 @@ export const tenantsApi = {
   update: async (id: string, data: Partial<Tenant>): Promise<Tenant> => {
     try {
       console.log('UPDATE TENANT API CALL:', `/api/v1/tenants/${id}`, data)
-      const response = await apiClient.put<TenantResponse>(`/api/v1/tenants/${id}`, data)
+      const response = await apiClient.patch<TenantResponse>(`/api/v1/tenants/${id}`, data)
       console.log('UPDATE TENANT API RESPONSE:', response)
       const tenant = response.data.tenant || response.data.data?.tenant
       if (!tenant) {
