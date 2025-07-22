@@ -1,13 +1,5 @@
 import React from 'react'
 import { Chip, useTheme, type Theme } from '@mui/material'
-import { 
-  CheckCircle as ApprovedIcon,
-  Schedule as PendingIcon,
-  RateReview as ReviewIcon,
-  Cancel as RejectedIcon,
-  Home as ActiveIcon,
-  Warning as ExpiringIcon 
-} from '@mui/icons-material'
 import type { StatusBadgeProps, TenantStatus } from '../../types/tenantTable'
 
 /**
@@ -24,7 +16,7 @@ const getStatusConfig = (status: TenantStatus, theme: Theme) => {
     return {
       color: theme.palette.success.main,
       backgroundColor: theme.palette.success.light,
-      icon: <ApprovedIcon sx={{ fontSize: '0.875rem' }} />,
+      icon: '✓',
       label: 'Approved',
       textColor: theme.palette.success.contrastText
     }
@@ -35,7 +27,7 @@ const getStatusConfig = (status: TenantStatus, theme: Theme) => {
     return {
       color: theme.palette.success.main,
       backgroundColor: theme.palette.success.light,
-      icon: <ActiveIcon sx={{ fontSize: '0.875rem' }} />,
+      icon: '✓',
       label: 'Active',
       textColor: theme.palette.success.contrastText
     }
@@ -46,7 +38,7 @@ const getStatusConfig = (status: TenantStatus, theme: Theme) => {
     return {
       color: theme.palette.info.main,
       backgroundColor: theme.palette.info.light,
-      icon: <PendingIcon sx={{ fontSize: '0.875rem' }} />,
+      icon: '○',
       label: 'Pending',
       textColor: theme.palette.info.contrastText
     }
@@ -57,7 +49,7 @@ const getStatusConfig = (status: TenantStatus, theme: Theme) => {
     return {
       color: theme.palette.warning.main,
       backgroundColor: theme.palette.warning.light,
-      icon: <ReviewIcon sx={{ fontSize: '0.875rem' }} />,
+      icon: '⚠',
       label: 'Under Review',
       textColor: theme.palette.warning.contrastText
     }
@@ -68,7 +60,7 @@ const getStatusConfig = (status: TenantStatus, theme: Theme) => {
     return {
       color: theme.palette.error.main,
       backgroundColor: theme.palette.error.light,
-      icon: <RejectedIcon sx={{ fontSize: '0.875rem' }} />,
+      icon: '✗',
       label: 'Rejected',
       textColor: theme.palette.error.contrastText
     }
@@ -79,7 +71,7 @@ const getStatusConfig = (status: TenantStatus, theme: Theme) => {
     return {
       color: theme.palette.warning.main,
       backgroundColor: theme.palette.warning.light,
-      icon: <ExpiringIcon sx={{ fontSize: '0.875rem' }} />,
+      icon: '⚠',
       label: status,
       textColor: theme.palette.warning.contrastText
     }
@@ -89,7 +81,7 @@ const getStatusConfig = (status: TenantStatus, theme: Theme) => {
   return {
     color: theme.palette.grey[600],
     backgroundColor: theme.palette.grey[200],
-    icon: undefined,
+    icon: '?',
     label: status,
     textColor: theme.palette.grey[800]
   }
@@ -109,23 +101,49 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   
   return (
     <Chip
-      icon={config.icon || undefined}
+      icon={
+        config.icon ? (
+          <span
+            style={{
+              fontSize: '0.75rem',
+              fontWeight: 'bold',
+              width: '12px',
+              height: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {config.icon}
+          </span>
+        ) : undefined
+      }
       label={config.label}
       size="small"
       aria-label={`Status: ${config.label}`}
       sx={{
         backgroundColor: config.backgroundColor,
         color: config.textColor,
-        fontWeight: 600,
-        fontSize: '0.75rem',
-        height: 24,
+        fontWeight: 500,
+        fontSize: '0.7rem',
+        height: 22,
+        letterSpacing: '0.02em',
+        borderRadius: '12px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+        transition: 'all 0.2s ease-in-out',
+        '&:hover': {
+          transform: 'translateY(-1px)',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+        },
         '& .MuiChip-label': {
-          px: 1,
+          paddingLeft: '6px',
+          paddingRight: '8px',
           color: config.textColor,
         },
         '& .MuiChip-icon': {
+          marginLeft: '6px',
+          marginRight: '-2px',
           color: config.color,
-          marginLeft: '4px'
         },
         // Custom styling for urgent status badges
         ...(status.toLowerCase().includes('rejected') && {
@@ -140,18 +158,21 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
             borderRadius: '12px 0 0 12px'
           }
         }),
-        // Animation for expiring/expired statuses
+        // Enhanced animation for expiring/expired statuses
         ...(status.toLowerCase().includes('expired') && {
           animation: 'pulse 2s infinite',
           '@keyframes pulse': {
             '0%': {
               opacity: 1,
+              transform: 'scale(1)',
             },
             '50%': {
-              opacity: 0.7,
+              opacity: 0.8,
+              transform: 'scale(1.02)',
             },
             '100%': {
               opacity: 1,
+              transform: 'scale(1)',
             },
           },
         })

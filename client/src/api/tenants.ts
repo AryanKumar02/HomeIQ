@@ -212,6 +212,23 @@ export interface Tenant {
     notes?: string
     reviewedBy?: string
   }
+  // Virtual field that maps qualification status to application status
+  computedApplicationStatus?: string
+  // Virtual field for qualification status
+  qualificationStatus?: {
+    status: 'qualified' | 'needs-review' | 'not-qualified' | 'unknown'
+    issues?: string[]
+  }
+  // Referencing status information
+  referencing?: {
+    status?: 'not-started' | 'in-progress' | 'completed' | 'failed'
+    provider?: string
+    reference?: string
+    outcome?: 'pending' | 'pass' | 'pass-with-conditions' | 'fail'
+    conditions?: string
+    notes?: string
+    completedDate?: string
+  }
   isActive: boolean
   createdAt?: string
   updatedAt?: string
@@ -468,6 +485,37 @@ export const tenantsApi = {
       return response.data.data
     } catch (error) {
       console.error('UNASSIGN TENANT FROM PROPERTY API ERROR:', error)
+      throw error
+    }
+  },
+
+  // Update tenant referencing status
+  updateReferencingStatus: async (
+    id: string,
+    referencingData: {
+      status?: 'not-started' | 'in-progress' | 'completed' | 'failed'
+      provider?: string
+      reference?: string
+      outcome?: 'pending' | 'pass' | 'pass-with-conditions' | 'fail'
+      conditions?: string
+      notes?: string
+      completedDate?: string
+    }
+  ): Promise<Tenant> => {
+    try {
+      console.log('UPDATE REFERENCING STATUS API CALL:', `/api/v1/tenants/${id}/referencing`, referencingData)
+      const response = await apiClient.patch<TenantResponse>(
+        `/api/v1/tenants/${id}/referencing`,
+        referencingData
+      )
+      console.log('UPDATE REFERENCING STATUS API RESPONSE:', response)
+      const tenant = response.data.tenant || response.data.data?.tenant
+      if (!tenant) {
+        throw new Error('Failed to update referencing status')
+      }
+      return tenant
+    } catch (error) {
+      console.error('UPDATE REFERENCING STATUS API ERROR:', error)
       throw error
     }
   },

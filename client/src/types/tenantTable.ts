@@ -6,7 +6,7 @@ export interface TenantTableData {
   property: string
   leaseEnds: string // ISO date string
   monthlyRent: number
-  status: string
+  status: TenantStatus
   avatar?: string
 }
 
@@ -21,7 +21,7 @@ export interface TenantTableFilters {
   page?: number
   limit?: number
   search?: string
-  status?: string
+  status?: TenantStatus | 'all'
   property?: string
   leaseExpiry?: string
 }
@@ -33,7 +33,14 @@ export interface PaginationInfo {
   totalPages: number
 }
 
-export type TenantStatus = string
+// Application statuses
+export type ApplicationStatus = 'pending' | 'approved' | 'rejected' | 'under-review' | 'waitlisted' | 'withdrawn' | 'expired'
+
+// Lease statuses  
+export type LeaseStatus = 'active' | 'expiring' | 'expired' | 'terminated'
+
+// Combined tenant status type
+export type TenantStatus = ApplicationStatus | LeaseStatus
 
 export interface StatusBadgeProps {
   status: TenantStatus

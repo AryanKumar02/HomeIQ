@@ -1,6 +1,7 @@
 {
   "name": "sellthis",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
@@ -19,7 +20,9 @@
     "format:server": "cd server && npm run format",
     "format:check": "npm run format:check:client && npm run format:check:server",
     "format:check:client": "cd client && prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "format:check:server": "cd server && prettier --check ."
+    "format:check:server": "cd server && prettier --check .",
+    "debug:tenants": "node debug_tenant_qualification.js",
+    "refresh:tenant-status": "node refresh_tenant_status.js"
   },
   "lint-staged": {
     "client/**/*.{js,jsx,ts,tsx}": "cd client && eslint --fix",

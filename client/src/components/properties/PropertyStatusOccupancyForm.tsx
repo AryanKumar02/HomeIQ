@@ -89,21 +89,24 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
         return {
           status: 'qualified',
           color: 'success',
-          label: '✅ Qualified',
+          label: 'Qualified',
+          icon: '✓',
           issues: qualification.issues,
         }
       case 'needs-review':
         return {
           status: 'needs-review',
           color: 'warning',
-          label: '⚠️ Needs Review',
+          label: 'Needs Review',
+          icon: '⚠',
           issues: qualification.issues,
         }
       case 'not-qualified':
         return {
           status: 'not-qualified',
           color: 'error',
-          label: '❌ Not Qualified',
+          label: 'Not Qualified',
+          icon: '✗',
           issues: qualification.issues,
         }
       default:
@@ -407,7 +410,42 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
                               color={
                                 qualification.color as 'success' | 'error' | 'warning' | 'default'
                               }
-                              sx={{ fontSize: '0.7rem', height: 20 }}
+                              icon={
+                                <span
+                                  style={{
+                                    fontSize: '0.75rem',
+                                    fontWeight: 'bold',
+                                    width: '12px',
+                                    height: '12px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                  }}
+                                >
+                                  {qualification.icon}
+                                </span>
+                              }
+                              sx={{
+                                fontSize: '0.7rem',
+                                height: 22,
+                                fontWeight: 500,
+                                letterSpacing: '0.02em',
+                                borderRadius: '12px',
+                                '& .MuiChip-label': {
+                                  paddingLeft: '6px',
+                                  paddingRight: '8px',
+                                },
+                                '& .MuiChip-icon': {
+                                  marginLeft: '6px',
+                                  marginRight: '-2px',
+                                },
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+                                transition: 'all 0.2s ease-in-out',
+                                '&:hover': {
+                                  transform: 'translateY(-1px)',
+                                  boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                                },
+                              }}
                             />
                           </Box>
                           <Typography variant="caption" color="text.secondary">

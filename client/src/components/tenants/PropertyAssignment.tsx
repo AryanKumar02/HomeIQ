@@ -79,16 +79,35 @@ export default function PropertyAssignment({
     tenancyType: 'assured-shorthold',
   })
 
+  // Helper function to get qualification status
+  const getQualificationStatus = (tenant: Tenant) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    const qualification = (tenant as any).qualificationStatus
+    if (!qualification) {
+      return { status: 'unknown' }
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return qualification
+  }
+
   const availableTenants = tenants.filter((tenant) => {
-    const hasApprovedStatus =
-      (tenant as { applicationStatus?: { status?: string } }).applicationStatus?.status ===
-      'approved'
     const tenantLeases = (tenant as { leases?: { status: string }[] }).leases
     const hasNoActiveLeases =
       !tenantLeases ||
       !Array.isArray(tenantLeases) ||
       !tenantLeases.some((lease) => lease.status === 'active')
-    return hasApprovedStatus && hasNoActiveLeases
+    
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const qualification = getQualificationStatus(tenant)
+    
+    // Include tenants that are either manually approved or automatically qualified
+    const isApproved = (tenant as { applicationStatus?: { status?: string } }).applicationStatus?.status === 'approved'
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const isQualified = qualification.status === 'qualified'
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const needsReview = qualification.status === 'needs-review'
+
+    return hasNoActiveLeases && (isApproved || isQualified || needsReview)
   })
 
   const filteredProperties = selectedProperty

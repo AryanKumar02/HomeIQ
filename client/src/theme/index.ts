@@ -17,7 +17,7 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#036CA3', // Your brand color
+      main: '#3d82f7', // Now matches secondary color
     },
     secondary: {
       main: '#3d82f7',

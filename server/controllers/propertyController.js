@@ -87,11 +87,38 @@ export const updateProperty = catchAsync(async (req, res, next) => {
 
   await property.save();
 
-  // Synchronize lease dates with tenant records if occupancy lease dates changed
-  if (req.body.occupancy && (req.body.occupancy.leaseStart || req.body.occupancy.leaseEnd)) {
+  // Synchronize lease data with tenant records if relevant fields changed
+  const needsLeaseSync = 
+    (req.body.occupancy && (req.body.occupancy.leaseStart || req.body.occupancy.leaseEnd)) ||
+    (req.body.financials && req.body.financials.monthlyRent) ||
+    (req.body.financials && req.body.financials.securityDeposit);
+
+  if (needsLeaseSync) {
     const tenantId = property.occupancy?.tenant;
     if (tenantId) {
       try {
+        const updateFields = {
+          'leases.$.updatedAt': new Date(),
+        };
+
+        // Update lease dates if they changed
+        if (req.body.occupancy?.leaseStart) {
+          updateFields['leases.$.startDate'] = property.occupancy.leaseStart;
+        }
+        if (req.body.occupancy?.leaseEnd) {
+          updateFields['leases.$.endDate'] = property.occupancy.leaseEnd;
+        }
+
+        // Update rent if it changed
+        if (req.body.financials?.monthlyRent) {
+          updateFields['leases.$.monthlyRent'] = property.financials.monthlyRent;
+        }
+
+        // Update security deposit if it changed
+        if (req.body.financials?.securityDeposit) {
+          updateFields['leases.$.securityDeposit'] = property.financials.securityDeposit;
+        }
+
         await Tenant.findOneAndUpdate(
           {
             _id: tenantId,
@@ -99,19 +126,76 @@ export const updateProperty = catchAsync(async (req, res, next) => {
             'leases.status': 'active',
           },
           {
-            $set: {
-              'leases.$.startDate': property.occupancy.leaseStart,
-              'leases.$.endDate': property.occupancy.leaseEnd,
-              'leases.$.updatedAt': new Date(),
-            },
+            $set: updateFields,
           },
         );
+        
+        const updatedFields = Object.keys(updateFields).filter(key => key !== 'leases.$.updatedAt');
         logger.info(
-          `Synchronized lease dates for tenant ${tenantId} with property ${property._id}`,
+          `Synchronized lease data for tenant ${tenantId} with property ${property._id}. Updated: ${updatedFields.join(', ')}`,
         );
       } catch (syncError) {
-        logger.warn(`Failed to sync lease dates for tenant ${tenantId}: ${syncError.message}`);
+        logger.warn(`Failed to sync lease data for tenant ${tenantId}: ${syncError.message}`);
         // Don't fail the property update if sync fails
+      }
+    }
+  }
+
+  // Synchronize unit-specific lease data for multi-unit properties
+  if (req.body.units && Array.isArray(req.body.units)) {
+    for (const unit of property.units) {
+      if (unit.occupancy?.tenant) {
+        try {
+          const unitUpdateFields = {
+            'leases.$.updatedAt': new Date(),
+          };
+
+          // Find the corresponding updated unit data
+          const updatedUnit = req.body.units.find(u => u._id && u._id.toString() === unit._id.toString());
+          if (updatedUnit) {
+            // Update unit rent if it changed
+            if (updatedUnit.monthlyRent !== undefined) {
+              unitUpdateFields['leases.$.monthlyRent'] = unit.monthlyRent;
+            }
+
+            // Update unit security deposit if it changed
+            if (updatedUnit.securityDeposit !== undefined) {
+              unitUpdateFields['leases.$.securityDeposit'] = unit.securityDeposit;
+            }
+
+            // Update lease dates for this unit if they changed
+            if (updatedUnit.occupancy?.leaseStart) {
+              unitUpdateFields['leases.$.startDate'] = unit.occupancy.leaseStart;
+            }
+            if (updatedUnit.occupancy?.leaseEnd) {
+              unitUpdateFields['leases.$.endDate'] = unit.occupancy.leaseEnd;
+            }
+
+            // Only update if there are actual changes
+            const hasChanges = Object.keys(unitUpdateFields).length > 1; // More than just updatedAt
+            if (hasChanges) {
+              await Tenant.findOneAndUpdate(
+                {
+                  _id: unit.occupancy.tenant,
+                  'leases.property': property._id,
+                  'leases.unit': unit._id,
+                  'leases.status': 'active',
+                },
+                {
+                  $set: unitUpdateFields,
+                },
+              );
+
+              const updatedFields = Object.keys(unitUpdateFields).filter(key => key !== 'leases.$.updatedAt');
+              logger.info(
+                `Synchronized unit lease data for tenant ${unit.occupancy.tenant}, unit ${unit._id}. Updated: ${updatedFields.join(', ')}`,
+              );
+            }
+          }
+        } catch (unitSyncError) {
+          logger.warn(`Failed to sync unit lease data for tenant ${unit.occupancy.tenant}, unit ${unit._id}: ${unitSyncError.message}`);
+          // Don't fail the property update if sync fails
+        }
       }
     }
   }

@@ -1010,6 +1010,7 @@ const tenantSchema = new mongoose.Schema({
     outcome: {
       type: String,
       enum: ['pass', 'pass-with-conditions', 'fail', 'pending'],
+      default: 'pending', // Set default to prevent auto-review triggers
     },
     conditions: {
       type: String,
@@ -1239,47 +1240,8 @@ tenantSchema.pre('save', function (next) {
   next();
 });
 
-// Pre-save middleware to auto-update application status based on qualification
-tenantSchema.pre('save', function (next) {
-  try {
-    // Skip qualification checks if essential data is missing
-    if (!this.applicationStatus || !this.personalInfo || !this.contactInfo) {
-      return next();
-    }
-
-    // Only auto-update if status is currently pending or under-review
-    const currentStatus = this.applicationStatus.status;
-    if (['pending', 'under-review'].includes(currentStatus)) {
-      // Only run qualification if we have enough data
-      if (this.getQualificationStatus && typeof this.getQualificationStatus === 'function') {
-        const qualification = this.getQualificationStatus();
-        const newStatus = this.computedApplicationStatus;
-
-        // Update status if it changed
-        if (newStatus && newStatus !== currentStatus) {
-          this.applicationStatus.status = newStatus;
-          this.applicationStatus.reviewDate = new Date();
-
-          // Set approval date if auto-approved
-          if (newStatus === 'approved') {
-            this.applicationStatus.approvalDate = new Date();
-            if (qualification?.summary) {
-              this.applicationStatus.notes = `Auto-approved: ${qualification.summary}`;
-            }
-          } else if (newStatus === 'under-review') {
-            if (qualification?.summary) {
-              this.applicationStatus.notes = `Auto-review required: ${qualification.summary}`;
-            }
-          }
-        }
-      }
-    }
-  } catch (error) {
-    // Don't break tenant saving if qualification check fails
-    console.warn('Qualification check failed during save:', error.message);
-  }
-  next();
-});
+// Pre-save middleware removed - manual qualification checks only
+// Automatic status changes were causing tenants to be incorrectly marked as under-review
 
 // Virtual for full name
 tenantSchema.virtual('fullName').get(function () {
@@ -1395,11 +1357,14 @@ tenantSchema.virtual('computedApplicationStatus').get(function () {
     // Auto-determine status based on qualification
     switch (qualification.status) {
       case 'qualified':
-        return currentStatus === 'pending' ? 'approved' : currentStatus;
+        // Promote to approved unless manually set to rejected/withdrawn/expired
+        return ['rejected', 'withdrawn', 'expired'].includes(currentStatus) ? currentStatus : 'approved';
       case 'needs-review':
-        return currentStatus === 'pending' ? 'under-review' : currentStatus;
+        // Set to under-review unless manually approved or rejected
+        return ['approved', 'rejected', 'withdrawn', 'expired'].includes(currentStatus) ? currentStatus : 'under-review';
       case 'not-qualified':
-        return currentStatus === 'pending' ? 'under-review' : currentStatus; // Let landlord manually reject
+        // Set to under-review unless manually approved (landlord can override) or rejected
+        return ['approved', 'rejected', 'withdrawn', 'expired'].includes(currentStatus) ? currentStatus : 'under-review';
       default:
         return currentStatus;
     }

@@ -6,7 +6,8 @@ import type {
   TenantTableData, 
   TenantsTableResponse, 
   TenantTableFilters, 
-  PaginationInfo 
+  PaginationInfo,
+  TenantStatus 
 } from '../types/tenantTable'
 import { getDaysUntilLeaseEnd } from '../utils/dateUtils'
 
@@ -45,11 +46,32 @@ const transformTenantForTable = (tenant: Tenant): TenantTableData => {
   }
   
   // Determine status based on application and lease information
-  let status: string = 'pending'
+  let status: TenantStatus = 'pending'
   
-  // Use application status if available
-  if (tenant.applicationStatus?.status) {
-    status = tenant.applicationStatus.status
+  // Helper function to ensure status is a valid TenantStatus
+  const normalizeStatus = (rawStatus: string): TenantStatus => {
+    // Map common status variations to our TenantStatus type
+    const statusMap: Record<string, TenantStatus> = {
+      'pending': 'pending',
+      'approved': 'approved', 
+      'rejected': 'rejected',
+      'under-review': 'under-review',
+      'waitlisted': 'waitlisted',
+      'withdrawn': 'withdrawn',
+      'expired': 'expired',
+      'active': 'active',
+      'expiring': 'expiring',
+      'terminated': 'terminated'
+    }
+    
+    return statusMap[rawStatus] || 'pending'
+  }
+
+  // Use computed application status (which maps qualification to application status) if available
+  if (tenant.computedApplicationStatus) {
+    status = normalizeStatus(tenant.computedApplicationStatus)
+  } else if (tenant.applicationStatus?.status) {
+    status = normalizeStatus(tenant.applicationStatus.status)
   } else if (activeLease) {
     // Check if lease is expiring soon
     const daysUntilEnd = getDaysUntilLeaseEnd(activeLease.endDate)

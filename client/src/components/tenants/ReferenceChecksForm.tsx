@@ -653,11 +653,11 @@ const AddReferenceButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
         mb: 3,
         borderStyle: 'dashed',
         borderWidth: 2,
-        borderColor: theme.palette.primary.main,
-        color: theme.palette.primary.main,
+        borderColor: theme.palette.secondary.main,
+        color: theme.palette.secondary.main,
         '&:hover': {
           borderStyle: 'solid',
-          bgcolor: `${theme.palette.primary.main}08`,
+          bgcolor: `${theme.palette.secondary.main}08`,
         }
       }}
     >

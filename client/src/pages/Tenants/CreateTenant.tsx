@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Alert, Skeleton } from '@mui/material'
+import { Box, Alert, Skeleton, Divider } from '@mui/material'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
 import Sidebar from '../../components/common/Sidebar'
 import Titlebar from '../../components/basic/Titlebar'
 import CustomButton from '../../components/basic/CustomButton'
+import Card from '../../components/basic/Card'
 import PersonalInfoForm from '../../components/tenants/PersonalInfoForm'
 import ContactInfoForm from '../../components/tenants/ContactInfoForm'
 import CurrentAddressForm from '../../components/tenants/CurrentAddressForm'
@@ -15,6 +16,7 @@ import FinancialInfoForm from '../../components/tenants/FinancialInfoForm'
 import PetsInfoForm from '../../components/tenants/PetsInfoForm'
 import VehiclesInfoForm from '../../components/tenants/VehiclesInfoForm'
 import ReferenceChecksForm from '../../components/tenants/ReferenceChecksForm'
+import ReferencingStatusForm from '../../components/tenants/ReferencingStatusForm'
 import PrivacyConsentForm from '../../components/tenants/PrivacyConsentForm'
 import { SkipLink } from '../../components/common'
 import { useCreateTenant, useTenant, useUpdateTenant } from '../../hooks/useTenants'
@@ -1363,13 +1365,35 @@ const CreateTenant: React.FC = () => {
               textFieldStyles={textFieldStyles}
             />
 
-            {/* Reference Checks Card */}
-            <ReferenceChecksForm
-              references={formData.references}
-              onInputChange={handleInputChange}
-              textFieldStyles={textFieldStyles}
-              showContactActions={isEditMode || process.env.NODE_ENV === 'development'}
-            />
+            {/* Reference Management Card */}
+            <Card>
+              {/* Individual Reference Collection */}
+              <ReferenceChecksForm
+                references={formData.references}
+                onInputChange={handleInputChange}
+                textFieldStyles={textFieldStyles}
+                showContactActions={isEditMode || process.env.NODE_ENV === 'development'}
+              />
+
+              {/* Divider - Only show when status form is visible */}
+              {isEditMode && tenantData && (
+                <Divider sx={{ my: 4, mx: 2 }} />
+              )}
+
+              {/* Overall Referencing Status - Only in edit mode */}
+              {isEditMode && tenantData && (
+                <ReferencingStatusForm
+                  tenant={tenantData}
+                  onUpdate={(updatedTenant) => {
+                    // Update the current tenant data with the new referencing info
+                    // Note: Referencing data doesn't affect form submission, this is just for UI consistency
+                    console.log('Referencing updated:', updatedTenant.referencing)
+                  }}
+                  disabled={isLoadingTenant}
+                  textFieldStyles={textFieldStyles}
+                />
+              )}
+            </Card>
 
             {/* Privacy & Consent Card */}
             <PrivacyConsentForm
