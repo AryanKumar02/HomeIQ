@@ -68,27 +68,30 @@ export const createProperty = catchAsync(async (req, res, next) => {
 
 // Update a property
 export const updateProperty = catchAsync(async (req, res, next) => {
-  const property = await Property.findOne({
-    _id: req.params.id,
-    owner: req.user.id,
-  });
+  // Remove owner from update data to prevent changing owner
+  // eslint-disable-next-line no-unused-vars
+  const { owner, ...updateData } = req.body;
+
+  // Use atomic findOneAndUpdate operation
+  const property = await Property.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      owner: req.user.id,
+    },
+    updateData,
+    {
+      new: true, // Return the updated document
+      runValidators: true, // Run schema validators
+      upsert: false, // Don't create if not found
+    },
+  );
 
   if (!property) {
     return next(new AppError('Property not found', 404));
   }
 
-  // Update the property with new data
-  Object.keys(req.body).forEach(key => {
-    if (key !== 'owner') {
-      // Prevent changing owner
-      property[key] = req.body[key];
-    }
-  });
-
-  await property.save();
-
   // Synchronize lease data with tenant records if relevant fields changed
-  const needsLeaseSync = 
+  const needsLeaseSync =
     (req.body.occupancy && (req.body.occupancy.leaseStart || req.body.occupancy.leaseEnd)) ||
     (req.body.financials && req.body.financials.monthlyRent) ||
     (req.body.financials && req.body.financials.securityDeposit);
@@ -129,7 +132,7 @@ export const updateProperty = catchAsync(async (req, res, next) => {
             $set: updateFields,
           },
         );
-        
+
         const updatedFields = Object.keys(updateFields).filter(key => key !== 'leases.$.updatedAt');
         logger.info(
           `Synchronized lease data for tenant ${tenantId} with property ${property._id}. Updated: ${updatedFields.join(', ')}`,
@@ -151,7 +154,9 @@ export const updateProperty = catchAsync(async (req, res, next) => {
           };
 
           // Find the corresponding updated unit data
-          const updatedUnit = req.body.units.find(u => u._id && u._id.toString() === unit._id.toString());
+          const updatedUnit = req.body.units.find(
+            u => u._id && u._id.toString() === unit._id.toString(),
+          );
           if (updatedUnit) {
             // Update unit rent if it changed
             if (updatedUnit.monthlyRent !== undefined) {
@@ -186,14 +191,18 @@ export const updateProperty = catchAsync(async (req, res, next) => {
                 },
               );
 
-              const updatedFields = Object.keys(unitUpdateFields).filter(key => key !== 'leases.$.updatedAt');
+              const updatedFields = Object.keys(unitUpdateFields).filter(
+                key => key !== 'leases.$.updatedAt',
+              );
               logger.info(
                 `Synchronized unit lease data for tenant ${unit.occupancy.tenant}, unit ${unit._id}. Updated: ${updatedFields.join(', ')}`,
               );
             }
           }
         } catch (unitSyncError) {
-          logger.warn(`Failed to sync unit lease data for tenant ${unit.occupancy.tenant}, unit ${unit._id}: ${unitSyncError.message}`);
+          logger.warn(
+            `Failed to sync unit lease data for tenant ${unit.occupancy.tenant}, unit ${unit._id}: ${unitSyncError.message}`,
+          );
           // Don't fail the property update if sync fails
         }
       }
@@ -212,8 +221,8 @@ export const updateProperty = catchAsync(async (req, res, next) => {
 
 // Delete a property permanently
 export const deleteProperty = catchAsync(async (req, res, next) => {
-  // Find the property to delete
-  const property = await Property.findOne({
+  // Use atomic findOneAndDelete operation
+  const property = await Property.findOneAndDelete({
     _id: req.params.id,
     owner: req.user.id,
   });
@@ -228,8 +237,7 @@ export const deleteProperty = catchAsync(async (req, res, next) => {
     logger.warn(`Failed to delete some images for property ${property._id}`);
   }
 
-  // Actually delete the property from MongoDB
-  await Property.findByIdAndDelete(req.params.id);
+  // Property already deleted by findOneAndDelete above
 
   logger.info(`Permanently deleted property ${property._id} for user ${req.user.id}`);
 

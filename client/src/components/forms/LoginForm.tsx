@@ -13,8 +13,7 @@ import {
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
-import { useAuthContext } from '../../context/AuthContext'
-import { useLogin } from '../../hooks/useAuth'
+import { useAuthWithActions } from '../../hooks/useAuthSimple'
 import gsap from 'gsap'
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useFormGsapAnimation } from '../animation/useFormGsapAnimation'
@@ -37,9 +36,8 @@ const LoginForm: React.FC = () => {
   const location = useLocation()
   const theme = useTheme()
 
-  // Use React Query hooks
-  const loginMutation = useLogin()
-  const { login } = useAuthContext()
+  // Use simple auth hooks
+  const { login, isLoginPending } = useAuthWithActions()
 
   // Memoize refs array to avoid triggering animation on every render
   const fieldRefs = [emailRef, passwordRef]
@@ -81,19 +79,10 @@ const LoginForm: React.FC = () => {
     return 'Unable to log in. Please check your details and try again.'
   }
 
-  // Get loading state from React Query
-  const loading = loginMutation.isPending
+  // Get loading state
+  const loading = isLoginPending
 
-  // Handle login mutation results
-  React.useEffect(() => {
-    if (loginMutation.error) {
-      setError(getFriendlyErrorMessage(loginMutation.error))
-    } else if (loginMutation.isSuccess) {
-      setError(null)
-    }
-  }, [loginMutation.error, loginMutation.isSuccess])
-
-  // Submit logic using React Query
+  // Submit logic using Zustand + React Query
   const handleSubmitLogic = async (event: React.FormEvent) => {
     event.preventDefault()
     setError(null)
@@ -115,7 +104,7 @@ const LoginForm: React.FC = () => {
       const from = (location.state as { from?: Location })?.from?.pathname || '/dashboard'
       void navigate(from, { replace: true })
     } catch (err: unknown) {
-      // Error is handled by the useEffect above
+      setError(getFriendlyErrorMessage(err))
       console.error('Login failed:', err)
     }
   }

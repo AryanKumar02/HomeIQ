@@ -206,6 +206,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
       if (onTenantDelete && typeof onTenantDelete === 'function') {
 
 
+
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         onTenantDelete(tenantId)
       }

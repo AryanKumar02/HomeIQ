@@ -67,35 +67,59 @@ export const useUpdateProperty = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<Property> }) =>
       propertiesApi.update(id, data),
     onMutate: async ({ id, data }) => {
-      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      // Cancel any outgoing refetches for both detail and list queries
       await queryClient.cancelQueries({ queryKey: propertyKeys.detail(id) })
+      await queryClient.cancelQueries({ queryKey: propertyKeys.lists() })
 
-      // Snapshot the previous value
+      // Snapshot the previous values
       const previousProperty = queryClient.getQueryData<Property>(propertyKeys.detail(id))
+      const previousProperties = queryClient.getQueryData<Property[]>(propertyKeys.lists())
 
-      // Optimistically update to the new value
+      // Optimistically update the detail cache
       if (previousProperty) {
-        queryClient.setQueryData(propertyKeys.detail(id), { ...previousProperty, ...data })
+        const updatedProperty = { ...previousProperty, ...data }
+        queryClient.setQueryData(propertyKeys.detail(id), updatedProperty)
+
+        // Also optimistically update the list cache
+        if (previousProperties) {
+          const optimisticProperties = previousProperties.map(property => 
+            property._id === id ? updatedProperty : property
+          )
+          queryClient.setQueryData(propertyKeys.lists(), optimisticProperties)
+        }
       }
 
-      // Return a context object with the snapshotted value
-      return { previousProperty }
+      // Return context with snapshotted values for rollback
+      return { previousProperty, previousProperties }
     },
     onError: (_, { id }, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
+      // Roll back both caches on error
       if (context?.previousProperty) {
         queryClient.setQueryData(propertyKeys.detail(id), context.previousProperty)
       }
+      if (context?.previousProperties) {
+        queryClient.setQueryData(propertyKeys.lists(), context.previousProperties)
+      }
     },
-    onSettled: (updatedProperty) => {
-      // Always refetch after error or success
+    onSuccess: (updatedProperty, { id }) => {
+      // Update both caches with the actual server response
       if (updatedProperty) {
-        void queryClient.invalidateQueries({ queryKey: propertyKeys.lists() })
-        void queryClient.invalidateQueries({ queryKey: propertyKeys.detail(updatedProperty._id!) })
+        queryClient.setQueryData(propertyKeys.detail(id), updatedProperty)
+        
+        // Update the list cache with the server response
+        const currentProperties = queryClient.getQueryData<Property[]>(propertyKeys.lists())
+        if (currentProperties) {
+          const updatedProperties = currentProperties.map(property => 
+            property._id === id ? updatedProperty : property
+          )
+          queryClient.setQueryData(propertyKeys.lists(), updatedProperties)
+        }
+
         // Invalidate tenant table cache when property is updated (for lease date sync)
         void queryClient.invalidateQueries({ queryKey: ['tenantsTable'] })
       }
     },
+    // Removed onSettled with invalidateQueries since we're now managing cache updates directly
   })
 }
 

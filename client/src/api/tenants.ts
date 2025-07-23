@@ -285,13 +285,107 @@ apiClient.interceptors.request.use((config) => {
 })
 
 export const tenantsApi = {
-  // Get all tenants
+  // Get all tenants (simple version for useTenants hook - uses max server limit)
   getAll: async (): Promise<Tenant[]> => {
     try {
-      console.log('GET ALL TENANTS API CALL:', '/api/v1/tenants')
-      const response = await apiClient.get<TenantResponse>('/api/v1/tenants')
+      // Use server's maximum allowed limit (100) to get as many tenants as possible
+      const url = '/api/v1/tenants?limit=100'
+      console.log('GET ALL TENANTS API CALL:', url)
+      const response = await apiClient.get<{
+        status: string
+        results: number
+        pagination: {
+          page: number
+          limit: number
+          total: number
+          pages: number
+        }
+        data: {
+          tenants: Tenant[]
+        }
+      }>(url)
       console.log('GET ALL TENANTS API RESPONSE:', response)
-      return response.data.tenants || response.data.data?.tenants || []
+      
+      const { tenants } = response.data.data
+      const { pagination } = response.data
+      
+      // If there are more pages, fetch them all for backward compatibility
+      if (pagination.pages > 1) {
+        const allTenants = [...tenants]
+        
+        // Fetch remaining pages
+        for (let page = 2; page <= Math.min(pagination.pages, 10); page++) { // Cap at 10 pages (1000 tenants) for safety
+          try {
+            const pageResponse = await apiClient.get<typeof response.data>(`/api/v1/tenants?page=${page}&limit=100`)
+            allTenants.push(...pageResponse.data.data.tenants)
+          } catch (pageError) {
+            console.warn(`Failed to fetch page ${page}:`, pageError)
+            break
+          }
+        }
+        
+        return allTenants
+      }
+      
+      return tenants || []
+    } catch (error) {
+      console.error('GET ALL TENANTS API ERROR:', error)
+      throw error
+    }
+  },
+
+  // Get all tenants with server-side pagination and filtering (for table)
+  getAllPaginated: async (filters?: {
+    page?: number
+    limit?: number
+    search?: string
+    status?: string
+    property?: string
+    leaseStatus?: string
+    leaseExpiry?: string
+  }): Promise<{
+    tenants: Tenant[]
+    pagination: {
+      page: number
+      limit: number
+      total: number
+      pages: number
+    }
+  }> => {
+    try {
+      const params = new URLSearchParams()
+      
+      if (filters?.page) params.append('page', filters.page.toString())
+      if (filters?.limit) params.append('limit', filters.limit.toString())
+      if (filters?.search) params.append('search', filters.search)
+      if (filters?.status && filters.status !== 'all') params.append('status', filters.status)
+      if (filters?.property && filters.property !== 'all') params.append('property', filters.property)
+      if (filters?.leaseStatus && filters.leaseStatus !== 'all') params.append('leaseStatus', filters.leaseStatus)
+      
+      const queryString = params.toString()
+      const url = `/api/v1/tenants${queryString ? `?${queryString}` : ''}`
+      
+      console.log('GET ALL TENANTS API CALL:', url)
+      const response = await apiClient.get<{
+        status: string
+        results: number
+        pagination: {
+          page: number
+          limit: number
+          total: number
+          pages: number
+        }
+        data: {
+          tenants: Tenant[]
+        }
+      }>(url)
+      
+      console.log('GET ALL TENANTS API RESPONSE:', response)
+      
+      return {
+        tenants: response.data.data.tenants || [],
+        pagination: response.data.pagination
+      }
     } catch (error) {
       console.error('GET ALL TENANTS API ERROR:', error)
       throw error

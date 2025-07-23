@@ -43,9 +43,9 @@ const REFERENCING_OUTCOMES = [
   { value: 'fail', label: '❌ Fail', color: 'error' },
 ]
 
-const ReferencingStatusForm: React.FC<ReferencingStatusFormProps> = ({ 
-  tenant, 
-  onUpdate, 
+const ReferencingStatusForm: React.FC<ReferencingStatusFormProps> = ({
+  tenant,
+  onUpdate,
   disabled = false,
   textFieldStyles = {}
 }) => {
@@ -102,7 +102,7 @@ const ReferencingStatusForm: React.FC<ReferencingStatusFormProps> = ({
     try {
       // Prepare the update data
       const updateData: Partial<ReferencingData> = {}
-      
+
       // Only include fields that have values or have changed
       if (formData.status !== tenant.referencing?.status) updateData.status = formData.status
       if (formData.provider && formData.provider !== tenant.referencing?.provider) updateData.provider = formData.provider
@@ -114,9 +114,9 @@ const ReferencingStatusForm: React.FC<ReferencingStatusFormProps> = ({
 
       // Call the API to update referencing status
       const updatedTenant = await tenantsApi.updateReferencingStatus(tenant._id, updateData)
-      
+
       showNotification('Referencing status updated successfully!', 'success')
-      
+
       // Call the parent update handler if provided
       if (onUpdate) {
         onUpdate(updatedTenant)
@@ -179,8 +179,8 @@ const ReferencingStatusForm: React.FC<ReferencingStatusFormProps> = ({
                 sx={{
                   ...textFieldStyles,
                   '& .MuiInputBase-root': {
-                    backgroundColor: formData.outcome === 'pass' ? 'success.lighter' : 
-                                   formData.outcome === 'fail' ? 'error.lighter' : 
+                    backgroundColor: formData.outcome === 'pass' ? 'success.lighter' :
+                                   formData.outcome === 'fail' ? 'error.lighter' :
                                    'warning.lighter'
                   }
                 }}
@@ -280,12 +280,12 @@ const ReferencingStatusForm: React.FC<ReferencingStatusFormProps> = ({
             </Typography>
             {formData.outcome === 'pending' && (
               <Typography variant="body2" color="warning.main">
-                ⚠️ Tenant will remain "under-review" until outcome is set to "pass"
+                ⚠️ Tenant will remain &quot;under-review&quot; until outcome is set to &quot;pass&quot;
               </Typography>
             )}
             {formData.outcome === 'pass' && (
               <Typography variant="body2" color="success.main">
-                ✅ Tenant will be auto-promoted to "approved" status
+                ✅ Tenant will be auto-promoted to &quot;approved&quot; status
               </Typography>
             )}
           </Box>
@@ -294,11 +294,11 @@ const ReferencingStatusForm: React.FC<ReferencingStatusFormProps> = ({
           <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
             <CustomButton
               text={loading ? 'Updating...' : 'Update Status'}
-              onClick={handleSubmit}
+              onClick={() => void handleSubmit()}
               disabled={disabled || loading}
               variant="contained"
             />
-            
+
             {formData.outcome === 'pending' && (
               <CustomButton
                 text="✅ Quick Approve"

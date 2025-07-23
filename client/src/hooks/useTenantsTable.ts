@@ -95,128 +95,76 @@ const transformTenantForTable = (tenant: Tenant): TenantTableData => {
   }
 }
 
-/**
- * Simulates pagination and filtering for tenant data
- * Since the current API doesn't support pagination, we'll implement it client-side
- * @param tenants - Array of all tenants
- * @param filters - Pagination and search filters
- * @returns Paginated and filtered tenant data
- */
-const applyFiltersAndPagination = (
-  tenants: TenantTableData[], 
-  filters: TenantTableFilters
-): TenantsTableResponse => {
-  let filteredTenants = [...tenants]
-  
-  // Apply search filter
-  if (filters.search && filters.search.trim()) {
-    const searchLower = filters.search.toLowerCase().trim()
-    filteredTenants = filteredTenants.filter(tenant => 
-      tenant.name.toLowerCase().includes(searchLower) ||
-      tenant.email.toLowerCase().includes(searchLower) ||
-      tenant.property.toLowerCase().includes(searchLower)
-    )
-  }
-  
-  // Apply status filter
-  if (filters.status && filters.status !== 'all') {
-    filteredTenants = filteredTenants.filter(tenant => {
-      if (filters.status === 'expiring') {
-        return tenant.status.includes('expiring') || tenant.status.includes('expired')
-      }
-      return tenant.status === filters.status
-    })
-  }
-  
-  // Apply property assignment filter
-  if (filters.property && filters.property !== 'all') {
-    filteredTenants = filteredTenants.filter(tenant => {
-      if (filters.property === 'assigned') {
-        return tenant.property !== 'No property assigned'
-      }
-      if (filters.property === 'unassigned') {
-        return tenant.property === 'No property assigned'
-      }
-      return tenant.property.toLowerCase().includes(filters.property.toLowerCase())
-    })
-  }
-  
-  // Apply lease expiry filter
-  if (filters.leaseExpiry && filters.leaseExpiry !== 'all') {
-    filteredTenants = filteredTenants.filter(tenant => {
-      const daysUntilEnd = getDaysUntilLeaseEnd(tenant.leaseEnds)
-      if (filters.leaseExpiry === 'expiring-soon') {
-        return daysUntilEnd <= 30 && daysUntilEnd >= 0
-      }
-      if (filters.leaseExpiry === 'expired') {
-        return daysUntilEnd < 0
-      }
-      if (filters.leaseExpiry === 'long-term') {
-        return daysUntilEnd > 30
-      }
-      return true
-    })
-  }
-  
-  const total = filteredTenants.length
-  const page = Math.max(1, filters.page || 1)
-  const limit = Math.max(1, filters.limit || 10)
-  const startIndex = (page - 1) * limit
-  const endIndex = Math.min(startIndex + limit, total)
-  
-  const paginatedTenants = filteredTenants.slice(startIndex, endIndex)
-  
-  return {
-    tenants: paginatedTenants,
-    total,
-    page,
-    limit
-  }
-}
+// This function has been removed - pagination is now handled server-side
 
 /**
- * Hook for fetching and managing tenant table data with pagination
+ * Hook for fetching and managing tenant table data with server-side pagination
  * @param filters - Pagination and search filters
  * @returns Query result with tenant table data and utilities
  */
 export const useTenantsTable = (filters: TenantTableFilters = {}) => {
+  // Set default pagination values
+  const paginatedFilters = {
+    page: 1,
+    limit: 10,
+    ...filters
+  }
+
   const {
-    data: rawTenants = [],
+    data: apiResponse,
     isLoading,
     error,
     refetch
   } = useQuery({
-    queryKey: tenantTableKeys.list(filters),
-    queryFn: () => tenantsApi.getAll(),
+    queryKey: tenantTableKeys.list(paginatedFilters),
+    queryFn: () => tenantsApi.getAllPaginated({
+      page: paginatedFilters.page,
+      limit: paginatedFilters.limit,
+      search: paginatedFilters.search,
+      status: paginatedFilters.status,
+      property: paginatedFilters.property,
+      leaseExpiry: paginatedFilters.leaseExpiry
+    }),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   })
 
-  // Transform and paginate data
-  const tableData = useMemo(() => {
-    const transformedTenants = rawTenants.map(transformTenantForTable)
-    return applyFiltersAndPagination(transformedTenants, filters)
-  }, [rawTenants, filters])
+  // Transform tenant data for table display
+  const transformedTenants = useMemo(() => {
+    if (!apiResponse?.tenants) return []
+    return apiResponse.tenants.map(transformTenantForTable)
+  }, [apiResponse?.tenants])
 
-  // Calculate pagination info
-  const paginationInfo: PaginationInfo = useMemo(() => ({
-    page: tableData.page,
-    limit: tableData.limit,
-    total: tableData.total,
-    totalPages: Math.ceil(tableData.total / tableData.limit)
-  }), [tableData])
+  // Calculate pagination info from server response
+  const paginationInfo: PaginationInfo = useMemo(() => {
+    if (!apiResponse?.pagination) {
+      return {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0
+      }
+    }
+    
+    return {
+      page: apiResponse.pagination.page,
+      limit: apiResponse.pagination.limit,
+      total: apiResponse.pagination.total,
+      totalPages: apiResponse.pagination.pages
+    }
+  }, [apiResponse?.pagination])
 
   return {
-    tenants: tableData.tenants,
+    tenants: transformedTenants,
     pagination: paginationInfo,
     isLoading,
     error,
     refetch,
     // Utility functions
-    hasNextPage: tableData.page < paginationInfo.totalPages,
-    hasPreviousPage: tableData.page > 1,
-    isEmpty: tableData.tenants.length === 0 && !isLoading,
-    isEmptySearch: tableData.tenants.length === 0 && !isLoading && filters.search
+    hasNextPage: paginationInfo.page < paginationInfo.totalPages,
+    hasPreviousPage: paginationInfo.page > 1,
+    isEmpty: transformedTenants.length === 0 && !isLoading,
+    isEmptySearch: transformedTenants.length === 0 && !isLoading && filters.search
   }
 }
 

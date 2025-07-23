@@ -6,7 +6,13 @@ import AppError from '../utils/appError.js';
 // Get all tenants for the authenticated user
 export const getTenants = catchAsync(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
+  let limit = parseInt(req.query.limit) || 10;
+  
+  // Cap the limit at 100 for performance and security reasons
+  if (limit > 100) {
+    limit = 100;
+  }
+  
   const skip = (page - 1) * limit;
 
   // Build filter object
@@ -33,6 +39,27 @@ export const getTenants = catchAsync(async (req, res, next) => {
   // Add lease status filter
   if (req.query.leaseStatus) {
     filter['leases.status'] = req.query.leaseStatus;
+  }
+
+  // Add lease expiry filter
+  if (req.query.leaseExpiry) {
+    const now = new Date();
+    const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    switch (req.query.leaseExpiry) {
+      case 'expiring-soon':
+        filter['leases.endDate'] = {
+          $gte: now,
+          $lte: thirtyDaysFromNow,
+        };
+        break;
+      case 'expired':
+        filter['leases.endDate'] = { $lt: now };
+        break;
+      case 'long-term':
+        filter['leases.endDate'] = { $gt: thirtyDaysFromNow };
+        break;
+    }
   }
 
   const tenants = await Tenant.find(filter)

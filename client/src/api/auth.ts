@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { User } from '../context/AuthContext'
+import type { User } from '../types/user'
 
 // Auth API response types
 export interface AuthResponse {
