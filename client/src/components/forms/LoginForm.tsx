@@ -13,7 +13,7 @@ import {
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
-import { useAuth } from '../../context/AuthContext'
+import { useAuthWithActions } from '../../hooks/useAuthSimple'
 import gsap from 'gsap'
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useFormGsapAnimation } from '../animation/useFormGsapAnimation'
@@ -22,7 +22,6 @@ import { useTheme } from '@mui/material/styles'
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [rememberMe, setRememberMe] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -36,7 +35,9 @@ const LoginForm: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const theme = useTheme()
-  const { login } = useAuth()
+
+  // Use simple auth hooks
+  const { login, isLoginPending } = useAuthWithActions()
 
   // Memoize refs array to avoid triggering animation on every render
   const fieldRefs = [emailRef, passwordRef]
@@ -78,11 +79,14 @@ const LoginForm: React.FC = () => {
     return 'Unable to log in. Please check your details and try again.'
   }
 
-  // Renamed original handleSubmit to handleSubmitLogic
+  // Get loading state
+  const loading = isLoginPending
+
+  // Submit logic using Zustand + React Query
   const handleSubmitLogic = async (event: React.FormEvent) => {
     event.preventDefault()
     setError(null)
-    setLoading(true)
+
     if (buttonRef.current) {
       gsap.to(buttonRef.current, {
         scale: 0.96,
@@ -92,6 +96,7 @@ const LoginForm: React.FC = () => {
         ease: 'power1.inOut',
       })
     }
+
     try {
       await login(email, password, rememberMe)
 
@@ -100,8 +105,7 @@ const LoginForm: React.FC = () => {
       void navigate(from, { replace: true })
     } catch (err: unknown) {
       setError(getFriendlyErrorMessage(err))
-    } finally {
-      setLoading(false)
+      console.error('Login failed:', err)
     }
   }
 

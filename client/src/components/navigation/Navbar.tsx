@@ -46,12 +46,15 @@ const Navbar: React.FC = () => {
           to="/"
           sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flexGrow: 1 }}
         >
-          <Box
-            component="img"
-            src="/assets/logo.png"
-            alt="EstateLink logo"
-            sx={{ height: 80, mr: 0 }}
-          />
+          <picture>
+            <source srcSet="/assets/logo.webp" type="image/webp" />
+            <Box
+              component="img"
+              src="/assets/logo.png"
+              alt="EstateLink logo"
+              sx={{ height: 80, width: 80, mr: 0 }}
+            />
+          </picture>
           <Typography
             variant="h6"
             sx={{

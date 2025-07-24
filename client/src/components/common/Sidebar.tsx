@@ -24,7 +24,8 @@ import MenuIcon from '@mui/icons-material/Menu'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { useTheme } from '@mui/material/styles'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import { useAuthUser } from '../../stores/authStoreNew'
+import { useLogout } from '../../hooks/useAuthSimple'
 
 const drawerWidth = 280
 const mobileDrawerWidth = 240
@@ -35,7 +36,8 @@ const Sidebar: React.FC = () => {
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'))
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, logout } = useAuth()
+  const user = useAuthUser()
+  const logoutMutation = useLogout()
 
   // Menu items configuration
   const menuItems = [
@@ -228,10 +230,10 @@ const Sidebar: React.FC = () => {
         yoyo: true,
         repeat: 1,
         ease: 'power2.inOut',
-        onComplete: () => logout(),
+        onComplete: () => logoutMutation.mutate(),
       })
     } else {
-      logout()
+      logoutMutation.mutate()
     }
   }
 

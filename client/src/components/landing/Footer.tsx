@@ -26,12 +26,15 @@ const Footer: React.FC = () => {
         >
           {/* Logo and Description */}
           <Box sx={{ maxWidth: 300, textAlign: { xs: 'center', md: 'left' } }}>
-            <Box
-              component="img"
-              src="/assets/logo.png"
-              alt="EstateLink logo"
-              sx={{ height: 40, mb: 1 }}
-            />
+            <picture>
+              <source srcSet="/assets/logo.webp" type="image/webp" />
+              <Box
+                component="img"
+                src="/assets/logo.png"
+                alt="EstateLink logo"
+                sx={{ height: 40, width: 40, mb: 1 }}
+              />
+            </picture>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Streamline your property management with EstateLink. The all-in-one solution for
               modern property managers.

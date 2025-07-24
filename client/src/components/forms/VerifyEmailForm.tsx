@@ -39,8 +39,7 @@ const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ token }) => {
       if (hasVerified.current) return
       hasVerified.current = true
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const _authResponse = await verifyEmail(token)
+        await verifyEmail(token)
         // console.log('Email verification response', _authResponse); // Optional for debugging
         setMessage({
           type: 'success',

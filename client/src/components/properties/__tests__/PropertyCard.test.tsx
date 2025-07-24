@@ -2,6 +2,7 @@ import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ThemeProvider } from '@mui/material/styles'
 import { BrowserRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { vi } from 'vitest'
 import PropertyCard from '../PropertyCard'
 import theme from '../../../theme'
@@ -24,11 +25,26 @@ vi.mock('../../../hooks/useCurrency', () => ({
 }))
 
 // Test wrapper component
-const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <BrowserRouter>
-    <ThemeProvider theme={theme}>{children}</ThemeProvider>
-  </BrowserRouter>
-)
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+      mutations: {
+        retry: false,
+      },
+    },
+  })
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <ThemeProvider theme={theme}>{children}</ThemeProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  )
+}
 
 // Mock property data
 const mockProperty: Property = {

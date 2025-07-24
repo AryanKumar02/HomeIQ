@@ -30,7 +30,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Configure multer for S3 upload
+// Configure multer for S3 upload (legacy - for backward compatibility)
 const upload = multer({
   storage: multerS3({
     s3: s3Client,
@@ -60,4 +60,14 @@ const upload = multer({
   },
 });
 
-export { s3Client, upload };
+// Configure multer for in-memory processing (for image optimization)
+const uploadMemory = multer({
+  storage: multer.memoryStorage(),
+  fileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 10, // Maximum 10 files per upload
+  },
+});
+
+export { s3Client, upload, uploadMemory };

@@ -10,11 +10,13 @@ import cookieParser from 'cookie-parser';
 import jwt from 'jsonwebtoken';
 import swaggerUi from 'swagger-ui-express';
 import mongoSanitize from 'express-mongo-sanitize';
+
 import { generalLimiter } from './middleware/rateLimitMiddleware.js';
 import { csrfProtection } from './middleware/csrfMiddleware.js';
-
 import authRoutes from './routes/authRoutes.js';
 import propertyRoutes from './routes/propertyRoutes.js';
+import tenantRoutes from './routes/tenantRoutes.js';
+import healthRoutes from './routes/healthRoutes.js';
 import logger from './utils/logger.js';
 import AppError from './utils/appError.js';
 import globalErrorHandler from './controllers/errorController.js';
@@ -22,6 +24,7 @@ import User from './models/User.js';
 import swaggerSpec from './utils/swagger.js';
 import { connectDB } from './utils/db.js';
 import { startScheduledTasks, stopScheduledTasks } from './utils/scheduledTasks.js';
+import redisClient from './config/redis.js';
 
 // Load environment variables
 dotenv.config();
@@ -29,23 +32,47 @@ dotenv.config();
 const app = express();
 
 // Middleware
+const allowedOrigins = [
+  'http://localhost:5173', // Development
+  'http://localhost:3000', // Alternative dev port
+  process.env.FRONTEND_URL, // Production Vercel URL
+].filter(Boolean); // Remove undefined values
+
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, postman, etc)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // In development, allow any localhost origin
+      if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
+        return callback(null, true);
+      }
+
+      callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   }),
 );
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+      },
     },
-  },
-  crossOriginEmbedderPolicy: false,
-}));
+    crossOriginEmbedderPolicy: false,
+  }),
+);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
@@ -73,8 +100,10 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Routes
+app.use('/api/v1/health', healthRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/property', propertyRoutes);
+app.use('/api/v1/tenants', tenantRoutes);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // 404 handler
@@ -130,17 +159,21 @@ const startServer = async () => {
   try {
     await connectDB(MONGO_URI);
     logger.info('MongoDB connected');
-    
+
+    // Initialize Redis connection
+    await redisClient.connect();
+
     // Start scheduled tasks (only in production/non-test environments)
     if (process.env.NODE_ENV !== 'test') {
       startScheduledTasks();
+      logger.info('Scheduled tasks started');
     }
-    
+
     server.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
     });
   } catch (err) {
-    logger.error('MongoDB connection error:', err);
+    logger.error('Server startup error:', err);
     if (process.env.NODE_ENV !== 'test') {
       process.exit(1);
     }
@@ -153,18 +186,18 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Graceful shutdown
-const gracefulShutdown = (signal) => {
+const gracefulShutdown = signal => {
   logger.info(`${signal} RECEIVED. Shutting down gracefully`);
-  
+
   // Stop scheduled tasks
   stopScheduledTasks();
-  
+
   // Close server
   server.close(() => {
     logger.info('HTTP server closed');
     process.exit(0);
   });
-  
+
   // Force close server after timeout
   setTimeout(() => {
     logger.error('Could not close connections in time, forcefully shutting down');

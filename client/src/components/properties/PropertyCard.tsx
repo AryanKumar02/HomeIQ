@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   Card,
   CardContent,
@@ -34,6 +35,9 @@ import {
 import type { Property } from '../../types/property'
 import { useCurrency } from '../../hooks/useCurrency'
 import { PropertyImage } from '../common'
+import { propertiesApi } from '../../api/properties'
+import { propertyKeys } from '../../hooks/useProperties'
+import { usePropertyTenantCount } from '../../hooks/useTenants'
 
 /**
  * Props for the PropertyCard component
@@ -72,10 +76,23 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
 }) => {
   const theme = useTheme()
   const { formatPrice } = useCurrency()
+  const queryClient = useQueryClient()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const tenantCount = usePropertyTenantCount(property._id || '')
 
   const menuOpen = Boolean(anchorEl)
+
+  // Prefetch property details on hover for better UX
+  const handleMouseEnter = () => {
+    if (property._id) {
+      void queryClient.prefetchQuery({
+        queryKey: propertyKeys.detail(property._id),
+        queryFn: () => propertiesApi.getById(property._id!),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      })
+    }
+  }
 
   // Handle image error (PropertyImage component handles its own errors)
   const handleImageError = () => {
@@ -180,6 +197,19 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     setDeleteDialogOpen(false)
   }
 
+  const handleCardClick = () => {
+    // Don't navigate if menu is open
+    if (menuOpen) {
+      return
+    }
+    handleViewDetails()
+  }
+
+  const handleViewDetailsButtonClick = (event: React.MouseEvent) => {
+    event.stopPropagation() // Prevent card click
+    handleViewDetails()
+  }
+
   return (
     <Card
       component="article"
@@ -198,29 +228,36 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           outlineOffset: '2px',
         },
         cursor: 'pointer',
-        width: '320px',
-        minWidth: '320px',
-        maxWidth: '320px',
-        minHeight: '320px',
+        width: { xs: '260px', sm: '295px', md: '315px' },
+        minWidth: { xs: '260px', sm: '295px', md: '315px' },
+        maxWidth: { xs: '260px', sm: '295px', md: '315px' },
+        minHeight: { xs: '300px', sm: '335px', md: '355px' },
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
       }}
-      onClick={handleViewDetails}
+      onClick={handleCardClick}
+      onMouseEnter={handleMouseEnter}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
-          handleViewDetails()
+          handleCardClick()
         }
       }}
     >
       {/* Image Section - 50% of card height */}
-      <Box sx={{ position: 'relative', height: '160px', flex: '0 0 auto' }}>
+      <Box
+        sx={{
+          position: 'relative',
+          height: { xs: '150px', sm: '167px', md: '177px' },
+          flex: '0 0 auto',
+        }}
+      >
         <PropertyImage
           images={property.images?.map((img) => img.url) || []}
           title={property.title}
           width="100%"
-          height={160}
+          height="100%"
           interactive={true}
           onError={handleImageError}
         />
@@ -297,6 +334,29 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         >
           <MoreVertIcon sx={{ fontSize: '1.2rem' }} />
         </IconButton>
+
+        {/* Tenant Count Indicator */}
+        {tenantCount > 0 && (
+          <Chip
+            label={`${tenantCount} tenant${tenantCount !== 1 ? 's' : ''}`}
+            aria-label={`${tenantCount} tenant${tenantCount !== 1 ? 's' : ''} occupying this property`}
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              backgroundColor: theme.palette.primary.main,
+              color: 'white',
+              fontWeight: 600,
+              fontSize: '0.7rem',
+              height: 22,
+              '& .MuiChip-label': {
+                px: 1,
+                py: 0,
+                color: 'white',
+              },
+            }}
+          />
+        )}
       </Box>
 
       {/* Content Section - 50% of card height */}
@@ -665,7 +725,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         <Button
           variant="contained"
           fullWidth
-          onClick={handleViewDetails}
+          onClick={handleViewDetailsButtonClick}
           aria-label={`View details of ${property.title}`}
           sx={{
             backgroundColor: theme.palette.secondary.main,
@@ -701,9 +761,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           vertical: 'top',
           horizontal: 'left',
         }}
-        MenuListProps={{
-          'aria-labelledby': 'property-options-button',
-          role: 'menu',
+        slotProps={{
+          paper: {
+            'aria-labelledby': 'property-options-button',
+            role: 'menu',
+          },
         }}
         sx={{
           '& .MuiPaper-root': {

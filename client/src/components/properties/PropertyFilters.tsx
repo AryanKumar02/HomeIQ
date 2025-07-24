@@ -1,7 +1,8 @@
 import React from 'react'
 import { Box, Chip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import type { Property } from '../../services/property'
+import type { Property } from '../../types/property'
+import PageNavigation from './PageNavigation'
 
 interface PropertyFiltersProps {
   properties: Property[]
@@ -10,12 +11,18 @@ interface PropertyFiltersProps {
     status: string | null
   }
   onFilterChange: (filterType: 'type' | 'status', value: string | null) => void
+  currentPage?: number
+  totalPages?: number
+  onPageChange?: (page: number) => void
 }
 
 const PropertyFilters: React.FC<PropertyFiltersProps> = ({
   properties,
   selectedFilters,
   onFilterChange,
+  currentPage,
+  totalPages,
+  onPageChange,
 }) => {
   const theme = useTheme()
 
@@ -93,58 +100,77 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
         backgroundColor: 'background.paper',
       }}
     >
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
-        {/* All Properties - First */}
-        <Chip
-          label={`All Properties (${properties.length})`}
-          clickable
-          onClick={() => {
-            onFilterChange('type', null)
-            onFilterChange('status', null)
-          }}
-          variant={!hasActiveFilters ? 'filled' : 'outlined'}
-          sx={!hasActiveFilters ? selectedChipStyles : chipStyles}
-        />
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 1,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+          {/* All Properties - First */}
+          <Chip
+            label={`All Properties (${properties.length})`}
+            clickable
+            onClick={() => {
+              onFilterChange('type', null)
+              onFilterChange('status', null)
+            }}
+            variant={!hasActiveFilters ? 'filled' : 'outlined'}
+            sx={!hasActiveFilters ? selectedChipStyles : chipStyles}
+          />
 
-        {/* Property Types */}
-        {propertyTypes.map((type) => {
-          const count = typeCounts[type.value] || 0
-          if (count === 0) return null
+          {/* Property Types */}
+          {propertyTypes.map((type) => {
+            const count = typeCounts[type.value] || 0
+            if (count === 0) return null
 
-          return (
-            <Chip
-              key={type.value}
-              label={`${type.label} (${count})`}
-              clickable
-              onClick={() => {
-                onFilterChange('type', type.value)
-                onFilterChange('status', null) // Clear status filter when selecting type
-              }}
-              variant={selectedFilters.type === type.value ? 'filled' : 'outlined'}
-              sx={selectedFilters.type === type.value ? selectedChipStyles : chipStyles}
-            />
-          )
-        })}
+            return (
+              <Chip
+                key={type.value}
+                label={`${type.label} (${count})`}
+                clickable
+                onClick={() => {
+                  onFilterChange('type', type.value)
+                  onFilterChange('status', null) // Clear status filter when selecting type
+                }}
+                variant={selectedFilters.type === type.value ? 'filled' : 'outlined'}
+                sx={selectedFilters.type === type.value ? selectedChipStyles : chipStyles}
+              />
+            )
+          })}
 
-        {/* Property Status */}
-        {propertyStatuses.map((status) => {
-          const count = statusCounts[status.value] || 0
-          if (count === 0) return null
+          {/* Property Status */}
+          {propertyStatuses.map((status) => {
+            const count = statusCounts[status.value] || 0
+            if (count === 0) return null
 
-          return (
-            <Chip
-              key={status.value}
-              label={`${status.label} (${count})`}
-              clickable
-              onClick={() => {
-                onFilterChange('status', status.value)
-                onFilterChange('type', null) // Clear type filter when selecting status
-              }}
-              variant={selectedFilters.status === status.value ? 'filled' : 'outlined'}
-              sx={selectedFilters.status === status.value ? selectedChipStyles : chipStyles}
-            />
-          )
-        })}
+            return (
+              <Chip
+                key={status.value}
+                label={`${status.label} (${count})`}
+                clickable
+                onClick={() => {
+                  onFilterChange('status', status.value)
+                  onFilterChange('type', null) // Clear type filter when selecting status
+                }}
+                variant={selectedFilters.status === status.value ? 'filled' : 'outlined'}
+                sx={selectedFilters.status === status.value ? selectedChipStyles : chipStyles}
+              />
+            )
+          })}
+        </Box>
+
+        {/* Page Navigation on the right */}
+        {currentPage !== undefined && totalPages !== undefined && onPageChange && (
+          <PageNavigation
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+          />
+        )}
       </Box>
     </Box>
   )

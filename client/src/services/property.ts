@@ -33,6 +33,7 @@ export interface Property {
 
   occupancy: {
     isOccupied: boolean
+    tenant?: string
     leaseStart: string
     leaseEnd: string
     leaseType: 'month-to-month' | 'fixed-term' | 'week-to-week'
@@ -67,10 +68,13 @@ export interface Property {
   }
 
   images: {
+    _id?: string // MongoDB-generated ID for image subdocument
     url: string
     caption: string
     isPrimary: boolean
     uploadedAt: string
+    file?: File // For local images before upload
+    uploading?: boolean // For optimistic updates
   }[]
 
   units: Unit[]
@@ -87,6 +91,7 @@ export interface Unit {
   status: 'available' | 'occupied' | 'maintenance' | 'off-market'
   occupancy: {
     isOccupied: boolean
+    tenant?: string
     leaseStart: string
     leaseEnd: string
     leaseType: 'month-to-month' | 'fixed-term' | 'week-to-week'

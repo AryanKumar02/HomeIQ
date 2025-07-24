@@ -1,8 +1,14 @@
 import { body } from 'express-validator';
 import mongoose from 'mongoose';
 
-// Helper function to validate MongoDB ObjectId
-const isValidObjectId = value => mongoose.Types.ObjectId.isValid(value);
+// Helper function to validate MongoDB ObjectId (allows null/empty for unassigning)
+const isValidObjectId = value => {
+  // Allow null, undefined, or empty string for unassigning tenants
+  if (value === null || value === undefined || value === '') {
+    return true;
+  }
+  return mongoose.Types.ObjectId.isValid(value);
+};
 
 // Create property validators
 export const createPropertyValidators = [
@@ -146,6 +152,52 @@ export const updatePropertyValidators = [
     .optional()
     .isFloat({ min: 0 })
     .withMessage('Security deposit cannot be negative'),
+
+  // Units validation for apartment properties
+  body('units').optional().isArray().withMessage('Units must be an array'),
+
+  body('units.*.unitNumber')
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage('Unit number cannot be empty')
+    .isLength({ max: 20 })
+    .withMessage('Unit number cannot exceed 20 characters'),
+
+  body('units.*.bedrooms')
+    .optional()
+    .isInt({ min: 0, max: 50 })
+    .withMessage('Unit bedrooms must be between 0 and 50'),
+
+  body('units.*.bathrooms')
+    .optional()
+    .isFloat({ min: 0, max: 50 })
+    .withMessage('Unit bathrooms must be between 0 and 50'),
+
+  body('units.*.squareFootage')
+    .optional()
+    .isInt({ min: 1, max: 10000 })
+    .withMessage('Unit square footage must be between 1 and 10,000'),
+
+  body('units.*.monthlyRent')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Unit monthly rent cannot be negative'),
+
+  body('units.*.securityDeposit')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Unit security deposit cannot be negative'),
+
+  body('units.*.status')
+    .optional()
+    .isIn(['available', 'occupied', 'maintenance', 'off-market'])
+    .withMessage('Invalid unit status'),
+
+  body('units.*.occupancy.tenant')
+    .optional()
+    .custom(isValidObjectId)
+    .withMessage('Invalid tenant ID format'),
 ];
 
 // Update status validators

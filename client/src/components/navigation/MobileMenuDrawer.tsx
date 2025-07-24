@@ -60,12 +60,15 @@ const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ open, onClose, navL
           to="/"
           sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
         >
-          <Box
-            component="img"
-            src="/assets/logo.png"
-            alt="EstateLink logo"
-            sx={{ height: 38, mr: 1 }}
-          />
+          <picture>
+            <source srcSet="/assets/logo.webp" type="image/webp" />
+            <Box
+              component="img"
+              src="/assets/logo.png"
+              alt="EstateLink logo"
+              sx={{ height: 38, width: 38, mr: 1 }}
+            />
+          </picture>
           <Typography
             variant="h6"
             sx={{

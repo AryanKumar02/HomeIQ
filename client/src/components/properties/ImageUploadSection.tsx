@@ -1,5 +1,13 @@
 import React from 'react'
-import { Box, TextField, Button, IconButton, Typography } from '@mui/material'
+import {
+  Box,
+  TextField,
+  Button,
+  IconButton,
+  Typography,
+  CircularProgress,
+  Backdrop,
+} from '@mui/material'
 import Grid from '@mui/material/Grid'
 import {
   CloudUpload as CloudUploadIcon,
@@ -15,13 +23,15 @@ interface PropertyImage {
   caption: string
   isPrimary: boolean
   uploadedAt: string
+  file?: File
+  uploading?: boolean
 }
 
 interface ImageUploadSectionProps {
   images: PropertyImage[]
-  onImageAdd: (file: File) => Promise<void>
-  onImageRemove: (index: number) => Promise<void>
-  onSetPrimary: (index: number) => Promise<void>
+  onImageAdd: (file: File) => void
+  onImageRemove: (index: number) => void
+  onSetPrimary: (index: number) => void
   onCaptionUpdate: (index: number, caption: string) => void
   textFieldStyles: object
 }
@@ -153,7 +163,8 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                 >
                   <IconButton
                     size="small"
-                    onClick={() => void onSetPrimary(index)}
+                    onClick={() => onSetPrimary(index)}
+                    disabled={image.uploading}
                     sx={{
                       backgroundColor: 'rgba(255, 255, 255, 0.9)',
                       color: image.isPrimary ? theme.palette.secondary.main : 'grey.500',
@@ -163,13 +174,18 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                       '&:focus': {
                         outline: 'none',
                       },
+                      '&:disabled': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                        color: 'grey.400',
+                      },
                     }}
                   >
                     {image.isPrimary ? <StarIcon /> : <StarBorderIcon />}
                   </IconButton>
                   <IconButton
                     size="small"
-                    onClick={() => void onImageRemove(index)}
+                    onClick={() => onImageRemove(index)}
+                    disabled={image.uploading}
                     sx={{
                       backgroundColor: 'rgba(255, 255, 255, 0.9)',
                       color: 'error.main',
@@ -179,6 +195,10 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                       '&:focus': {
                         outline: 'none',
                       },
+                      '&:disabled': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                        color: 'grey.400',
+                      },
                     }}
                   >
                     <DeleteIcon />
@@ -186,17 +206,46 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                 </Box>
 
                 {/* Image */}
-                <Box
-                  component="img"
-                  src={image.url}
-                  alt={image.caption || `Property image ${index + 1}`}
-                  sx={{
-                    width: '100%',
-                    height: '200px',
-                    objectFit: 'cover',
-                    display: 'block',
-                  }}
-                />
+                <Box sx={{ position: 'relative' }}>
+                  <Box
+                    component="img"
+                    src={image.url}
+                    alt={image.caption || `Property image ${index + 1}`}
+                    sx={{
+                      width: '100%',
+                      height: '200px',
+                      objectFit: 'cover',
+                      display: 'block',
+                      opacity: image.uploading ? 0.5 : 1,
+                      transition: 'opacity 0.3s ease',
+                    }}
+                  />
+
+                  {/* Upload Progress Overlay */}
+                  {image.uploading && (
+                    <Backdrop
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                        zIndex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      open={true}
+                    >
+                      <CircularProgress size={40} sx={{ color: 'white', mb: 1 }} />
+                      <Typography variant="body2" sx={{ color: 'white', fontWeight: 600 }}>
+                        Uploading...
+                      </Typography>
+                    </Backdrop>
+                  )}
+                </Box>
 
                 {/* Caption Input */}
                 <Box sx={{ p: 2 }}>

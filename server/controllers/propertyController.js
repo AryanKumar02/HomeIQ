@@ -1,48 +1,75 @@
 import mongoose from 'mongoose';
 
 import Property from '../models/Property.js';
+import Tenant from '../models/Tenant.js';
 import AppError from '../utils/appError.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import logger from '../utils/logger.js';
 import { deleteS3Object, extractS3KeyFromUrl } from '../utils/s3Utils.js';
 import { deleteAllPropertyImages, getUserStorageStats } from '../utils/multiUserS3.js';
+import { processMultipleImages, getProcessingOptions } from '../utils/imageProcessor.js';
+import { uploadImageVariants } from '../utils/s3Upload.js';
+import { cacheWrapper, CACHE_KEYS, CACHE_TTL, invalidatePropertyCache } from '../utils/cache.js';
 
 // Get all properties for the authenticated user
 export const getMyProperties = catchAsync(async (req, res) => {
-  const properties = await Property.find({
-    owner: req.user.id,
-  }).sort({ createdAt: -1 });
+  const cacheKey = `${CACHE_KEYS.USER_PROPERTIES}${req.user.id}`;
 
-  logger.info(`Retrieved ${properties.length} properties for user ${req.user.id}`);
+  const response = await cacheWrapper(
+    cacheKey,
+    async () => {
+      const properties = await Property.find({
+        owner: req.user.id,
+      }).sort({ createdAt: -1 });
 
-  res.status(200).json({
-    status: 'success',
-    results: properties.length,
-    data: {
-      properties,
+      logger.info(`Retrieved ${properties.length} properties for user ${req.user.id}`);
+
+      return {
+        status: 'success',
+        results: properties.length,
+        data: {
+          properties,
+        },
+      };
     },
-  });
+    CACHE_TTL.MEDIUM,
+  );
+
+  res.status(200).json(response);
 });
 
 // Get a single property by ID
 export const getProperty = catchAsync(async (req, res, next) => {
-  const property = await Property.findOne({
-    _id: req.params.id,
-    owner: req.user.id,
-  }).populate('occupancy.tenant', 'firstName secondName email');
+  const cacheKey = `${CACHE_KEYS.PROPERTY_DETAILS}${req.params.id}`;
 
-  if (!property) {
-    return next(new AppError('Property not found', 404));
-  }
+  const response = await cacheWrapper(
+    cacheKey,
+    async () => {
+      const property = await Property.findOne({
+        _id: req.params.id,
+        owner: req.user.id,
+      }).populate(
+        'occupancy.tenant',
+        'personalInfo.firstName personalInfo.lastName contactInfo.email',
+      );
 
-  logger.info(`Retrieved property ${property._id} for user ${req.user.id}`);
+      if (!property) {
+        throw new AppError('Property not found', 404);
+      }
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      property,
+      logger.info(`Retrieved property ${property._id} for user ${req.user.id}`);
+
+      return {
+        status: 'success',
+        data: {
+          property,
+        },
+      };
     },
-  });
+    CACHE_TTL.MEDIUM,
+  );
+
+  res.status(200).json(response);
 });
 
 // Create a new property
@@ -54,6 +81,9 @@ export const createProperty = catchAsync(async (req, res, next) => {
   };
 
   const property = await Property.create(propertyData);
+
+  // Invalidate user's property cache
+  await invalidatePropertyCache(req.user.id, property._id);
 
   logger.info(`Created new property ${property._id} for user ${req.user.id}`);
 
@@ -67,24 +97,149 @@ export const createProperty = catchAsync(async (req, res, next) => {
 
 // Update a property
 export const updateProperty = catchAsync(async (req, res, next) => {
-  const property = await Property.findOne({
-    _id: req.params.id,
-    owner: req.user.id,
-  });
+  // Remove owner from update data to prevent changing owner
+  // eslint-disable-next-line no-unused-vars
+  const { owner, ...updateData } = req.body;
+
+  // Use atomic findOneAndUpdate operation
+  const property = await Property.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      owner: req.user.id,
+    },
+    updateData,
+    {
+      new: true, // Return the updated document
+      runValidators: true, // Run schema validators
+      upsert: false, // Don't create if not found
+    },
+  );
 
   if (!property) {
     return next(new AppError('Property not found', 404));
   }
 
-  // Update the property with new data
-  Object.keys(req.body).forEach(key => {
-    if (key !== 'owner') {
-      // Prevent changing owner
-      property[key] = req.body[key];
-    }
-  });
+  // Synchronize lease data with tenant records if relevant fields changed
+  const needsLeaseSync =
+    (req.body.occupancy && (req.body.occupancy.leaseStart || req.body.occupancy.leaseEnd)) ||
+    (req.body.financials && req.body.financials.monthlyRent) ||
+    (req.body.financials && req.body.financials.securityDeposit);
 
-  await property.save();
+  if (needsLeaseSync) {
+    const tenantId = property.occupancy?.tenant;
+    if (tenantId) {
+      try {
+        const updateFields = {
+          'leases.$.updatedAt': new Date(),
+        };
+
+        // Update lease dates if they changed
+        if (req.body.occupancy?.leaseStart) {
+          updateFields['leases.$.startDate'] = property.occupancy.leaseStart;
+        }
+        if (req.body.occupancy?.leaseEnd) {
+          updateFields['leases.$.endDate'] = property.occupancy.leaseEnd;
+        }
+
+        // Update rent if it changed
+        if (req.body.financials?.monthlyRent) {
+          updateFields['leases.$.monthlyRent'] = property.financials.monthlyRent;
+        }
+
+        // Update security deposit if it changed
+        if (req.body.financials?.securityDeposit) {
+          updateFields['leases.$.securityDeposit'] = property.financials.securityDeposit;
+        }
+
+        await Tenant.findOneAndUpdate(
+          {
+            _id: tenantId,
+            'leases.property': property._id,
+            'leases.status': 'active',
+          },
+          {
+            $set: updateFields,
+          },
+        );
+
+        const updatedFields = Object.keys(updateFields).filter(key => key !== 'leases.$.updatedAt');
+        logger.info(
+          `Synchronized lease data for tenant ${tenantId} with property ${property._id}. Updated: ${updatedFields.join(', ')}`,
+        );
+      } catch (syncError) {
+        logger.warn(`Failed to sync lease data for tenant ${tenantId}: ${syncError.message}`);
+        // Don't fail the property update if sync fails
+      }
+    }
+  }
+
+  // Synchronize unit-specific lease data for multi-unit properties
+  if (req.body.units && Array.isArray(req.body.units)) {
+    for (const unit of property.units) {
+      if (unit.occupancy?.tenant) {
+        try {
+          const unitUpdateFields = {
+            'leases.$.updatedAt': new Date(),
+          };
+
+          // Find the corresponding updated unit data
+          const updatedUnit = req.body.units.find(
+            u => u._id && u._id.toString() === unit._id.toString(),
+          );
+          if (updatedUnit) {
+            // Update unit rent if it changed
+            if (updatedUnit.monthlyRent !== undefined) {
+              unitUpdateFields['leases.$.monthlyRent'] = unit.monthlyRent;
+            }
+
+            // Update unit security deposit if it changed
+            if (updatedUnit.securityDeposit !== undefined) {
+              unitUpdateFields['leases.$.securityDeposit'] = unit.securityDeposit;
+            }
+
+            // Update lease dates for this unit if they changed
+            if (updatedUnit.occupancy?.leaseStart) {
+              unitUpdateFields['leases.$.startDate'] = unit.occupancy.leaseStart;
+            }
+            if (updatedUnit.occupancy?.leaseEnd) {
+              unitUpdateFields['leases.$.endDate'] = unit.occupancy.leaseEnd;
+            }
+
+            // Only update if there are actual changes
+            const hasChanges = Object.keys(unitUpdateFields).length > 1; // More than just updatedAt
+            if (hasChanges) {
+              await Tenant.findOneAndUpdate(
+                {
+                  _id: unit.occupancy.tenant,
+                  'leases.property': property._id,
+                  'leases.unit': unit._id,
+                  'leases.status': 'active',
+                },
+                {
+                  $set: unitUpdateFields,
+                },
+              );
+
+              const updatedFields = Object.keys(unitUpdateFields).filter(
+                key => key !== 'leases.$.updatedAt',
+              );
+              logger.info(
+                `Synchronized unit lease data for tenant ${unit.occupancy.tenant}, unit ${unit._id}. Updated: ${updatedFields.join(', ')}`,
+              );
+            }
+          }
+        } catch (unitSyncError) {
+          logger.warn(
+            `Failed to sync unit lease data for tenant ${unit.occupancy.tenant}, unit ${unit._id}: ${unitSyncError.message}`,
+          );
+          // Don't fail the property update if sync fails
+        }
+      }
+    }
+  }
+
+  // Invalidate property cache
+  await invalidatePropertyCache(req.user.id, property._id);
 
   logger.info(`Updated property ${property._id} for user ${req.user.id}`);
 
@@ -98,8 +253,8 @@ export const updateProperty = catchAsync(async (req, res, next) => {
 
 // Delete a property permanently
 export const deleteProperty = catchAsync(async (req, res, next) => {
-  // Find the property to delete
-  const property = await Property.findOne({
+  // Use atomic findOneAndDelete operation
+  const property = await Property.findOneAndDelete({
     _id: req.params.id,
     owner: req.user.id,
   });
@@ -114,8 +269,10 @@ export const deleteProperty = catchAsync(async (req, res, next) => {
     logger.warn(`Failed to delete some images for property ${property._id}`);
   }
 
-  // Actually delete the property from MongoDB
-  await Property.findByIdAndDelete(req.params.id);
+  // Property already deleted by findOneAndDelete above
+
+  // Invalidate property cache
+  await invalidatePropertyCache(req.user.id, property._id);
 
   logger.info(`Permanently deleted property ${property._id} for user ${req.user.id}`);
 
@@ -125,7 +282,7 @@ export const deleteProperty = catchAsync(async (req, res, next) => {
   });
 });
 
-// Add images to a property (with file upload)
+// Add images to a property (with optimized image processing)
 export const addPropertyImages = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
@@ -141,35 +298,123 @@ export const addPropertyImages = catchAsync(async (req, res, next) => {
     return next(new AppError('At least one image file is required', 400));
   }
 
-  // Process uploaded files
-  const newImages = req.files.map((file, index) => ({
-    url: file.location, // S3 URL from multer-s3
-    caption: req.body.captions ? req.body.captions[index] || '' : '',
-    isPrimary: property.images.length === 0 && index === 0, // First image of empty property becomes primary
-    uploadedAt: new Date(),
-  }));
+  logger.info(`Processing ${req.files.length} images for property ${property._id}`);
 
-  // Add new images to property
-  property.images.push(...newImages);
+  try {
+    // Extract image buffers from uploaded files
+    const imageBuffers = req.files.map(file => file.buffer);
 
-  // Ensure only one primary image exists
-  const primaryImages = property.images.filter(img => img.isPrimary);
-  if (primaryImages.length > 1) {
-    property.images.forEach((img, index) => {
-      img.isPrimary = index === 0; // Make first image primary
-    });
+    // Get processing options for property images
+    const processingOptions = getProcessingOptions('property');
+
+    // Process all images with sharp
+    const processedResults = await processMultipleImages(imageBuffers, processingOptions);
+
+    // Upload processed images to S3 and create image records
+    const newImages = [];
+    const uploadedS3Keys = []; // Track uploaded files for cleanup on failure
+
+    for (let i = 0; i < processedResults.length; i++) {
+      const result = processedResults[i];
+      const originalFile = req.files[i];
+
+      if (!result.success) {
+        logger.error(`Failed to process image ${i}: ${result.error}`);
+        continue; // Skip failed images
+      }
+
+      try {
+        // Upload all variants to S3
+        const imageUrls = await uploadImageVariants(
+          result.variants,
+          req.user.id,
+          property._id.toString(),
+          'webp',
+        );
+
+        // Track S3 keys for potential cleanup
+        Object.values(imageUrls).forEach(url => {
+          const key = url.split('.amazonaws.com/')[1];
+          if (key) {
+            uploadedS3Keys.push(key);
+          }
+        });
+
+        // Create image record with multiple sizes
+        const imageRecord = {
+          url: imageUrls.original, // Primary URL for backward compatibility
+          urls: imageUrls, // All variants
+          originalName: originalFile.originalname,
+          caption: req.body.captions ? req.body.captions[i] || '' : '',
+          isPrimary: property.images.length === 0 && i === 0, // First image of empty property becomes primary
+          uploadedAt: new Date(),
+          optimized: true,
+          variants: Object.keys(result.variants),
+        };
+
+        newImages.push(imageRecord);
+
+        logger.info(`Successfully processed and uploaded image ${i} for property ${property._id}`);
+      } catch (uploadError) {
+        logger.error(`Failed to upload processed image ${i}: ${uploadError.message}`);
+        // Continue with other images
+      }
+    }
+
+    if (newImages.length === 0) {
+      return next(new AppError('Failed to process any images', 500));
+    }
+
+    // Add new images to property
+    property.images.push(...newImages);
+
+    // Ensure only one primary image exists
+    const primaryImages = property.images.filter(img => img.isPrimary);
+    if (primaryImages.length > 1) {
+      property.images.forEach((img, index) => {
+        img.isPrimary = index === 0; // Make first image primary
+      });
+    }
+
+    try {
+      // Attempt to save to database
+      await property.save();
+
+      // Invalidate property cache
+      await invalidatePropertyCache(req.user.id, property._id);
+
+      logger.info(`Added ${newImages.length} optimized images to property ${property._id}`);
+
+      res.status(200).json({
+        status: 'success',
+        message: `Successfully uploaded and optimized ${newImages.length} images`,
+        data: {
+          property,
+          processedImages: newImages.length,
+          failedImages: req.files.length - newImages.length,
+        },
+      });
+    } catch (saveError) {
+      // If database save fails, clean up uploaded S3 files
+      logger.error(`Database save failed, cleaning up S3 files: ${saveError.message}`);
+
+      const cleanupPromises = uploadedS3Keys.map(async key => {
+        try {
+          await deleteS3Object(key);
+          logger.info(`Cleaned up S3 file: ${key}`);
+        } catch (deleteError) {
+          logger.error(`Failed to cleanup S3 file ${key}: ${deleteError.message}`);
+        }
+      });
+
+      await Promise.allSettled(cleanupPromises);
+
+      return next(new AppError('Failed to save images to database', 500));
+    }
+  } catch (error) {
+    logger.error(`Image processing failed for property ${property._id}: ${error.message}`);
+    return next(new AppError('Failed to process images', 500));
   }
-
-  await property.save();
-
-  logger.info(`Added ${newImages.length} images to property ${property._id}`);
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      property,
-    },
-  });
 });
 
 // Remove an image from a property
@@ -192,14 +437,40 @@ export const removePropertyImage = catchAsync(async (req, res, next) => {
 
   const imageToDelete = property.images[imageIndex];
 
-  // Delete from S3 if it's an S3 URL
-  const s3Key = extractS3KeyFromUrl(imageToDelete.url);
-  if (s3Key) {
-    const deleted = await deleteS3Object(s3Key);
-    if (!deleted) {
-      logger.warn(`Failed to delete S3 object: ${s3Key}`);
+  // Delete all variants from S3 if it's an optimized image
+  const urlsToDelete = [];
+
+  if (imageToDelete.optimized && imageToDelete.urls) {
+    // If image has multiple variants, delete all of them
+    Object.values(imageToDelete.urls.toObject()).forEach(url => {
+      const s3Key = extractS3KeyFromUrl(url);
+      if (s3Key) {
+        urlsToDelete.push(s3Key);
+      }
+    });
+  } else {
+    // Legacy single URL deletion
+    const s3Key = extractS3KeyFromUrl(imageToDelete.url);
+    if (s3Key) {
+      urlsToDelete.push(s3Key);
     }
   }
+
+  // Delete all S3 objects
+  const deletionPromises = urlsToDelete.map(async key => {
+    try {
+      const deleted = await deleteS3Object(key);
+      if (!deleted) {
+        logger.warn(`Failed to delete S3 object: ${key}`);
+      } else {
+        logger.info(`Successfully deleted S3 object: ${key}`);
+      }
+    } catch (error) {
+      logger.error(`Error deleting S3 object ${key}: ${error.message}`);
+    }
+  });
+
+  await Promise.allSettled(deletionPromises);
 
   // If removing primary image, set another image as primary
   const wasPrimary = imageToDelete.isPrimary;
@@ -305,6 +576,19 @@ export const updateOccupancy = catchAsync(async (req, res, next) => {
     return next(new AppError('Occupancy data is required', 400));
   }
 
+  // If assigning a tenant, verify tenant exists and belongs to the user
+  if (occupancy.tenant) {
+    const tenant = await Tenant.findOne({
+      _id: occupancy.tenant,
+      createdBy: req.user.id,
+      isActive: true,
+    });
+
+    if (!tenant) {
+      return next(new AppError('Tenant not found or you do not have access to it', 404));
+    }
+  }
+
   // Update occupancy information
   Object.keys(occupancy).forEach(key => {
     property.occupancy[key] = occupancy[key];
@@ -325,68 +609,77 @@ export const updateOccupancy = catchAsync(async (req, res, next) => {
 // Get property analytics/summary
 export const getPropertyAnalytics = catchAsync(async (req, res) => {
   const userId = req.user.id;
+  const cacheKey = `${CACHE_KEYS.PROPERTY_ANALYTICS}${userId}`;
 
-  const analytics = await Property.aggregate([
-    {
-      $match: {
-        owner: new mongoose.Types.ObjectId(userId),
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        totalProperties: { $sum: 1 },
-        occupiedProperties: {
-          $sum: {
-            $cond: [{ $eq: ['$occupancy.isOccupied', true] }, 1, 0],
+  const response = await cacheWrapper(
+    cacheKey,
+    async () => {
+      const analytics = await Property.aggregate([
+        {
+          $match: {
+            owner: mongoose.Types.ObjectId.createFromHexString(userId),
           },
         },
-        totalMonthlyRent: { $sum: '$financials.monthlyRent' },
-        totalPropertyValue: { $sum: '$financials.propertyValue' },
-        averageRent: { $avg: '$financials.monthlyRent' },
-        averagePropertyValue: { $avg: '$financials.propertyValue' },
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        totalProperties: 1,
-        occupiedProperties: 1,
-        vacantProperties: { $subtract: ['$totalProperties', '$occupiedProperties'] },
-        occupancyRate: {
-          $cond: [
-            { $eq: ['$totalProperties', 0] },
-            0,
-            { $multiply: [{ $divide: ['$occupiedProperties', '$totalProperties'] }, 100] },
-          ],
+        {
+          $group: {
+            _id: null,
+            totalProperties: { $sum: 1 },
+            occupiedProperties: {
+              $sum: {
+                $cond: [{ $eq: ['$occupancy.isOccupied', true] }, 1, 0],
+              },
+            },
+            totalMonthlyRent: { $sum: '$financials.monthlyRent' },
+            totalPropertyValue: { $sum: '$financials.propertyValue' },
+            averageRent: { $avg: '$financials.monthlyRent' },
+            averagePropertyValue: { $avg: '$financials.propertyValue' },
+          },
         },
-        totalMonthlyRent: { $round: ['$totalMonthlyRent', 2] },
-        totalPropertyValue: { $round: ['$totalPropertyValue', 2] },
-        averageRent: { $round: ['$averageRent', 2] },
-        averagePropertyValue: { $round: ['$averagePropertyValue', 2] },
-      },
+        {
+          $project: {
+            _id: 0,
+            totalProperties: 1,
+            occupiedProperties: 1,
+            vacantProperties: { $subtract: ['$totalProperties', '$occupiedProperties'] },
+            occupancyRate: {
+              $cond: [
+                { $eq: ['$totalProperties', 0] },
+                0,
+                { $multiply: [{ $divide: ['$occupiedProperties', '$totalProperties'] }, 100] },
+              ],
+            },
+            totalMonthlyRent: { $round: ['$totalMonthlyRent', 2] },
+            totalPropertyValue: { $round: ['$totalPropertyValue', 2] },
+            averageRent: { $round: ['$averageRent', 2] },
+            averagePropertyValue: { $round: ['$averagePropertyValue', 2] },
+          },
+        },
+      ]);
+
+      const result = analytics[0] || {
+        totalProperties: 0,
+        occupiedProperties: 0,
+        vacantProperties: 0,
+        occupancyRate: 0,
+        totalMonthlyRent: 0,
+        totalPropertyValue: 0,
+        averageRent: 0,
+        averagePropertyValue: 0,
+      };
+
+      logger.info(`Retrieved analytics for user ${userId}`);
+
+      return {
+        status: 'success',
+        data: {
+          analytics: result,
+        },
+      };
     },
-  ]);
+    CACHE_TTL.LONG,
+  );
 
-  const result = analytics[0] || {
-    totalProperties: 0,
-    occupiedProperties: 0,
-    vacantProperties: 0,
-    occupancyRate: 0,
-    totalMonthlyRent: 0,
-    totalPropertyValue: 0,
-    averageRent: 0,
-    averagePropertyValue: 0,
-  };
-
-  logger.info(`Retrieved analytics for user ${userId}`);
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      analytics: result,
-    },
-  });
+  res.status(200).json(response);
 });
 
 // Search properties with filters
@@ -412,7 +705,16 @@ export const searchProperties = catchAsync(async (req, res) => {
   };
 
   // Whitelist of allowed property types
-  const allowedPropertyTypes = ['house', 'apartment', 'condo', 'townhouse', 'duplex', 'commercial', 'land', 'other'];
+  const allowedPropertyTypes = [
+    'house',
+    'apartment',
+    'condo',
+    'townhouse',
+    'duplex',
+    'commercial',
+    'land',
+    'other',
+  ];
   const allowedStatuses = ['available', 'occupied', 'maintenance', 'off-market', 'pending'];
 
   if (propertyType && allowedPropertyTypes.includes(propertyType)) {
@@ -484,7 +786,8 @@ export const searchProperties = catchAsync(async (req, res) => {
   const parsedPage = parseInt(page, 10);
   const parsedLimit = parseInt(limit, 10);
   const validatedPage = !isNaN(parsedPage) && parsedPage > 0 ? parsedPage : 1;
-  const validatedLimit = !isNaN(parsedLimit) && parsedLimit > 0 && parsedLimit <= 100 ? parsedLimit : 10;
+  const validatedLimit =
+    !isNaN(parsedLimit) && parsedLimit > 0 && parsedLimit <= 100 ? parsedLimit : 10;
   const skip = (validatedPage - 1) * validatedLimit;
 
   const properties = await Property.find(filter)
@@ -518,7 +821,10 @@ export const getUnits = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
     owner: req.user.id,
-  }).populate('units.occupancy.tenant', 'firstName secondName email');
+  }).populate(
+    'units.occupancy.tenant',
+    'personalInfo.firstName personalInfo.lastName contactInfo.email',
+  );
 
   if (!property) {
     return next(new AppError('Property not found', 404));
@@ -677,6 +983,17 @@ export const assignTenantToUnit = catchAsync(async (req, res, next) => {
   const { occupancy } = req.body;
   if (!occupancy || !occupancy.tenant) {
     return next(new AppError('Tenant information is required', 400));
+  }
+
+  // Verify tenant exists and belongs to the user
+  const tenant = await Tenant.findOne({
+    _id: occupancy.tenant,
+    createdBy: req.user.id,
+    isActive: true,
+  });
+
+  if (!tenant) {
+    return next(new AppError('Tenant not found or you do not have access to it', 404));
   }
 
   // Update unit occupancy

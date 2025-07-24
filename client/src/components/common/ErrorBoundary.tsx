@@ -88,7 +88,7 @@ const DefaultErrorFallback: React.FC<{ error?: Error; resetError: () => void }> 
 
   const handleRefresh = () => {
     resetError()
-    window.location.reload()
+    void window.location.reload()
   }
 
   return (

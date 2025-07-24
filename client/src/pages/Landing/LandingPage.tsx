@@ -1,13 +1,13 @@
 import React from 'react'
-import Navbar from '../components/navigation/Navbar'
+import Navbar from '../../components/navigation/Navbar'
 import Box from '@mui/material/Box'
-import HeroSection from '../components/landing/HeroSection'
-import FeaturesSection from '../components/landing/FeaturesSection'
-import StatsSection from '../components/landing/StatsSection'
-import PricingPlansSection from '../components/landing/PricingSection'
-import StartSection from '../components/landing/StartSection'
-import Footer from '../components/navigation/Footer'
 import { useTheme } from '@mui/material/styles'
+import HeroSection from '../../components/landing/HeroSection'
+import FeaturesSection from '../../components/landing/FeaturesSection'
+import StatsSection from '../../components/landing/StatsSection'
+import PricingPlansSection from '../../components/landing/PricingSection'
+import StartSection from '../../components/landing/StartSection'
+import Footer from '../../components/navigation/Footer'
 
 const LandingPage: React.FC = () => {
   const theme = useTheme()

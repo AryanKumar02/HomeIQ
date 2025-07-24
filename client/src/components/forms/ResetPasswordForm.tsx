@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { Box, Typography, TextField, Button, Alert } from '@mui/material'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
-import { resetPassword } from '../../services/auth'
+import { useResetPassword } from '../../hooks/useAuth'
 import { useFormGsapAnimation } from '../../animation/useFormGsapAnimation'
 
 interface ResetPasswordFormProps {
@@ -13,9 +13,12 @@ interface ResetPasswordFormProps {
 const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token, onSuccess, onError }) => {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const navigate = useNavigate()
+
+  // React Query hook
+  const resetPasswordMutation = useResetPassword()
+  const loading = resetPasswordMutation.isPending
 
   // GSAP refs
   const formRef = useRef<HTMLDivElement>(null)
@@ -35,7 +38,40 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token, onSuccess,
     extraRefs: [requestLinkRef as React.RefObject<HTMLElement>],
   })
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  // Handle mutation results
+  React.useEffect(() => {
+    if (resetPasswordMutation.isSuccess) {
+      const successMessage =
+        'Password reset successfully! You can now log in with your new password.'
+      setMessage({
+        type: 'success',
+        text: successMessage,
+      })
+      onSuccess?.()
+
+      // Redirect to login after a delay
+      setTimeout(() => {
+        void navigate('/login')
+      }, 2000)
+    }
+    if (resetPasswordMutation.error) {
+      let errorMessage = 'Something went wrong. Please try again.'
+      const error = resetPasswordMutation.error
+      if (typeof error === 'object' && error !== null) {
+        const customError = error as {
+          response?: { data?: { message?: string } }
+        }
+        errorMessage = customError.response?.data?.message || errorMessage
+      }
+      setMessage({
+        type: 'error',
+        text: errorMessage,
+      })
+      onError?.(errorMessage)
+    }
+  }, [resetPasswordMutation.isSuccess, resetPasswordMutation.error, onSuccess, onError, navigate])
+
+  const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
     setMessage(null)
 
@@ -58,43 +94,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token, onSuccess,
       return
     }
 
-    setLoading(true)
-
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _authResponse = await resetPassword(token, password)
-      // console.log('Password reset successful', _authResponse); // Optional for debugging
-      setMessage({
-        type: 'success',
-        text: 'Password reset successful! Redirecting to login...',
-      })
-      onSuccess?.()
-
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        void navigate('/login')
-      }, 2000)
-    } catch (error: unknown) {
-      let errorMessage = 'Invalid or expired reset link. Please request a new one.'
-      if (typeof error === 'object' && error !== null) {
-        const customError = error as {
-          response?: { data?: { message?: string } }
-          message?: string
-        }
-        if (customError.response?.data?.message) {
-          errorMessage = customError.response.data.message
-        } else if (customError.message) {
-          errorMessage = customError.message
-        }
-      }
-      setMessage({
-        type: 'error',
-        text: errorMessage,
-      })
-      onError?.(errorMessage)
-    } finally {
-      setLoading(false)
-    }
+    resetPasswordMutation.mutate({ token, password })
   }
 
   return (
