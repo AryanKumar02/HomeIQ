@@ -17,8 +17,14 @@ export const useLogin = () => {
     onSuccess: async (data) => {
       console.log('🔐 Login API success, data:', data)
       
-      // If we have a token but no user data, fetch user data
-      if (data.token) {
+      // Handle login data based on what's provided
+      if (data.token && data.user) {
+        // Direct login with both token and user data
+        const store = useAuthStore.getState()
+        store.login(data.user, data.token)
+        console.log('🔐 Store updated with user and token')
+      } else if (data.token) {
+        // If we have a token but no user data, fetch user data
         try {
           // Store token temporarily so getCurrentUser can use it
           localStorage.setItem('authToken', data.token)
@@ -40,10 +46,6 @@ export const useLogin = () => {
           store.clearAuth()
           throw userError
         }
-      } else if (data.token && data.user) {
-        // Direct login with both token and user data
-        const store = useAuthStore.getState()
-        store.login(data.user, data.token)
       }
 
       // Clear React Query cache for fresh start
@@ -63,19 +65,19 @@ export const useLogout = () => {
 
   return useMutation({
     mutationFn: authApi.logout,
-    onSuccess: () => {
+    onSuccess: async () => {
       // Update Zustand store directly
       const store = useAuthStore.getState()
-      store.logout()
+      await store.logout()
       
       // Clear all queries
       queryClient.clear()
     },
-    onError: (error) => {
+    onError: async (error) => {
       console.error('Logout failed:', error)
       // Even if logout API fails, clear local data
       const store = useAuthStore.getState()
-      store.logout()
+      await store.logout()
       queryClient.clear()
     },
   })
@@ -96,7 +98,6 @@ export const useSignup = () => {
 
 // Hook for email verification mutation
 export const useVerifyEmail = () => {
-  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (token: string) => authApi.verifyEmail(token),

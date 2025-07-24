@@ -16,7 +16,6 @@ export const authKeys = {
 
 // Hook for getting current user data (integrates with Zustand)
 export const useCurrentUser = (enabled = true) => {
-  const { setUser, setIsLoading, clearAuth } = useAuthActions()
   const token = useAuthStore((state) => state.token)
   const isInitialized = useAuthStore((state) => state.isInitialized)
 

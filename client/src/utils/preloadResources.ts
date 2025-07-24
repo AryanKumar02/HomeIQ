@@ -65,7 +65,7 @@ export const preloadCriticalFonts = () => {
     // Example: '/fonts/roboto-v30-latin-regular.woff2'
   ]
 
-  criticalFonts.forEach(src => {
+  criticalFonts.forEach((src: string) => {
     preloadResource(src, { 
       as: 'font', 
       type: 'font/woff2',

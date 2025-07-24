@@ -40,7 +40,7 @@ let cachedActionsResult: ReturnType<typeof getAuthActions> | null = null
 
 export const useAuthStore = create<AuthStore>((set, get) => {
   // Wrap set to clear cache on state changes
-  const debugSet = (newState: any) => {
+  const debugSet = (newState: Partial<AuthState>) => {
     // Clear cache when state changes
     cachedAuthResult = null
     lastStateSnapshot = null
@@ -104,7 +104,7 @@ export const useAuthStore = create<AuthStore>((set, get) => {
               isAuthenticated: false,
             })
           }
-        } catch (parseError) {
+        } catch {
           localStorage.removeItem('authToken')
           localStorage.removeItem('userData')
           debugSet({

@@ -4,7 +4,6 @@ import { tenantsApi } from '../api/tenants'
 import type { Tenant } from '../api/tenants'
 import type { 
   TenantTableData, 
-  TenantsTableResponse, 
   TenantTableFilters, 
   PaginationInfo,
   TenantStatus 

@@ -1,7 +1,7 @@
 import express from 'express';
 
 import * as propertyController from '../controllers/propertyController.js';
-import { upload } from '../config/s3.js';
+import { uploadMemory } from '../config/s3.js';
 import { protect } from '../middleware/authMiddleware.js';
 import validateMiddleware from '../middleware/validateMiddleware.js';
 import {
@@ -73,7 +73,7 @@ router.patch(
 router.post(
   '/:id/images',
   uploadLimiter,
-  upload.array('images', 10), // Allow up to 10 images per upload
+  uploadMemory.array('images', 10), // Use memory storage for processing
   addImagesValidators,
   validateMiddleware,
   propertyController.addPropertyImages,

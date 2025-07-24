@@ -75,7 +75,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({
 
 
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+         
         onDelete(tenantId)
       }
     } catch (error: unknown) {

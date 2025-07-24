@@ -52,6 +52,50 @@ Thumbs.db
 
 .claude
 
-
+# Documentation files (development only)
 CLAUDE.md
 gemini.md
+DEPLOYMENT.md
+PRODUCTION-DEPLOY.md
+*.md
+
+# Development/Debug scripts
+server/scripts/debug-*.js
+server/scripts/test*.js
+server/scripts/deploymentCheck.js
+server/scripts/production-*.js
+server/scripts/list-*.js
+
+# Additional environment files
+.env.development
+.env.production
+.env.test
+.env.staging
+
+# Log files
+*.log
+server.log
+server/logs/
+
+# Build directories that might be created
+client/dist/
+server/dist/
+server/build/
+
+# IDE and system files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Deployment artifacts
+.vercel/
+.railway/
+railway.json
+vercel.json
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

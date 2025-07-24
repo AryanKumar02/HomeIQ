@@ -41,8 +41,21 @@ interface ReferenceChecksFormProps {
   showContactActions?: boolean
 }
 
+// Reference type configuration type
+interface ReferenceTypeConfig {
+  label: string;
+  description: string;
+  icon: React.ComponentType<{ fontSize?: string; sx?: object }>;
+  color: string;
+  requiredFields: string[];
+  optionalFields: string[];
+  hideFields: string[];
+  relationshipSuggestions?: string[];
+  defaultRelationship?: string;
+}
+
 // Reference type configuration
-const REFERENCE_TYPE_CONFIG = {
+const REFERENCE_TYPE_CONFIG: Record<string, ReferenceTypeConfig> = {
   'personal': {
     label: 'Personal Reference',
     description: 'Friend, family member, or personal acquaintance',
@@ -104,7 +117,7 @@ const isValidUKPhone = (phone: string): boolean => {
 
 const validateReference = (reference: Reference): string[] => {
   const errors: string[] = []
-  const config = REFERENCE_TYPE_CONFIG[reference.type]
+  const config: ReferenceTypeConfig = REFERENCE_TYPE_CONFIG[reference.type]
 
   // Required field validation
   config.requiredFields.forEach(field => {
@@ -343,8 +356,8 @@ const ReferenceCard: React.FC<{
   textFieldStyles: object
   readOnly?: boolean
   showContactActions?: boolean
-}> = ({ reference, index: _index, onUpdate, onRemove, textFieldStyles, readOnly, showContactActions }) => {
-  const config = REFERENCE_TYPE_CONFIG[reference.type]
+}> = ({ reference, onUpdate, onRemove, textFieldStyles, readOnly, showContactActions }) => {
+  const config: ReferenceTypeConfig = REFERENCE_TYPE_CONFIG[reference.type]
   const IconComponent = config.icon
   const [expanded, setExpanded] = useState(true)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
@@ -457,7 +470,7 @@ const ReferenceCard: React.FC<{
                 disabled={readOnly}
                 sx={textFieldStyles}
               >
-                {config.relationshipSuggestions?.map(suggestion => (
+                {config.relationshipSuggestions?.map((suggestion: string) => (
                   <MenuItem key={suggestion} value={suggestion}>
                     {suggestion}
                   </MenuItem>
@@ -574,7 +587,6 @@ const ReferenceCard: React.FC<{
 
 // Reference Summary Component
 const ReferenceSummary: React.FC<{ references: Reference[] }> = ({ references }) => {
-  const theme = useTheme()
   
   const summary = {
     total: references.length,
@@ -674,7 +686,6 @@ const ReferenceChecksForm: React.FC<ReferenceChecksFormProps> = ({
   readOnly = false,
   showContactActions = false
 }) => {
-  const theme = useTheme()
 
   const addReference = () => {
     console.log('🔵 ADD REFERENCE CLICKED')

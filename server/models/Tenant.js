@@ -1358,13 +1358,19 @@ tenantSchema.virtual('computedApplicationStatus').get(function () {
     switch (qualification.status) {
       case 'qualified':
         // Promote to approved unless manually set to rejected/withdrawn/expired
-        return ['rejected', 'withdrawn', 'expired'].includes(currentStatus) ? currentStatus : 'approved';
+        return ['rejected', 'withdrawn', 'expired'].includes(currentStatus)
+          ? currentStatus
+          : 'approved';
       case 'needs-review':
         // Set to under-review unless manually approved or rejected
-        return ['approved', 'rejected', 'withdrawn', 'expired'].includes(currentStatus) ? currentStatus : 'under-review';
+        return ['approved', 'rejected', 'withdrawn', 'expired'].includes(currentStatus)
+          ? currentStatus
+          : 'under-review';
       case 'not-qualified':
         // Set to under-review unless manually approved (landlord can override) or rejected
-        return ['approved', 'rejected', 'withdrawn', 'expired'].includes(currentStatus) ? currentStatus : 'under-review';
+        return ['approved', 'rejected', 'withdrawn', 'expired'].includes(currentStatus)
+          ? currentStatus
+          : 'under-review';
       default:
         return currentStatus;
     }

@@ -82,7 +82,15 @@ const propertySchema = new mongoose.Schema({
     {
       url: {
         type: String,
-        required: true,
+        required: true, // Primary URL for backward compatibility
+      },
+      urls: {
+        type: Map,
+        of: String, // Map of size variants to URLs (thumbnail, medium, large, original)
+      },
+      originalName: {
+        type: String,
+        trim: true,
       },
       caption: {
         type: String,
@@ -96,6 +104,14 @@ const propertySchema = new mongoose.Schema({
       uploadedAt: {
         type: Date,
         default: Date.now,
+      },
+      optimized: {
+        type: Boolean,
+        default: false, // Indicates if image went through optimization pipeline
+      },
+      variants: {
+        type: [String], // Array of available size variants
+        default: [],
       },
     },
   ],
@@ -200,7 +216,9 @@ const propertySchema = new mongoose.Schema({
       unitNumber: {
         type: String,
         required: function () {
-          return this.parent().propertyType === 'apartment' && this.parent().units.length > 0;
+          // Access the parent document properly for nested validation
+          const parentDoc = this.ownerDocument();
+          return parentDoc && parentDoc.propertyType === 'apartment';
         },
         trim: true,
         maxlength: [20, 'Unit number cannot exceed 20 characters'],

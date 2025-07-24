@@ -585,12 +585,8 @@ const CreateTenant: React.FC = () => {
           ...prev,
           references: prev.references.map((ref, i) => {
             if (i === index) {
-
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-return
               return { ...ref, [fieldName]: value }
             }
-
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return ref
           }),
         }))

@@ -7,12 +7,12 @@ import AppError from '../utils/appError.js';
 export const getTenants = catchAsync(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   let limit = parseInt(req.query.limit) || 10;
-  
+
   // Cap the limit at 100 for performance and security reasons
   if (limit > 100) {
     limit = 100;
   }
-  
+
   const skip = (page - 1) * limit;
 
   // Build filter object
@@ -172,7 +172,11 @@ export const updateTenant = catchAsync(async (req, res, next) => {
   // Clean existing tenant references data
   if (tenant.references && tenant.references.length > 0) {
     tenant.references = tenant.references.map(ref => {
-      if (ref.contactedBy && typeof ref.contactedBy === 'string' && ref.contactedBy === 'current-user') {
+      if (
+        ref.contactedBy &&
+        typeof ref.contactedBy === 'string' &&
+        ref.contactedBy === 'current-user'
+      ) {
         ref.contactedBy = undefined; // Clear invalid contactedBy field
       }
       return ref;
@@ -208,7 +212,11 @@ export const updateTenant = catchAsync(async (req, res, next) => {
     // Clean up any invalid contactedBy fields (should be ObjectId or null)
     const cleanedReferences = req.body.references.map(ref => {
       const cleanRef = { ...ref };
-      if (cleanRef.contactedBy && typeof cleanRef.contactedBy === 'string' && cleanRef.contactedBy === 'current-user') {
+      if (
+        cleanRef.contactedBy &&
+        typeof cleanRef.contactedBy === 'string' &&
+        cleanRef.contactedBy === 'current-user'
+      ) {
         delete cleanRef.contactedBy; // Remove invalid contactedBy field
       }
       return cleanRef;
@@ -218,15 +226,15 @@ export const updateTenant = catchAsync(async (req, res, next) => {
 
   // Update other top-level fields
   const {
-    personalInfo: _personalInfo,
-    contactInfo: _contactInfo,
-    addresses: _addresses,
-    employment: _employment,
-    financialInfo: _financialInfo,
-    applicationStatus: _applicationStatus,
-    referencing: _referencing,
-    privacy: _privacy,
-    references: _references,
+    personalInfo,
+    contactInfo,
+    addresses,
+    employment,
+    financialInfo,
+    applicationStatus,
+    referencing,
+    privacy,
+    references,
     ...otherFields
   } = req.body;
   Object.assign(tenant, otherFields);

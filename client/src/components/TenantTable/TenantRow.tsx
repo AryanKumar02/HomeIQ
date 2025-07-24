@@ -266,8 +266,7 @@ const TenantRow: React.FC<TenantRowProps> = ({
           tenantId={tenant.id}
           onView={onView}
           onEdit={onEdit}
-
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+           
           onDelete={onDelete}
         />
       </TableCell>
