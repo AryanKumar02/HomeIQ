@@ -659,7 +659,6 @@ describe('Tenant API', () => {
       tenantId = response.body.data.tenant._id;
     });
 
-
     describe('GET /api/v1/tenants/:id/qualification-status', () => {
       it('should return general qualification status', async () => {
         const response = await request(app)
@@ -675,7 +674,6 @@ describe('Tenant API', () => {
         expect(response.body.data.computedApplicationStatus).toBeDefined();
       });
     });
-
 
     describe('Property Qualification Check', () => {
       it('should check qualification for specific property rent', async () => {
@@ -703,7 +701,6 @@ describe('Tenant API', () => {
         expect(response.body.data.qualification.overallQualifies).toBe(true);
         expect(response.body.data.qualification.tenant.grossIncome).toBe(4000);
       });
-
     });
 
     describe('Tenant Assignment to Property', () => {
@@ -733,7 +730,10 @@ describe('Tenant API', () => {
 
         // Verify property is now occupied
         expect(response.body.data.property.occupancy.isOccupied).toBe(true);
-        expect(response.body.data.property.occupancy.tenant._id || response.body.data.property.occupancy.tenant).toBe(tenantId);
+        expect(
+          response.body.data.property.occupancy.tenant._id ||
+            response.body.data.property.occupancy.tenant,
+        ).toBe(tenantId);
       });
 
       it('should unassign tenant from property', async () => {
@@ -974,7 +974,6 @@ describe('Tenant API', () => {
     });
 
     describe('PATCH /api/v1/tenants/bulk-update', () => {
-
       it('should reject invalid operation', async () => {
         const bulkData = {
           tenantIds: [tenant1Id],
