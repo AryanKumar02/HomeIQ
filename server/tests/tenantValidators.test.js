@@ -150,7 +150,7 @@ describe('Tenant Validators', () => {
     describe('Personal Information Validation', () => {
       it('should accept valid personal information', async () => {
         await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(validTenantData)
           .expect(201);
@@ -166,7 +166,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -184,7 +184,7 @@ describe('Tenant Validators', () => {
         };
 
         await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -200,7 +200,7 @@ describe('Tenant Validators', () => {
         };
 
         await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -216,7 +216,7 @@ describe('Tenant Validators', () => {
         };
 
         await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -232,7 +232,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -250,7 +250,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -268,7 +268,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -286,7 +286,7 @@ describe('Tenant Validators', () => {
         };
 
         await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -302,7 +302,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -322,7 +322,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -340,7 +340,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -363,7 +363,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -394,7 +394,7 @@ describe('Tenant Validators', () => {
           };
 
           await request(app)
-            .post('/api/v1/tenant')
+            .post('/api/v1/tenants')
             .set('Authorization', `Bearer ${authToken}`)
             .send(testData)
             .expect(201);
@@ -416,7 +416,7 @@ describe('Tenant Validators', () => {
         };
 
         await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -435,7 +435,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -456,7 +456,7 @@ describe('Tenant Validators', () => {
         };
 
         await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -476,7 +476,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -507,7 +507,7 @@ describe('Tenant Validators', () => {
           };
 
           await request(app)
-            .post('/api/v1/tenant')
+            .post('/api/v1/tenants')
             .set('Authorization', `Bearer ${authToken}`)
             .send(testData)
             .expect(201);
@@ -528,7 +528,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -548,7 +548,7 @@ describe('Tenant Validators', () => {
         };
 
         await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -569,7 +569,7 @@ describe('Tenant Validators', () => {
         };
 
         await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -593,7 +593,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -616,7 +616,7 @@ describe('Tenant Validators', () => {
         };
 
         await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -637,7 +637,7 @@ describe('Tenant Validators', () => {
         };
 
         await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -658,7 +658,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -675,7 +675,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -692,7 +692,7 @@ describe('Tenant Validators', () => {
         };
 
         const response = await request(app)
-          .post('/api/v1/tenant')
+          .post('/api/v1/tenants')
           .set('Authorization', `Bearer ${authToken}`)
           .send(invalidData)
           .expect(400);
@@ -755,7 +755,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(tenantData);
 
@@ -774,7 +774,7 @@ describe('Tenant Validators', () => {
 
     it('should accept valid lease data', async () => {
       await request(app)
-        .post(`/api/v1/tenant/${tenantId}/leases`)
+        .post(`/api/v1/tenants/${tenantId}/leases`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(getValidLeaseData())
         .expect(200);
@@ -785,7 +785,7 @@ describe('Tenant Validators', () => {
       delete invalidData.property;
 
       const response = await request(app)
-        .post(`/api/v1/tenant/${tenantId}/leases`)
+        .post(`/api/v1/tenants/${tenantId}/leases`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidData)
         .expect(400);
@@ -800,7 +800,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .post(`/api/v1/tenant/${tenantId}/leases`)
+        .post(`/api/v1/tenants/${tenantId}/leases`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidData)
         .expect(400);
@@ -815,7 +815,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .post(`/api/v1/tenant/${tenantId}/leases`)
+        .post(`/api/v1/tenants/${tenantId}/leases`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidData)
         .expect(400);
@@ -828,7 +828,7 @@ describe('Tenant Validators', () => {
       delete invalidData.startDate;
 
       const response = await request(app)
-        .post(`/api/v1/tenant/${tenantId}/leases`)
+        .post(`/api/v1/tenants/${tenantId}/leases`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidData)
         .expect(400);
@@ -841,7 +841,7 @@ describe('Tenant Validators', () => {
       delete invalidData.endDate;
 
       const response = await request(app)
-        .post(`/api/v1/tenant/${tenantId}/leases`)
+        .post(`/api/v1/tenants/${tenantId}/leases`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidData)
         .expect(400);
@@ -857,7 +857,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .post(`/api/v1/tenant/${tenantId}/leases`)
+        .post(`/api/v1/tenants/${tenantId}/leases`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidData)
         .expect(400);
@@ -870,7 +870,7 @@ describe('Tenant Validators', () => {
       delete invalidData.monthlyRent;
 
       const response = await request(app)
-        .post(`/api/v1/tenant/${tenantId}/leases`)
+        .post(`/api/v1/tenants/${tenantId}/leases`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidData)
         .expect(400);
@@ -885,7 +885,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .post(`/api/v1/tenant/${tenantId}/leases`)
+        .post(`/api/v1/tenants/${tenantId}/leases`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidData)
         .expect(400);
@@ -900,7 +900,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .post(`/api/v1/tenant/${tenantId}/leases`)
+        .post(`/api/v1/tenants/${tenantId}/leases`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidData)
         .expect(400);
@@ -915,7 +915,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .post(`/api/v1/tenant/${tenantId}/leases`)
+        .post(`/api/v1/tenants/${tenantId}/leases`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidData)
         .expect(400);
@@ -949,7 +949,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(tenantData);
 
@@ -964,7 +964,7 @@ describe('Tenant Validators', () => {
       };
 
       await request(app)
-        .patch(`/api/v1/tenant/${tenantId}/affordability`)
+        .patch(`/api/v1/tenants/${tenantId}/affordability`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(assessmentData)
         .expect(200);
@@ -977,7 +977,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .patch(`/api/v1/tenant/${tenantId}/affordability`)
+        .patch(`/api/v1/tenants/${tenantId}/affordability`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(assessmentData)
         .expect(400);
@@ -992,7 +992,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .patch(`/api/v1/tenant/${tenantId}/affordability`)
+        .patch(`/api/v1/tenants/${tenantId}/affordability`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(assessmentData)
         .expect(400);
@@ -1007,7 +1007,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .patch(`/api/v1/tenant/${tenantId}/affordability`)
+        .patch(`/api/v1/tenants/${tenantId}/affordability`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(assessmentData)
         .expect(400);
@@ -1022,7 +1022,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .patch(`/api/v1/tenant/${tenantId}/affordability`)
+        .patch(`/api/v1/tenants/${tenantId}/affordability`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(assessmentData)
         .expect(400);
@@ -1056,7 +1056,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(tenantData);
 
@@ -1072,7 +1072,7 @@ describe('Tenant Validators', () => {
       };
 
       await request(app)
-        .patch(`/api/v1/tenant/${tenantId}/referencing`)
+        .patch(`/api/v1/tenants/${tenantId}/referencing`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(referencingData)
         .expect(200);
@@ -1085,7 +1085,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .patch(`/api/v1/tenant/${tenantId}/referencing`)
+        .patch(`/api/v1/tenants/${tenantId}/referencing`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(referencingData)
         .expect(400);
@@ -1100,7 +1100,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .patch(`/api/v1/tenant/${tenantId}/referencing`)
+        .patch(`/api/v1/tenants/${tenantId}/referencing`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(referencingData)
         .expect(400);
@@ -1115,7 +1115,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .patch(`/api/v1/tenant/${tenantId}/referencing`)
+        .patch(`/api/v1/tenants/${tenantId}/referencing`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(referencingData)
         .expect(400);
@@ -1149,7 +1149,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(tenantData);
 
@@ -1162,7 +1162,7 @@ describe('Tenant Validators', () => {
       };
 
       await request(app)
-        .post(`/api/v1/tenant/${tenantId}/qualification`)
+        .post(`/api/v1/tenants/${tenantId}/qualification`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(qualificationData)
         .expect(200);
@@ -1170,7 +1170,7 @@ describe('Tenant Validators', () => {
 
     it('should reject missing monthly rent', async () => {
       const response = await request(app)
-        .post(`/api/v1/tenant/${tenantId}/qualification`)
+        .post(`/api/v1/tenants/${tenantId}/qualification`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({})
         .expect(400);
@@ -1184,7 +1184,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .post(`/api/v1/tenant/${tenantId}/qualification`)
+        .post(`/api/v1/tenants/${tenantId}/qualification`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(qualificationData)
         .expect(400);
@@ -1198,7 +1198,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .post(`/api/v1/tenant/${tenantId}/qualification`)
+        .post(`/api/v1/tenants/${tenantId}/qualification`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(qualificationData)
         .expect(400);
@@ -1239,12 +1239,12 @@ describe('Tenant Validators', () => {
       };
 
       const response1 = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(tenant1Data);
 
       const response2 = await request(app)
-        .post('/api/v1/tenant')
+        .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(tenant2Data);
 
@@ -1259,7 +1259,7 @@ describe('Tenant Validators', () => {
       };
 
       await request(app)
-        .patch('/api/v1/tenant/bulk-update')
+        .patch('/api/v1/tenants/bulk-update')
         .set('Authorization', `Bearer ${authToken}`)
         .send(bulkData)
         .expect(200);
@@ -1271,7 +1271,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .patch('/api/v1/tenant/bulk-update')
+        .patch('/api/v1/tenants/bulk-update')
         .set('Authorization', `Bearer ${authToken}`)
         .send(bulkData)
         .expect(400);
@@ -1286,7 +1286,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .patch('/api/v1/tenant/bulk-update')
+        .patch('/api/v1/tenants/bulk-update')
         .set('Authorization', `Bearer ${authToken}`)
         .send(bulkData)
         .expect(400);
@@ -1301,7 +1301,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .patch('/api/v1/tenant/bulk-update')
+        .patch('/api/v1/tenants/bulk-update')
         .set('Authorization', `Bearer ${authToken}`)
         .send(bulkData)
         .expect(400);
@@ -1315,7 +1315,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .patch('/api/v1/tenant/bulk-update')
+        .patch('/api/v1/tenants/bulk-update')
         .set('Authorization', `Bearer ${authToken}`)
         .send(bulkData)
         .expect(400);
@@ -1330,7 +1330,7 @@ describe('Tenant Validators', () => {
       };
 
       const response = await request(app)
-        .patch('/api/v1/tenant/bulk-update')
+        .patch('/api/v1/tenants/bulk-update')
         .set('Authorization', `Bearer ${authToken}`)
         .send(bulkData)
         .expect(400);
