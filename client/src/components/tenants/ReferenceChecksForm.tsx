@@ -45,7 +45,7 @@ interface ReferenceChecksFormProps {
 interface ReferenceTypeConfig {
   label: string;
   description: string;
-  icon: React.ComponentType<{ fontSize?: string; sx?: object }>;
+  icon: React.ComponentType<any>;
   color: string;
   requiredFields: string[];
   optionalFields: string[];
@@ -559,7 +559,7 @@ const ReferenceCard: React.FC<{
         )}
         
         {/* Debug: Show contact actions status */}
-        {process.env.NODE_ENV === 'development' && (
+        {import.meta.env.MODE === 'development' && (
           <Box sx={{ mt: 1, p: 1, bgcolor: 'info.light', borderRadius: 1, fontSize: '0.75rem' }}>
             Debug: showContactActions = {showContactActions ? 'true' : 'false'}, 
             contactedDate = {reference.contactedDate || 'null'}
