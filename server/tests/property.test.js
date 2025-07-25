@@ -67,7 +67,16 @@ describe('Property API', () => {
   };
 
   beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
+    mongoServer = await MongoMemoryServer.create({
+      binary: {
+        downloadDir: process.env.HOME + '/.cache/mongodb-binaries',
+        skipMD5: true,
+      },
+      instance: {
+        dbName: 'testdb',
+        storageEngine: 'wiredTiger',
+      },
+    });
     const mongoUri = mongoServer.getUri();
     await mongoose.connect(mongoUri);
   }, 30000);

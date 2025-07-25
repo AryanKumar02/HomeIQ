@@ -36,8 +36,21 @@ jobs:
         run: npm run lint || true
         working-directory: ./client
 
+      - name: Cache MongoDB binaries
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: ${{ runner.os }}-mongodb-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-mongodb-
+
       - name: Test server
         run: npm test
         working-directory: ./server
+        env:
+          NODE_ENV: test
+          MONGOMS_DOWNLOAD_DIR: ~/.cache/mongodb-binaries
+          MONGOMS_SKIP_MD5: true
+          MONGOMS_VERSION: 7.0.14
 
       # Add more steps as needed (build, test client, etc.) 
