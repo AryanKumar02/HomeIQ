@@ -36,8 +36,17 @@ describe('Tenant Validators', () => {
   };
 
   beforeAll(async () => {
-    // Start in-memory MongoDB instance
-    mongoServer = await MongoMemoryServer.create();
+    // Start in-memory MongoDB instance with CI-friendly configuration
+    mongoServer = await MongoMemoryServer.create({
+      binary: {
+        downloadDir: process.env.HOME + '/.cache/mongodb-binaries',
+        skipMD5: true,
+      },
+      instance: {
+        dbName: 'testdb',
+        storageEngine: 'wiredTiger',
+      },
+    });
     const mongoUri = mongoServer.getUri();
 
     // Connect to the in-memory database

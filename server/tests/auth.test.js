@@ -17,7 +17,16 @@ let mongoServer;
 let app;
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
+  mongoServer = await MongoMemoryServer.create({
+    binary: {
+      downloadDir: process.env.HOME + '/.cache/mongodb-binaries',
+      skipMD5: true,
+    },
+    instance: {
+      dbName: 'testdb',
+      storageEngine: 'wiredTiger',
+    },
+  });
   const uri = mongoServer.getUri();
   await mongoose.connect(uri, {
     useNewUrlParser: true,

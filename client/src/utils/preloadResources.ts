@@ -60,7 +60,7 @@ export const preloadCriticalImages = () => {
  * Preload critical fonts
  */
 export const preloadCriticalFonts = () => {
-  const criticalFonts = [
+  const criticalFonts: string[] = [
     // Add paths to critical font files
     // Example: '/fonts/roboto-v30-latin-regular.woff2'
   ]

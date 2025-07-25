@@ -1370,7 +1370,7 @@ const CreateTenant: React.FC = () => {
                 references={formData.references}
                 onInputChange={handleInputChange}
                 textFieldStyles={textFieldStyles}
-                showContactActions={isEditMode || process.env.NODE_ENV === 'development'}
+                showContactActions={isEditMode || import.meta.env.MODE === 'development'}
               />
 
               {/* Divider - Only show when status form is visible */}
