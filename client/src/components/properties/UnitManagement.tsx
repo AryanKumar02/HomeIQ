@@ -132,7 +132,7 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
       !tenant.leases ||
       !Array.isArray(tenant.leases) ||
       !tenant.leases.some((lease) => lease.status === 'active')
-    const qualification = getQualificationStatus(tenant)
+    const qualification = getQualificationStatus(tenant as { qualificationStatus?: { status?: string; issues?: unknown[] } })
 
     // Include tenants that are either manually approved or automatically qualified
     const isApproved = tenant.applicationStatus?.status === 'approved'
@@ -213,7 +213,7 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
       }
 
       showNotification(
-        `${getTenantName(selectedTenant)} assigned to unit ${unit.unitNumber} successfully!`,
+        `${getTenantName(selectedTenant as { personalInfo: { firstName: string; lastName: string } })} assigned to unit ${unit.unitNumber} successfully!`,
         'success'
       )
     } catch (error: unknown) {
@@ -251,7 +251,7 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
       }
 
       showNotification(
-        `${getTenantName(currentTenant)} unassigned from unit ${unit.unitNumber} successfully!`,
+        `${getTenantName(currentTenant as { personalInfo: { firstName: string; lastName: string } })} unassigned from unit ${unit.unitNumber} successfully!`,
         'success'
       )
     } catch (error) {
@@ -483,7 +483,7 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
                         <Person color="primary" />
                         <Box>
                           <Typography variant="subtitle1" fontWeight="medium">
-                            {getTenantName(getCurrentTenant(unit)!)}
+                            {getTenantName(getCurrentTenant(unit)! as { personalInfo: { firstName: string; lastName: string } })}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
                             Assigned to Unit {unit.unitNumber}
@@ -503,7 +503,7 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
                   ) : (
                     <Autocomplete
                       options={availableTenants}
-                      getOptionLabel={(tenant) => getTenantName(tenant)}
+                      getOptionLabel={(tenant) => getTenantName(tenant as { personalInfo: { firstName: string; lastName: string } })}
                       onChange={(_, tenant) => handleTenantSelect(index, tenant)}
                       renderInput={(params) => (
                         <TextField
@@ -515,7 +515,7 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
                         />
                       )}
                       renderOption={(props, tenant) => {
-                        const qualification = getQualificationStatus(tenant)
+                        const qualification = getQualificationStatus(tenant as { qualificationStatus?: { status?: string; issues?: unknown[] } })
                         return (
                           <Box
                             component="li"
@@ -523,7 +523,7 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
                             sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                           >
                             <Box sx={{ flexGrow: 1 }}>
-                              <Typography variant="body1">{getTenantName(tenant)}</Typography>
+                              <Typography variant="body1">{getTenantName(tenant as { personalInfo: { firstName: string; lastName: string } })}</Typography>
                               <Typography variant="body2" color="text.secondary">
                                 {
                                   (tenant as { contactInfo?: { email?: string } }).contactInfo
@@ -767,7 +767,7 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
         fullWidth
       >
         <DialogTitle>
-          Assign {selectedTenant && getTenantName(selectedTenant)} to Unit{' '}
+          Assign {selectedTenant && getTenantName(selectedTenant as { personalInfo: { firstName: string; lastName: string } })} to Unit{' '}
           {selectedUnitIndex !== null ? units[selectedUnitIndex]?.unitNumber : ''}
         </DialogTitle>
         <DialogContent>

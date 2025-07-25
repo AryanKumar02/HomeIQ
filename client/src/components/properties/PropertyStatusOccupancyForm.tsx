@@ -247,7 +247,7 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
     setLoading(true)
     try {
       await tenantsApi.unassignFromProperty({
-        tenantId: currentTenant._id,
+        tenantId: currentTenant._id!,
         propertyId: formData._id,
       })
 
@@ -357,7 +357,7 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
                   <Person color="primary" />
                   <Box>
                     <Typography variant="subtitle1" fontWeight="medium">
-                      {getTenantName(getCurrentTenant())}
+                      {getTenantName(getCurrentTenant()!)}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Assigned Tenant
@@ -379,7 +379,7 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
                 options={availableTenants}
                 getOptionLabel={(tenant) => getTenantName(tenant)}
                 value={selectedTenant}
-                onChange={(event, newValue) => handleTenantSelect(newValue)}
+                onChange={(_, newValue) => handleTenantSelect(newValue)}
                 renderInput={(params) => (
                   <TextField
                     {...params}
