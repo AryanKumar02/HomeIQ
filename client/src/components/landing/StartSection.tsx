@@ -34,14 +34,38 @@ const StartSection: React.FC = () => {
             onClick={handleSignupClick}
             sx={{
               bgcolor: 'common.white',
-              color: 'primary.main',
+              color: 'secondary.main',
               fontWeight: 600,
               px: 5,
               py: 1.5,
               borderRadius: 2,
+              position: 'relative',
+              overflow: 'hidden',
               '&:hover': {
                 bgcolor: 'common.white',
-                opacity: 0.9,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                  pointerEvents: 'none',
+                },
+              },
+              '&:active': {
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                  pointerEvents: 'none',
+                },
               },
             }}
           >
@@ -60,10 +84,33 @@ const StartSection: React.FC = () => {
               px: 5,
               py: 1.5,
               borderRadius: 2,
+              position: 'relative',
+              overflow: 'hidden',
               '&:hover': {
                 borderColor: 'common.white',
-                bgcolor: 'rgba(255,255,255,0.08)',
                 color: 'common.white',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  pointerEvents: 'none',
+                },
+              },
+              '&:active': {
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                  pointerEvents: 'none',
+                },
               },
             }}
           >

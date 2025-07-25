@@ -216,14 +216,14 @@ const CreateTenant: React.FC = () => {
   const textFieldStyles = {
     '& .MuiOutlinedInput-root': {
       borderRadius: 2,
-      background: '#f7f8fa',
+      background: theme.palette.background.default,
       boxShadow: 'none',
       transition:
         'border-color 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s cubic-bezier(0.4,0,0.2,1)',
     },
     '& .MuiOutlinedInput-notchedOutline': {
       borderWidth: '1.5px',
-      borderColor: '#e0e3e7',
+      borderColor: theme.palette.border.light,
       transition:
         'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
     },
@@ -240,10 +240,10 @@ const CreateTenant: React.FC = () => {
       fontSize: '0.95rem',
       fontWeight: 400,
       lineHeight: 1.5,
-      color: '#2d3748',
+      color: theme.palette.text.primary,
     },
     '& .MuiInputLabel-root': {
-      color: '#718096',
+      color: theme.palette.text.secondary,
       fontSize: '0.95rem',
       fontWeight: 500,
       transform: 'translate(16px, 16px) scale(1)',

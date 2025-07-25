@@ -139,7 +139,7 @@ const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ token }) => {
                   component={RouterLink}
                   to="/login"
                   sx={{
-                    color: 'primary.main',
+                    color: 'secondary.main',
                     textDecoration: 'none',
                     fontWeight: 600,
                     '&:hover': { textDecoration: 'underline' },
@@ -158,7 +158,7 @@ const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ token }) => {
                     component={RouterLink}
                     to="/resend-verification"
                     sx={{
-                      color: 'primary.main',
+                      color: 'secondary.main',
                       textDecoration: 'none',
                       fontWeight: 600,
                       '&:hover': { textDecoration: 'underline' },
@@ -170,7 +170,7 @@ const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ token }) => {
                     component={RouterLink}
                     to="/login"
                     sx={{
-                      color: 'primary.main',
+                      color: 'secondary.main',
                       textDecoration: 'none',
                       fontWeight: 600,
                       '&:hover': { textDecoration: 'underline' },

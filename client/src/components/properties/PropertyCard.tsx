@@ -118,17 +118,17 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   const getStatusConfig = () => {
     switch (property.status) {
       case 'available':
-        return { color: '#4caf50', label: 'Available' }
+        return { color: theme.palette.success.main, label: 'Available' }
       case 'occupied':
         return { color: theme.palette.primary.main, label: 'Occupied' }
       case 'maintenance':
-        return { color: '#ff9800', label: 'Maintenance' }
+        return { color: theme.palette.warning.main, label: 'Maintenance' }
       case 'off-market':
-        return { color: '#9e9e9e', label: 'Off Market' }
+        return { color: theme.palette.grey[500], label: 'Off Market' }
       case 'pending':
-        return { color: '#f9a825', label: 'Pending' }
+        return { color: theme.palette.warning.dark, label: 'Pending' }
       default:
-        return { color: '#9e9e9e', label: property.status }
+        return { color: theme.palette.grey[500], label: property.status }
     }
   }
 

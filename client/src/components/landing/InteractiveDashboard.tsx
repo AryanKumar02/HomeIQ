@@ -162,7 +162,7 @@ const InteractiveDashboard: React.FC = () => {
           </Typography>
           <Box sx={{ mb: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <ListAltIcon sx={{ mr: 0.5, color: 'primary.main', fontSize: '1.1rem' }} />
+              <ListAltIcon sx={{ mr: 0.5, color: 'secondary.main', fontSize: '1.1rem' }} />
               <Typography variant="body1" component="span" fontWeight="medium">
                 150
               </Typography>
@@ -173,7 +173,7 @@ const InteractiveDashboard: React.FC = () => {
           </Box>
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <AssignmentTurnedInIcon sx={{ mr: 0.5, color: 'primary.main', fontSize: '1.1rem' }} />
+              <AssignmentTurnedInIcon sx={{ mr: 0.5, color: 'secondary.main', fontSize: '1.1rem' }} />
               <Typography variant="body1" component="span" fontWeight="medium">
                 12
               </Typography>

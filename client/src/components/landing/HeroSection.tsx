@@ -15,7 +15,7 @@ const HeroSection: React.FC = () => {
     <Box
       component="section"
       sx={{
-        background: 'linear-gradient(to right bottom, #eff6ff, #ffffff)', // Applied user's specified gradient
+        background: `linear-gradient(to right bottom, ${theme.palette.secondary.light}10, ${theme.palette.background.paper})`, // Blue theme gradient
         py: 10, // Padding top and bottom
         flexGrow: 1, // Make this Box fill available vertical space
         display: 'flex', // To control alignment of the child Container
@@ -112,7 +112,7 @@ const HeroSection: React.FC = () => {
             {/* Added pl for alignment */}
             <Button
               variant="contained"
-              color="secondary" // bg-blue-500
+              color="secondary" // Use secondary blue color
               size="large"
               sx={{
                 px: 3, // px-8 (MUI large button has decent padding, adjust if needed)
@@ -121,8 +121,32 @@ const HeroSection: React.FC = () => {
                 fontWeight: 600, // font-semibold
                 color: 'common.white',
                 boxShadow: 'lg',
+                position: 'relative',
+                overflow: 'hidden',
                 '&:hover': {
-                  backgroundColor: theme.palette.primary.dark, // hover:bg-blue-600
+                  boxShadow: '0 4px 12px rgba(33, 150, 243, 0.3)',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    pointerEvents: 'none',
+                  },
+                },
+                '&:active': {
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                    pointerEvents: 'none',
+                  },
                 },
               }}
             >
@@ -139,9 +163,32 @@ const HeroSection: React.FC = () => {
                 fontWeight: 600,
                 borderColor: 'grey.400',
                 color: 'grey.800',
+                position: 'relative',
+                overflow: 'hidden',
                 '&:hover': {
-                  backgroundColor: 'grey.100', // hover:bg-gray-50
                   borderColor: 'grey.500',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                    pointerEvents: 'none',
+                  },
+                },
+                '&:active': {
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                    pointerEvents: 'none',
+                  },
                 },
               }}
             >
