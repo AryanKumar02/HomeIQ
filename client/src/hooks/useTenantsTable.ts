@@ -31,8 +31,8 @@ const transformTenantForTable = (tenant: Tenant): TenantTableData => {
   // Generate property display name
   let propertyDisplay = 'No property assigned'
   if (activeLease?.property) {
-    if (typeof activeLease.property === 'object' && 'title' in activeLease.property) {
-      propertyDisplay = activeLease.property.title as string
+    if (typeof activeLease.property === 'object' && activeLease.property !== null && 'title' in activeLease.property) {
+      propertyDisplay = (activeLease.property as { title: string }).title
       if (activeLease.unit) {
         propertyDisplay += `, Unit ${activeLease.unit}`
       }

@@ -67,7 +67,7 @@ export const propertiesApi = {
       // Clean up empty string values for ObjectId fields
       const cleanedData = { ...data }
       if (cleanedData.occupancy?.tenant === '') {
-        cleanedData.occupancy.tenant = null
+        cleanedData.occupancy.tenant = undefined
       }
       
       console.log('Updating property with data:', JSON.stringify(cleanedData, null, 2))

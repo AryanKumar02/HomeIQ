@@ -38,7 +38,7 @@ const PropertyImage: React.FC<PropertyImageProps> = ({
   onError,
 }) => {
   // Disable lazy loading in test environment
-  const isTestEnvironment = process.env.NODE_ENV === 'test'
+  const isTestEnvironment = import.meta.env.MODE === 'test'
   const [isHovered, setIsHovered] = useState(false)
 
   // Get the primary image URL

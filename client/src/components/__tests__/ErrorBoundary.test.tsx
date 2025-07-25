@@ -98,8 +98,8 @@ describe('ErrorBoundary', () => {
     })
 
     test('displays error message in development mode', () => {
-      const originalEnv = process.env.NODE_ENV
-      process.env.NODE_ENV = 'development'
+      const originalEnv = import.meta.env.MODE
+      import.meta.env.MODE = 'development'
 
       render(
         <TestWrapper>
@@ -111,12 +111,12 @@ describe('ErrorBoundary', () => {
 
       expect(screen.getByText('Test error message')).toBeInTheDocument()
 
-      process.env.NODE_ENV = originalEnv
+      import.meta.env.MODE = originalEnv
     })
 
     test('does not display error message in production mode', () => {
-      const originalEnv = process.env.NODE_ENV
-      process.env.NODE_ENV = 'production'
+      const originalEnv = import.meta.env.MODE
+      import.meta.env.MODE = 'production'
 
       render(
         <TestWrapper>
@@ -128,7 +128,7 @@ describe('ErrorBoundary', () => {
 
       expect(screen.queryByText('Test error message')).not.toBeInTheDocument()
 
-      process.env.NODE_ENV = originalEnv
+      import.meta.env.MODE = originalEnv
     })
   })
 

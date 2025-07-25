@@ -45,7 +45,7 @@ interface ReferenceChecksFormProps {
 interface ReferenceTypeConfig {
   label: string;
   description: string;
-  icon: React.ComponentType<{ fontSize?: string; sx?: object }>;
+  icon: React.ElementType;
   color: string;
   requiredFields: string[];
   optionalFields: string[];
@@ -73,6 +73,7 @@ const REFERENCE_TYPE_CONFIG: Record<string, ReferenceTypeConfig> = {
     color: '#2196F3',
     requiredFields: ['name', 'relationship', 'phone', 'company'],
     optionalFields: ['email', 'yearsKnown', 'notes'],
+    hideFields: [],
     relationshipSuggestions: ['Supervisor', 'Manager', 'Colleague', 'Business Partner', 'Client']
   },
   'previous-landlord': {
@@ -92,6 +93,7 @@ const REFERENCE_TYPE_CONFIG: Record<string, ReferenceTypeConfig> = {
     color: '#9C27B0',
     requiredFields: ['name', 'relationship', 'phone', 'company'],
     optionalFields: ['email', 'yearsKnown', 'notes'],
+    hideFields: [],
     relationshipSuggestions: ['HR Manager', 'Direct Supervisor', 'Department Manager', 'Director']
   }
 } as const
@@ -559,7 +561,7 @@ const ReferenceCard: React.FC<{
         )}
         
         {/* Debug: Show contact actions status */}
-        {process.env.NODE_ENV === 'development' && (
+        {import.meta.env.MODE === 'development' && (
           <Box sx={{ mt: 1, p: 1, bgcolor: 'info.light', borderRadius: 1, fontSize: '0.75rem' }}>
             Debug: showContactActions = {showContactActions ? 'true' : 'false'}, 
             contactedDate = {reference.contactedDate || 'null'}

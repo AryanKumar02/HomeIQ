@@ -42,7 +42,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log error to console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.MODE === 'development') {
       console.error('Error caught by boundary:', error, errorInfo)
     }
 
@@ -121,7 +121,7 @@ const DefaultErrorFallback: React.FC<{ error?: Error; resetError: () => void }> 
           look into it.
         </Typography>
 
-        {process.env.NODE_ENV === 'development' && error && (
+        {import.meta.env.MODE === 'development' && error && (
           <Box sx={{ mt: 2, textAlign: 'left' }}>
             <Typography variant="caption" sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
               {error.message}
