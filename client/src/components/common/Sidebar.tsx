@@ -291,7 +291,7 @@ const Sidebar: React.FC = () => {
           height: headerHeight,
           px: isMobile ? 2 : 3,
           py: isMobile ? 1 : 2,
-          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+          backgroundColor: theme.palette.secondary.main,
           position: 'relative',
           '&::after': {
             content: '""',
@@ -366,11 +366,11 @@ const Sidebar: React.FC = () => {
                   py: isMobile ? 1 : 1.5,
                   px: isMobile ? 1.5 : 2,
                   '&.Mui-selected': {
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                    backgroundColor: theme.palette.secondary.main,
                     color: 'white',
-                    boxShadow: '0 4px 12px 0 rgba(3, 108, 163, 0.3)',
+                    boxShadow: `0 4px 12px 0 rgba(61, 130, 247, 0.3)`,
                     '&:hover': {
-                      background: 'linear-gradient(135deg, #025a8a 0%, #2563eb 100%)',
+                      backgroundColor: theme.palette.secondary.dark,
                     },
                     '& .MuiListItemIcon-root': {
                       color: 'white',

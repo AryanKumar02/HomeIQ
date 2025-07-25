@@ -30,13 +30,13 @@ const AnimatedCheckboxIcon = ({ checked }: { checked: boolean }) => {
         height: 22,
         borderRadius: 2,
         border: '2px solid',
-        borderColor: checked ? theme.palette.primary.main : '#b0b8c1',
-        background: checked ? theme.palette.primary.main : '#fff',
+        borderColor: checked ? theme.palette.secondary.main : '#b0b8c1',
+        background: checked ? theme.palette.secondary.main : '#fff',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         transition: 'border-color 0.25s, background 0.25s',
-        boxShadow: checked ? `0 2px 8px 0 ${theme.palette.primary.main}26` : 'none',
+        boxShadow: checked ? `0 2px 8px 0 ${theme.palette.secondary.main}26` : 'none',
       }}
     >
       <Box
@@ -207,11 +207,11 @@ const SignupForm: React.FC = () => {
 
   const dynamicTextFieldSx = {
     '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-      borderColor: theme.palette.primary.main,
+      borderColor: theme.palette.secondary.main,
       borderWidth: '2.5px',
     },
     '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: theme.palette.primary.main,
+      borderColor: theme.palette.secondary.main,
       borderWidth: '2.5px',
     },
   }
@@ -379,13 +379,13 @@ const SignupForm: React.FC = () => {
                       p: 0,
                       borderRadius: 0,
                       mr: 0.5,
-                      color: showPassword ? theme.palette.primary.main : theme.palette.grey[500],
+                      color: showPassword ? theme.palette.secondary.main : theme.palette.grey[500],
                       backgroundColor: 'transparent',
                       boxShadow: 'none',
                       minWidth: 0,
                       transition: 'color 0.18s',
                       '&:hover, &:focus': {
-                        color: theme.palette.primary.main,
+                        color: theme.palette.secondary.main,
                         backgroundColor: 'transparent',
                         boxShadow: 'none',
                         transform: 'none',
@@ -436,7 +436,7 @@ const SignupForm: React.FC = () => {
                 I{' '}
                 <Box
                   component="span"
-                  sx={{ color: theme.palette.primary.main, fontWeight: 700, display: 'inline' }}
+                  sx={{ color: theme.palette.secondary.main, fontWeight: 700, display: 'inline' }}
                 >
                   agree
                 </Box>{' '}
@@ -447,7 +447,7 @@ const SignupForm: React.FC = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   sx={{
-                    color: theme.palette.primary.main,
+                    color: theme.palette.secondary.main,
                     fontWeight: 700,
                     textDecoration: 'none',
                     display: 'inline',
@@ -464,7 +464,7 @@ const SignupForm: React.FC = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   sx={{
-                    color: theme.palette.primary.main,
+                    color: theme.palette.secondary.main,
                     fontWeight: 700,
                     textDecoration: 'none',
                     display: 'inline',
@@ -503,15 +503,15 @@ const SignupForm: React.FC = () => {
             height: { xs: 42, md: 46 },
             borderRadius: 2,
             transition: 'box-shadow 0.3s, background 0.3s, transform 0.2s',
-            boxShadow: `0 2px 8px 0 ${theme.palette.primary.main}26`,
+            boxShadow: `0 2px 8px 0 ${theme.palette.secondary.main}26`,
             '&:hover': {
               background: theme.palette.primary.dark,
-              boxShadow: `0 4px 16px 0 ${theme.palette.primary.main}3d`,
+              boxShadow: `0 4px 16px 0 ${theme.palette.secondary.main}3d`,
               transform: 'translateY(-2px) scale(1.03)',
             },
             '&:active': {
-              background: theme.palette.primary.main,
-              boxShadow: `0 2px 8px 0 ${theme.palette.primary.main}33`,
+              background: theme.palette.secondary.main,
+              boxShadow: `0 2px 8px 0 ${theme.palette.secondary.main}33`,
               transform: 'scale(0.98)',
             },
           }}
@@ -539,7 +539,7 @@ const SignupForm: React.FC = () => {
           aria-label="Log in to your account"
           sx={{
             fontWeight: 700,
-            color: theme.palette.primary.main,
+            color: theme.palette.secondary.main,
             p: 0,
             minWidth: 0,
             '&:focus': { outline: 'none', boxShadow: 'none' },

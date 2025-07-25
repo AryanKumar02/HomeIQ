@@ -142,11 +142,11 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onEr
                   'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#036CA3',
+                borderColor: '${theme.palette.secondary.main}',
                 borderWidth: '2.5px',
               },
               '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#036CA3',
+                borderColor: '${theme.palette.secondary.main}',
                 borderWidth: '2.5px',
               },
               input: {
@@ -184,7 +184,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onEr
               transform: 'translateY(-2px) scale(1.03)',
             },
             '&:active': {
-              background: 'primary.main',
+              background: 'secondary.main',
               boxShadow: '0 2px 8px 0 rgba(3,108,163,0.12)',
               transform: 'scale(0.98)',
             },
@@ -212,7 +212,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onSuccess, onEr
           to="/login"
           sx={{
             fontWeight: 700,
-            color: 'primary.main',
+            color: 'secondary.main',
             p: 0,
             minWidth: 0,
             '&:focus': { outline: 'none', boxShadow: 'none' },

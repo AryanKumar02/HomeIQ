@@ -121,7 +121,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                   overflow: 'hidden',
                   border: image.isPrimary
                     ? `3px solid ${theme.palette.secondary.main}`
-                    : '1px solid #e0e3e7',
+                    : `1px solid ${theme.palette.border.light}`,
                   backgroundColor: 'white',
                   transition: 'all 0.3s ease',
                   '&:hover': {

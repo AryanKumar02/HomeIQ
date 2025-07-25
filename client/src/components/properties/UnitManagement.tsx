@@ -326,7 +326,7 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
       </Box>
 
       {units.map((unit, index) => (
-        <Box key={index} sx={{ mb: 4, p: 3, border: '1px solid #e0e3e7', borderRadius: 2 }}>
+        <Box key={index} sx={{ mb: 4, p: 3, border: '1px solid', borderColor: 'border.light', borderRadius: 2 }}>
           <Box
             sx={{
               display: 'flex',

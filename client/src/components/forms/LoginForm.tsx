@@ -205,11 +205,11 @@ const LoginForm: React.FC = () => {
                   'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#036CA3',
+                borderColor: theme.palette.secondary.main,
                 borderWidth: '2.5px',
               },
               '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#036CA3',
+                borderColor: theme.palette.secondary.main,
                 borderWidth: '2.5px',
               },
               input: {
@@ -263,11 +263,11 @@ const LoginForm: React.FC = () => {
                   'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
               },
               '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#036CA3',
+                borderColor: theme.palette.secondary.main,
                 borderWidth: '2.5px',
               },
               '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#036CA3',
+                borderColor: theme.palette.secondary.main,
                 borderWidth: '2.5px',
               },
               input: {
@@ -293,13 +293,13 @@ const LoginForm: React.FC = () => {
                       p: 0,
                       borderRadius: 0,
                       mr: 0.5,
-                      color: showPassword ? theme.palette.primary.main : theme.palette.grey[500],
+                      color: showPassword ? theme.palette.secondary.main : theme.palette.grey[500],
                       backgroundColor: 'transparent',
                       boxShadow: 'none',
                       minWidth: 0,
                       transition: 'color 0.18s',
                       '&:hover, &:focus': {
-                        color: theme.palette.primary.main,
+                        color: theme.palette.secondary.main,
                         backgroundColor: 'transparent',
                         boxShadow: 'none',
                         transform: 'none',
@@ -332,7 +332,7 @@ const LoginForm: React.FC = () => {
             <Checkbox
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              color="primary"
+              color="secondary"
               sx={{ p: 0, pr: 1.2 }}
             />
           }
@@ -348,6 +348,7 @@ const LoginForm: React.FC = () => {
           ref={buttonRef}
           type="submit"
           variant="contained"
+          color="secondary"
           fullWidth
           aria-label="Sign in to your account"
           sx={{
@@ -358,15 +359,15 @@ const LoginForm: React.FC = () => {
             height: { xs: 44, md: 48 },
             borderRadius: 2,
             transition: 'box-shadow 0.3s, background 0.3s, transform 0.2s',
-            boxShadow: '0 2px 8px 0 rgba(3,108,163,0.08)',
+            boxShadow: '0 2px 8px 0 rgba(61, 130, 247, 0.08)',
             '&:hover': {
-              background: 'primary.dark',
-              boxShadow: '0 4px 16px 0 rgba(3,108,163,0.15)',
+              background: 'secondary.dark',
+              boxShadow: '0 4px 16px 0 rgba(61, 130, 247, 0.15)',
               transform: 'translateY(-2px) scale(1.03)',
             },
             '&:active': {
-              background: 'primary.main',
-              boxShadow: '0 2px 8px 0 rgba(3,108,163,0.12)',
+              background: 'secondary.main',
+              boxShadow: '0 2px 8px 0 rgba(61, 130, 247, 0.12)',
               transform: 'scale(0.98)',
             },
           }}
@@ -395,7 +396,7 @@ const LoginForm: React.FC = () => {
           aria-label="Reset your password"
           sx={{
             fontWeight: 700,
-            color: 'primary.main',
+            color: 'secondary.main',
             p: 0,
             minWidth: 0,
             '&:focus': { outline: 'none', boxShadow: 'none' },
@@ -427,7 +428,7 @@ const LoginForm: React.FC = () => {
           state={{ from: location.pathname }}
           sx={{
             fontWeight: 700,
-            color: 'primary.main',
+            color: 'secondary.main',
             textDecoration: 'none',
             p: 0,
             minWidth: 0,
