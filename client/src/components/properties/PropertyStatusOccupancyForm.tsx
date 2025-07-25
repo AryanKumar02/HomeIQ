@@ -22,7 +22,7 @@ import { useTheme } from '@mui/material/styles'
 import { Person } from '@mui/icons-material'
 import Card from '../basic/Card'
 import { useTenants } from '../../hooks/useTenants'
-import { tenantsApi } from '../../api/tenants'
+import { tenantsApi, type Tenant } from '../../api/tenants'
 
 interface PropertyStatusOccupancyFormProps {
   formData: {
@@ -55,10 +55,10 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
   onPropertyUpdate,
 }) => {
   const theme = useTheme()
-  const [selectedTenant, setSelectedTenant] = useState<{
-    _id: string
-    personalInfo: { firstName: string; lastName: string }
-  } | null>(null)
+  const [selectedTenant, setSelectedTenant] = useState<(Tenant & { 
+    leases?: { status: string }[]
+    applicationStatus: { status: string }
+  }) | null>(null)
   const [leaseDialogOpen, setLeaseDialogOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [notification, setNotification] = useState<{
@@ -169,7 +169,7 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
       return
     }
 
-    setSelectedTenant(tenant)
+    setSelectedTenant(tenant as unknown as Tenant & { leases?: { status: string }[]; applicationStatus: { status: string } })
     setLeaseDialogOpen(true)
   }
 
@@ -206,8 +206,8 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
     setLoading(true)
     try {
       await tenantsApi.assignToProperty({
-        tenantId: selectedTenant._id,
-        propertyId: formData._id,
+        tenantId: selectedTenant._id!,
+        propertyId: formData._id!,
         leaseData: {
           startDate: leaseStartDate,
           endDate: leaseEndDate,
@@ -217,7 +217,7 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
         },
       })
 
-      onInputChange('occupancy.tenant', selectedTenant._id)
+      onInputChange('occupancy.tenant', selectedTenant._id!)
       onInputChange('occupancy.isOccupied', true)
       onInputChange('status', 'occupied')
       setLeaseDialogOpen(false)
@@ -248,10 +248,10 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
     try {
       await tenantsApi.unassignFromProperty({
         tenantId: currentTenant._id!,
-        propertyId: formData._id,
+        propertyId: formData._id!,
       })
 
-      onInputChange('occupancy.tenant', null)
+      onInputChange('occupancy.tenant', '')
       onInputChange('occupancy.isOccupied', false)
       onInputChange('status', 'available')
       void refetchTenants()
@@ -379,7 +379,7 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
                 options={availableTenants}
                 getOptionLabel={(tenant) => getTenantName(tenant)}
                 value={selectedTenant}
-                onChange={(_, newValue) => handleTenantSelect(newValue)}
+                onChange={(_, newValue) => handleTenantSelect(newValue as unknown as { _id: string; personalInfo: { firstName: string; lastName: string } } | null)}
                 renderInput={(params) => (
                   <TextField
                     {...params}

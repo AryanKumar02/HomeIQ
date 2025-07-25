@@ -76,7 +76,7 @@ const Sidebar: React.FC = () => {
 
     if (!hasAnimated && !isLoaded) {
       // Use a small delay to ensure DOM elements are fully mounted
-      timer = setTimeout(() => {
+      timer = window.setTimeout(() => {
         // Check if all refs are available before animating
         if (
           !headerRef.current ||

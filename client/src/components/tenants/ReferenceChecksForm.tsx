@@ -73,6 +73,7 @@ const REFERENCE_TYPE_CONFIG: Record<string, ReferenceTypeConfig> = {
     color: '#2196F3',
     requiredFields: ['name', 'relationship', 'phone', 'company'],
     optionalFields: ['email', 'yearsKnown', 'notes'],
+    hideFields: [],
     relationshipSuggestions: ['Supervisor', 'Manager', 'Colleague', 'Business Partner', 'Client']
   },
   'previous-landlord': {
@@ -92,6 +93,7 @@ const REFERENCE_TYPE_CONFIG: Record<string, ReferenceTypeConfig> = {
     color: '#9C27B0',
     requiredFields: ['name', 'relationship', 'phone', 'company'],
     optionalFields: ['email', 'yearsKnown', 'notes'],
+    hideFields: [],
     relationshipSuggestions: ['HR Manager', 'Direct Supervisor', 'Department Manager', 'Director']
   }
 } as const
