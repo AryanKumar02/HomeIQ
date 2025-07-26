@@ -35,10 +35,10 @@ export const csrfProtection = (req, res, next) => {
   console.log('CSRF check - Origin:', origin);
   console.log('CSRF check - Referer:', referer);
   console.log('CSRF check - Allowed origins:', allowedOrigins);
-  
+
   const hasValidOrigin = origin && allowedOrigins.includes(origin);
   const hasValidReferer = referer && allowedOrigins.some(allowed => referer.startsWith(allowed));
-  
+
   console.log('CSRF check - Valid origin:', hasValidOrigin);
   console.log('CSRF check - Valid referer:', hasValidReferer);
 
