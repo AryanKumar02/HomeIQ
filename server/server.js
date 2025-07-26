@@ -40,7 +40,9 @@ process.on('uncaughtException', err => {
   process.exit(1);
 });
 
+console.log('Creating Express app...');
 const app = express();
+console.log('Express app created successfully');
 
 // Middleware
 const allowedOrigins = [
