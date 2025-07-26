@@ -1,6 +1,7 @@
-import { StrictMode } from 'react'
+import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+
 
 // Remove initial loader
 const removeInitialLoader = () => {
@@ -13,31 +14,30 @@ const removeInitialLoader = () => {
 // Step 1: Test React only
 const TestReact = () => <div>✅ React works</div>
 
-// Step 2: Test MUI without emotion
+// Step 2: Test MUI usage
 const TestMUI = () => {
-  try {
-    // Import MUI components to test
-    const { CssBaseline } = require('@mui/material')
-    return (
-      <div>
-        <CssBaseline />
-        <div>✅ React + MUI CssBaseline works</div>
-      </div>
-    )
-  } catch (error) {
-    return <div>❌ MUI failed: {String(error)}</div>
-  }
+  const [status, setStatus] = React.useState('Testing MUI...')
+  
+  React.useEffect(() => {
+    import('@mui/material')
+      .then(() => setStatus('✅ MUI imports successfully'))
+      .catch((error: unknown) => setStatus(`❌ MUI import failed: ${String(error)}`))
+  }, [])
+  
+  return <div>{status}</div>
 }
 
-// Step 3: Test emotion
+// Step 3: Test emotion usage  
 const TestEmotion = () => {
-  try {
-    const { css } = require('@emotion/react')
-    const style = css`color: green;`
-    return <div css={style}>✅ React + Emotion works</div>
-  } catch (error) {
-    return <div>❌ Emotion failed: {String(error)}</div>
-  }
+  const [status, setStatus] = React.useState('Testing Emotion...')
+  
+  React.useEffect(() => {
+    import('@emotion/react')
+      .then(() => setStatus('✅ Emotion imports successfully'))
+      .catch((error: unknown) => setStatus(`❌ Emotion import failed: ${String(error)}`))
+  }, [])
+  
+  return <div>{status}</div>
 }
 
 // Progressive testing
