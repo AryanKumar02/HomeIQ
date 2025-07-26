@@ -88,7 +88,7 @@ export default defineConfig({
     target: 'es2020', // More modern target for better optimization
     // Additional optimizations
     cssCodeSplit: true, // Split CSS into separate files
-    assetsInlineLimit: 4096, // Inline small assets
+    assetsInlineLimit: 8192, // Inline more small assets (8KB instead of 4KB)
     reportCompressedSize: false, // Faster builds
   },
   // Optimize dependencies
