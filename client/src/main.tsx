@@ -24,9 +24,14 @@ if (root) {
           return import('react-dom/client')
         })
         .then(() => {
-          status.innerHTML = '✅ ReactDOM imported successfully!'
+          status.innerHTML = '✅ ReactDOM imported! Testing App...'
+          
+          return import('./App.tsx')
+        })
+        .then(() => {
+          status.innerHTML = '✅ App imported successfully! The issue is in App rendering.'
           status.style.color = 'green'
-          alert('✅ ReactDOM import worked!')
+          alert('✅ App import worked! Issue is in rendering.')
         })
         .catch((error) => {
           status.innerHTML = `❌ React import failed: ${String(error)}`
