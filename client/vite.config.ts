@@ -57,44 +57,12 @@ export default defineConfig({
     // Optimize chunk splitting for better caching
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          // More granular chunking to reduce unused code
-          if (id.includes('node_modules')) {
-            // React core
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-core'
-            }
-            // Router
-            if (id.includes('react-router')) {
-              return 'router'
-            }
-            // Material-UI core (only what's used)
-            if (id.includes('@mui/material')) {
-              return 'mui-core'
-            }
-            // Material-UI icons (separate chunk)
-            if (id.includes('@mui/icons-material')) {
-              return 'mui-icons'
-            }
-            // Emotion (bundle together to avoid initialization issues)
-            if (id.includes('@emotion')) {
-              return 'emotion'
-            }
-            // React Query
-            if (id.includes('@tanstack/react-query')) {
-              return 'query'
-            }
-            // GSAP
-            if (id.includes('gsap')) {
-              return 'animation'
-            }
-            // Zustand
-            if (id.includes('zustand')) {
-              return 'state'
-            }
-            // Other vendors
-            return 'vendor'
-          }
+        manualChunks: {
+          // Keep emotion and MUI together to prevent initialization issues
+          'mui-emotion': ['@mui/material', '@emotion/react', '@emotion/styled'],
+          'react-vendor': ['react', 'react-dom'],
+          'router': ['react-router-dom'],
+          'query': ['@tanstack/react-query'],
         },
         // Optimize chunk and asset naming
         chunkFileNames: 'js/[name]-[hash].js',
