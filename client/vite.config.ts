@@ -5,7 +5,12 @@ import { default as compression } from 'vite-plugin-compression'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      jsxImportSource: '@emotion/react',
+      babel: {
+        plugins: ['@emotion/babel-plugin'],
+      },
+    }),
     // Enable compression for both dev and production
     compression({
       algorithm: 'gzip',
@@ -76,7 +81,7 @@ export default defineConfig({
             if (id.includes('@mui/icons-material')) {
               return 'mui-icons'
             }
-            // Emotion
+            // Emotion (bundle together to avoid initialization issues)
             if (id.includes('@emotion')) {
               return 'emotion'
             }
@@ -139,6 +144,8 @@ export default defineConfig({
     drop: ['console', 'debugger'], // Remove console.log and debugger in production
     legalComments: 'none', // Remove license comments
     treeShaking: true,
+    // Fix emotion bundling issues
+    keepNames: true,
   },
   // Enable CSS tree-shaking and optimization
   css: {
