@@ -1,77 +1,60 @@
-import React, { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
+console.log('🔍 Starting main.tsx execution')
 
+// Test if we can even create a root element
+const rootElement = document.getElementById('root')
+console.log('📍 Root element found:', !!rootElement)
 
-// Remove initial loader
-const removeInitialLoader = () => {
+if (!rootElement) {
+  console.error('❌ No root element found!')
+  document.body.innerHTML = '<div style="padding: 20px;"><h1>❌ No root element found</h1></div>'
+} else {
+  console.log('📍 Root element exists, removing loader...')
+
+  // Remove loader immediately
   const loader = document.querySelector('.initial-loader')
   if (loader) {
+    console.log('📍 Removing loader...')
     loader.remove()
   }
-}
 
-// Step 1: Test React only
-const TestReact = () => <div>✅ React works</div>
-
-// Step 2: Test MUI usage
-const TestMUI = () => {
-  const [status, setStatus] = React.useState('Testing MUI...')
-  
-  React.useEffect(() => {
-    import('@mui/material')
-      .then(() => setStatus('✅ MUI imports successfully'))
-      .catch((error: unknown) => setStatus(`❌ MUI import failed: ${String(error)}`))
-  }, [])
-  
-  return <div>{status}</div>
-}
-
-// Step 3: Test emotion usage  
-const TestEmotion = () => {
-  const [status, setStatus] = React.useState('Testing Emotion...')
-  
-  React.useEffect(() => {
-    import('@emotion/react')
-      .then(() => setStatus('✅ Emotion imports successfully'))
-      .catch((error: unknown) => setStatus(`❌ Emotion import failed: ${String(error)}`))
-  }, [])
-  
-  return <div>{status}</div>
-}
-
-// Progressive testing
-const DebugApp = () => {
-  return (
-    <div style={{ padding: '20px' }}>
-      <h1>HomeIQ Debug</h1>
-      <div style={{ marginBottom: '10px' }}><TestReact /></div>
-      <div style={{ marginBottom: '10px' }}><TestMUI /></div>
-      <div style={{ marginBottom: '10px' }}><TestEmotion /></div>
-      <button onClick={() => window.location.reload()}>Reload</button>
-    </div>
-  )
-}
-
-try {
-  const root = createRoot(document.getElementById('root')!)
-  root.render(
-    <StrictMode>
-      <DebugApp />
-    </StrictMode>
-  )
-  removeInitialLoader()
-} catch (error) {
-  console.error('React mount failed:', error)
-  removeInitialLoader()
-  const rootElement = document.getElementById('root')
-  if (rootElement) {
-    rootElement.innerHTML = `
-      <div style="padding: 20px;">
-        <h2>❌ React Mount Failed</h2>
-        <pre style="background: #f5f5f5; padding: 10px;">${String(error)}</pre>
-        <button onclick="window.location.reload()">Reload</button>
+  // Set basic content without any imports
+  console.log('📍 Setting basic HTML content...')
+  rootElement.innerHTML = `
+    <div style="padding: 20px; font-family: Arial, sans-serif;">
+      <h1>🔍 Debug Mode</h1>
+      <p>If you see this, basic JavaScript works</p>
+      <button onclick="console.log('Button clicked'); location.reload();">Reload Page</button>
+      <div id="test-area" style="margin-top: 20px; padding: 10px; background: #f5f5f5;">
+        <p>Testing React import...</p>
       </div>
-    `
-  }
+    </div>
+  `
+
+  console.log('📍 Basic content set, now testing React import...')
+
+  // Test React import separately
+  setTimeout(() => {
+    void (async () => {
+      try {
+        console.log('📍 Attempting to import React...')
+        const React = await import('react')
+        console.log('✅ React imported successfully:', !!React)
+
+        const { createRoot } = await import('react-dom/client')
+        console.log('✅ ReactDOM imported successfully:', !!createRoot)
+
+        const testArea = document.getElementById('test-area')
+        if (testArea) {
+          testArea.innerHTML = '<p style="color: green;">✅ React imports work! Click reload to try full app.</p>'
+        }
+
+      } catch (error) {
+        console.error('❌ React import failed:', error)
+        const testArea = document.getElementById('test-area')
+        if (testArea) {
+          testArea.innerHTML = `<p style="color: red;">❌ React import failed: ${String(error)}</p>`
+        }
+      }
+    })()
+  }, 100)
 }
