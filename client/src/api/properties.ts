@@ -11,6 +11,7 @@ const getAuthToken = () => {
 
 // Create axios instance with default configuration
 const apiClient = axios.create({
+  baseURL: (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3001/api/v1',
   withCredentials: true,
 })
 
@@ -26,13 +27,13 @@ apiClient.interceptors.request.use((config) => {
 export const propertiesApi = {
   // Get all properties
   getAll: async (): Promise<Property[]> => {
-    const response = await apiClient.get<PropertyResponse>('/api/v1/property')
+    const response = await apiClient.get<PropertyResponse>('/property')
     return response.data.properties || response.data.data?.properties || []
   },
 
   // Get property by ID
   getById: async (id: string): Promise<Property> => {
-    const response = await apiClient.get<PropertyResponse>(`/api/v1/property/${id}`)
+    const response = await apiClient.get<PropertyResponse>(`/property/${id}`)
     const property = response.data.property || response.data.data?.property
     if (!property) {
       throw new Error('Property not found')
@@ -44,7 +45,7 @@ export const propertiesApi = {
   create: async (data: Omit<Property, '_id'>): Promise<Property> => {
     try {
       console.log('Creating property with data:', JSON.stringify(data, null, 2))
-      const response = await apiClient.post<PropertyResponse>('/api/v1/property', data)
+      const response = await apiClient.post<PropertyResponse>('/property', data)
       const property = response.data.property || response.data.data?.property
       if (!property) {
         throw new Error('Failed to create property')
@@ -71,7 +72,7 @@ export const propertiesApi = {
       }
       
       console.log('Updating property with data:', JSON.stringify(cleanedData, null, 2))
-      const response = await apiClient.put<PropertyResponse>(`/api/v1/property/${id}`, cleanedData)
+      const response = await apiClient.put<PropertyResponse>(`/property/${id}`, cleanedData)
       const property = response.data.property || response.data.data?.property
       if (!property) {
         throw new Error('Failed to update property')
@@ -90,12 +91,12 @@ export const propertiesApi = {
 
   // Delete property
   delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/api/v1/property/${id}`)
+    await apiClient.delete(`/property/${id}`)
   },
 
   // Update property status
   updateStatus: async (id: string, status: Property['status']): Promise<Property> => {
-    const response = await apiClient.patch<PropertyResponse>(`/api/v1/property/${id}/status`, {
+    const response = await apiClient.patch<PropertyResponse>(`/property/${id}/status`, {
       status,
     })
     const property = response.data.property || response.data.data?.property
@@ -108,7 +109,7 @@ export const propertiesApi = {
   // Update property occupancy
   updateOccupancy: async (id: string, occupancy: Property['occupancy']): Promise<Property> => {
     const response = await apiClient.patch<PropertyResponse>(
-      `/api/v1/property/${id}/occupancy`,
+      `/property/${id}/occupancy`,
       occupancy
     )
     const property = response.data.property || response.data.data?.property
@@ -121,7 +122,7 @@ export const propertiesApi = {
   // Image management
   addImages: async (id: string, images: FormData): Promise<Property> => {
     const response = await apiClient.post<PropertyResponse>(
-      `/api/v1/property/${id}/images`,
+      `/property/${id}/images`,
       images,
       {
         headers: {
@@ -138,7 +139,7 @@ export const propertiesApi = {
 
   removeImage: async (id: string, imageId: string): Promise<Property> => {
     const response = await apiClient.delete<PropertyResponse>(
-      `/api/v1/property/${id}/images/${imageId}`
+      `/property/${id}/images/${imageId}`
     )
     const property = response.data.property || response.data.data?.property
     if (!property) {
@@ -149,7 +150,7 @@ export const propertiesApi = {
 
   setPrimaryImage: async (id: string, imageId: string): Promise<Property> => {
     const response = await apiClient.patch<PropertyResponse>(
-      `/api/v1/property/${id}/images/${imageId}/primary`,
+      `/property/${id}/images/${imageId}/primary`,
       {}
     )
     const property = response.data.property || response.data.data?.property
@@ -161,13 +162,13 @@ export const propertiesApi = {
 
   // Unit management
   getUnits: async (propertyId: string): Promise<Unit[]> => {
-    const response = await apiClient.get<PropertyResponse>(`/api/v1/property/${propertyId}/units`)
+    const response = await apiClient.get<PropertyResponse>(`/property/${propertyId}/units`)
     return (response.data.data?.units || []) as Unit[]
   },
 
   addUnit: async (propertyId: string, unitData: Omit<Unit, '_id'>): Promise<Property> => {
     const response = await apiClient.post<PropertyResponse>(
-      `/api/v1/property/${propertyId}/units`,
+      `/property/${propertyId}/units`,
       unitData
     )
     const property = response.data.property || response.data.data?.property
@@ -183,7 +184,7 @@ export const propertiesApi = {
     unitData: Partial<Unit>
   ): Promise<Property> => {
     const response = await apiClient.put<PropertyResponse>(
-      `/api/v1/property/${propertyId}/units/${unitId}`,
+      `/property/${propertyId}/units/${unitId}`,
       unitData
     )
     const property = response.data.property || response.data.data?.property
@@ -195,7 +196,7 @@ export const propertiesApi = {
 
   deleteUnit: async (propertyId: string, unitId: string): Promise<Property> => {
     const response = await apiClient.delete<PropertyResponse>(
-      `/api/v1/property/${propertyId}/units/${unitId}`
+      `/property/${propertyId}/units/${unitId}`
     )
     const property = response.data.property || response.data.data?.property
     if (!property) {

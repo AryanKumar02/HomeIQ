@@ -272,6 +272,7 @@ const getAuthToken = () => {
 
 // Create axios instance with default configuration
 const apiClient = axios.create({
+  baseURL: (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3001/api/v1',
   withCredentials: true,
 })
 
@@ -289,7 +290,7 @@ export const tenantsApi = {
   getAll: async (): Promise<Tenant[]> => {
     try {
       // Use server's maximum allowed limit (100) to get as many tenants as possible
-      const url = '/api/v1/tenants?limit=100'
+      const url = '/tenants?limit=100'
       console.log('GET ALL TENANTS API CALL:', url)
       const response = await apiClient.get<{
         status: string
@@ -316,7 +317,7 @@ export const tenantsApi = {
         // Fetch remaining pages
         for (let page = 2; page <= Math.min(pagination.pages, 10); page++) { // Cap at 10 pages (1000 tenants) for safety
           try {
-            const pageResponse = await apiClient.get<typeof response.data>(`/api/v1/tenants?page=${page}&limit=100`)
+            const pageResponse = await apiClient.get<typeof response.data>(`/tenants?page=${page}&limit=100`)
             allTenants.push(...pageResponse.data.data.tenants)
           } catch (pageError) {
             console.warn(`Failed to fetch page ${page}:`, pageError)
@@ -363,7 +364,7 @@ export const tenantsApi = {
       if (filters?.leaseStatus && filters.leaseStatus !== 'all') params.append('leaseStatus', filters.leaseStatus)
       
       const queryString = params.toString()
-      const url = `/api/v1/tenants${queryString ? `?${queryString}` : ''}`
+      const url = `/tenants${queryString ? `?${queryString}` : ''}`
       
       console.log('GET ALL TENANTS API CALL:', url)
       const response = await apiClient.get<{
@@ -395,8 +396,8 @@ export const tenantsApi = {
   // Get tenant by ID
   getById: async (id: string): Promise<Tenant> => {
     try {
-      console.log('GET TENANT API CALL:', `/api/v1/tenants/${id}`)
-      const response = await apiClient.get<TenantResponse>(`/api/v1/tenants/${id}`)
+      console.log('GET TENANT API CALL:', `/tenants/${id}`)
+      const response = await apiClient.get<TenantResponse>(`/tenants/${id}`)
       console.log('GET TENANT API RESPONSE:', response)
       const tenant = response.data.tenant || response.data.data?.tenant
       if (!tenant) {
@@ -414,9 +415,9 @@ export const tenantsApi = {
     data: Omit<Tenant, '_id' | 'tenantId' | 'createdAt' | 'updatedAt'>
   ): Promise<Tenant> => {
     try {
-      console.log('CREATE TENANT API CALL:', '/api/v1/tenants')
+      console.log('CREATE TENANT API CALL:', '/tenants')
       console.log('CREATE TENANT API DATA:', JSON.stringify(data, null, 2))
-      const response = await apiClient.post<TenantResponse>('/api/v1/tenants', data)
+      const response = await apiClient.post<TenantResponse>('/tenants', data)
       console.log('CREATE TENANT API RESPONSE:', response)
       const tenant = response.data.tenant || response.data.data?.tenant
       if (!tenant) {
@@ -440,8 +441,8 @@ export const tenantsApi = {
   // Update tenant
   update: async (id: string, data: Partial<Tenant>): Promise<Tenant> => {
     try {
-      console.log('UPDATE TENANT API CALL:', `/api/v1/tenants/${id}`, data)
-      const response = await apiClient.patch<TenantResponse>(`/api/v1/tenants/${id}`, data)
+      console.log('UPDATE TENANT API CALL:', `/tenants/${id}`, data)
+      const response = await apiClient.patch<TenantResponse>(`/tenants/${id}`, data)
       console.log('UPDATE TENANT API RESPONSE:', response)
       const tenant = response.data.tenant || response.data.data?.tenant
       if (!tenant) {
@@ -457,8 +458,8 @@ export const tenantsApi = {
   // Delete tenant
   delete: async (id: string): Promise<{ success: boolean; message?: string }> => {
     try {
-      console.log('DELETE TENANT API CALL:', `/api/v1/tenants/${id}`)
-      const response = await apiClient.delete<TenantResponse>(`/api/v1/tenants/${id}`)
+      console.log('DELETE TENANT API CALL:', `/tenants/${id}`)
+      const response = await apiClient.delete<TenantResponse>(`/tenants/${id}`)
       console.log('DELETE TENANT API RESPONSE:', response)
 
       // For DELETE requests that return 204 No Content, create a success response
@@ -481,8 +482,8 @@ export const tenantsApi = {
   // Update tenant status
   updateStatus: async (id: string, status: string): Promise<Tenant> => {
     try {
-      console.log('UPDATE TENANT STATUS API CALL:', `/api/v1/tenants/${id}/status`, { status })
-      const response = await apiClient.patch<TenantResponse>(`/api/v1/tenants/${id}/status`, {
+      console.log('UPDATE TENANT STATUS API CALL:', `/tenants/${id}/status`, { status })
+      const response = await apiClient.patch<TenantResponse>(`/tenants/${id}/status`, {
         status,
       })
       console.log('UPDATE TENANT STATUS API RESPONSE:', response)
@@ -505,11 +506,11 @@ export const tenantsApi = {
     try {
       console.log(
         'UPDATE TENANT APPLICATION STATUS API CALL:',
-        `/api/v1/tenants/${id}/application-status`,
+        `/tenants/${id}/application-status`,
         applicationStatus
       )
       const response = await apiClient.patch<TenantResponse>(
-        `/api/v1/tenants/${id}/application-status`,
+        `/tenants/${id}/application-status`,
         applicationStatus
       )
       console.log('UPDATE TENANT APPLICATION STATUS API RESPONSE:', response)
@@ -540,12 +541,12 @@ export const tenantsApi = {
     try {
       console.log(
         'ASSIGN TENANT TO PROPERTY API CALL:',
-        '/api/v1/tenants/assign-to-property',
+        '/tenants/assign-to-property',
         assignment
       )
       const response = await apiClient.post<{
         data: { tenant: Tenant; property: unknown; lease: unknown }
-      }>('/api/v1/tenants/assign-to-property', assignment)
+      }>('/tenants/assign-to-property', assignment)
       console.log('ASSIGN TENANT TO PROPERTY API RESPONSE:', response)
       return response.data.data
     } catch (error) {
@@ -568,11 +569,11 @@ export const tenantsApi = {
     try {
       console.log(
         'UNASSIGN TENANT FROM PROPERTY API CALL:',
-        '/api/v1/tenants/unassign-from-property',
+        '/tenants/unassign-from-property',
         assignment
       )
       const response = await apiClient.post<{ data: { tenant: Tenant; property: unknown } }>(
-        '/api/v1/tenants/unassign-from-property',
+        '/tenants/unassign-from-property',
         assignment
       )
       console.log('UNASSIGN TENANT FROM PROPERTY API RESPONSE:', response)
@@ -597,9 +598,9 @@ export const tenantsApi = {
     }
   ): Promise<Tenant> => {
     try {
-      console.log('UPDATE REFERENCING STATUS API CALL:', `/api/v1/tenants/${id}/referencing`, referencingData)
+      console.log('UPDATE REFERENCING STATUS API CALL:', `/tenants/${id}/referencing`, referencingData)
       const response = await apiClient.patch<TenantResponse>(
-        `/api/v1/tenants/${id}/referencing`,
+        `/tenants/${id}/referencing`,
         referencingData
       )
       console.log('UPDATE REFERENCING STATUS API RESPONSE:', response)

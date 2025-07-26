@@ -37,6 +37,7 @@ export interface ResendVerificationRequest {
 
 // Create axios instance with default configuration for auth
 const authApiClient = axios.create({
+  baseURL: (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3001/api/v1',
   withCredentials: true,
 })
 
@@ -62,7 +63,7 @@ export const authApi = {
         email: data.email,
         rememberMe: data.rememberMe,
       })
-      const response = await authApiClient.post<AuthResponse>('/api/v1/auth/login', data)
+      const response = await authApiClient.post<AuthResponse>('/auth/login', data)
       console.log('LOGIN API RESPONSE:', response.data)
       return response.data
     } catch (error) {
@@ -75,7 +76,7 @@ export const authApi = {
   logout: async (): Promise<AuthResponse> => {
     try {
       console.log('LOGOUT API CALL:', '/api/v1/auth/logout')
-      const response = await authApiClient.post<AuthResponse>('/api/v1/auth/logout', {})
+      const response = await authApiClient.post<AuthResponse>('/auth/logout', {})
       console.log('LOGOUT API RESPONSE:', response.data)
       return response.data
     } catch (error) {
@@ -92,7 +93,7 @@ export const authApi = {
         secondName: data.secondName,
         email: data.email,
       })
-      const response = await authApiClient.post<AuthResponse>('/api/v1/auth/register', data)
+      const response = await authApiClient.post<AuthResponse>('/auth/register', data)
       console.log('SIGNUP API RESPONSE:', response.data)
       return response.data
     } catch (error) {
@@ -105,7 +106,7 @@ export const authApi = {
   getCurrentUser: async (): Promise<{ user: User }> => {
     try {
       console.log('GET CURRENT USER API CALL:', '/api/v1/auth/me')
-      const response = await authApiClient.get<{ user: User }>('/api/v1/auth/me')
+      const response = await authApiClient.get<{ user: User }>('/auth/me')
       console.log('GET CURRENT USER API RESPONSE:', response.data)
       return response.data
     } catch (error) {
@@ -118,7 +119,7 @@ export const authApi = {
   verifyEmail: async (token: string): Promise<AuthResponse> => {
     try {
       console.log('VERIFY EMAIL API CALL:', `/api/v1/auth/verify-email/${token}`)
-      const response = await authApiClient.get<AuthResponse>(`/api/v1/auth/verify-email/${token}`)
+      const response = await authApiClient.get<AuthResponse>(`/auth/verify-email/${token}`)
       console.log('VERIFY EMAIL API RESPONSE:', response.data)
       return response.data
     } catch (error) {
@@ -133,7 +134,7 @@ export const authApi = {
       console.log('FORGOT PASSWORD API CALL:', '/api/v1/auth/forgot-password', {
         email: data.email,
       })
-      const response = await authApiClient.post<AuthResponse>('/api/v1/auth/forgot-password', data)
+      const response = await authApiClient.post<AuthResponse>('/auth/forgot-password', data)
       console.log('FORGOT PASSWORD API RESPONSE:', response.data)
       return response.data
     } catch (error) {
@@ -147,7 +148,7 @@ export const authApi = {
     try {
       console.log('RESET PASSWORD API CALL:', `/api/v1/auth/reset-password/${token}`)
       const response = await authApiClient.post<AuthResponse>(
-        `/api/v1/auth/reset-password/${token}`,
+        `/auth/reset-password/${token}`,
         data
       )
       console.log('RESET PASSWORD API RESPONSE:', response.data)
@@ -165,7 +166,7 @@ export const authApi = {
         email: data.email,
       })
       const response = await authApiClient.post<AuthResponse>(
-        '/api/v1/auth/resend-verification',
+        '/auth/resend-verification',
         data
       )
       console.log('RESEND VERIFICATION API RESPONSE:', response.data)
