@@ -44,12 +44,15 @@ console.log('Creating Express app...');
 const app = express();
 console.log('Express app created successfully');
 
+console.log('Setting up middleware...');
 // Middleware
 const allowedOrigins = [
   'http://localhost:5173', // Development
   'http://localhost:3000', // Alternative dev port
   process.env.FRONTEND_URL, // Production Vercel URL
 ].filter(Boolean); // Remove undefined values
+
+console.log('Allowed origins:', allowedOrigins);
 
 app.use(
   cors({
@@ -170,22 +173,28 @@ io.on('connection', socket => {
 
 const startServer = async () => {
   try {
+    console.log('Connecting to MongoDB...');
     await connectDB(MONGO_URI);
-    logger.info('MongoDB connected');
+    console.log('MongoDB connected successfully');
 
-    // Initialize Redis connection
+    console.log('Connecting to Redis...');
     await redisClient.connect();
+    console.log('Redis connected successfully');
 
     // Start scheduled tasks (only in production/non-test environments)
     if (process.env.NODE_ENV !== 'test') {
+      console.log('Starting scheduled tasks...');
       startScheduledTasks();
-      logger.info('Scheduled tasks started');
+      console.log('Scheduled tasks started');
     }
 
+    console.log(`Starting server on port ${PORT}...`);
     server.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
       logger.info(`Server running on port ${PORT}`);
     });
   } catch (err) {
+    console.error('Server startup error:', err);
     logger.error('Server startup error:', err);
     if (process.env.NODE_ENV !== 'test') {
       process.exit(1);
@@ -195,7 +204,10 @@ const startServer = async () => {
 };
 
 if (process.env.NODE_ENV !== 'test') {
+  console.log('Starting server initialization...');
   startServer();
+} else {
+  console.log('Test mode detected, skipping server start');
 }
 
 // Graceful shutdown
@@ -219,6 +231,7 @@ const gracefulShutdown = signal => {
 };
 
 process.on('unhandledRejection', err => {
+  console.error('UNHANDLED REJECTION! Shutting down...', err);
   logger.error('UNHANDLED REJECTION! Shutting down...', err);
   gracefulShutdown('UNHANDLED_REJECTION');
 });
