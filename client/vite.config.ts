@@ -34,10 +34,10 @@ export default defineConfig({
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true, // Remove console logs in production
+        drop_console: false, // Keep console logs for debugging
         drop_debugger: true,
         passes: 3, // Run more passes for better compression
-        pure_funcs: ['console.log', 'console.warn', 'console.error'], // Remove specific console methods
+        // pure_funcs: ['console.log', 'console.warn', 'console.error'], // Keep console methods for debugging
         dead_code: true,
         unused: true,
         reduce_vars: true,
@@ -136,7 +136,7 @@ export default defineConfig({
   },
   // Enable tree-shaking
   esbuild: {
-    drop: ['console', 'debugger'], // Remove console.log and debugger in production
+    drop: ['debugger'], // Keep console.log for debugging, remove debugger
     legalComments: 'none', // Remove license comments
     treeShaking: true,
     // Fix emotion bundling issues
