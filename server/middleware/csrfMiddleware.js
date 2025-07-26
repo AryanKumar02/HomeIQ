@@ -28,10 +28,19 @@ export const csrfProtection = (req, res, next) => {
     'http://localhost:5173',
     'http://localhost:3000',
     process.env.CLIENT_URL,
+    process.env.FRONTEND_URL, // Add the correct env var
+    'https://estate-link-six.vercel.app', // Hardcode your Vercel URL
   ].filter(Boolean);
 
+  console.log('CSRF check - Origin:', origin);
+  console.log('CSRF check - Referer:', referer);
+  console.log('CSRF check - Allowed origins:', allowedOrigins);
+  
   const hasValidOrigin = origin && allowedOrigins.includes(origin);
   const hasValidReferer = referer && allowedOrigins.some(allowed => referer.startsWith(allowed));
+  
+  console.log('CSRF check - Valid origin:', hasValidOrigin);
+  console.log('CSRF check - Valid referer:', hasValidReferer);
 
   // For API requests with cookies, require valid origin
   if (req.cookies && Object.keys(req.cookies).length > 0) {
