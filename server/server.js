@@ -42,6 +42,12 @@ process.on('uncaughtException', err => {
 
 console.log('Creating Express app...');
 const app = express();
+
+// Trust proxy for Render deployment
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 console.log('Express app created successfully');
 
 console.log('Setting up middleware...');
