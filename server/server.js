@@ -5,6 +5,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import jwt from 'jsonwebtoken';
@@ -104,6 +105,23 @@ app.use(
     crossOriginEmbedderPolicy: false,
   }),
 );
+
+// Enable compression for all responses
+app.use(
+  compression({
+    level: 6, // Compression level 1-9 (6 is good balance)
+    threshold: 1024, // Only compress responses over 1KB
+    filter: (req, res) => {
+      // Don't compress if client doesn't support it
+      if (req.headers['x-no-compression']) {
+        return false;
+      }
+      // Use compression for all responses by default
+      return compression.filter(req, res);
+    },
+  }),
+);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
