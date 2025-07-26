@@ -29,6 +29,17 @@ import redisClient from './config/redis.js';
 // Load environment variables
 dotenv.config();
 
+console.log('Starting server...');
+console.log('Environment variables loaded:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('PORT:', process.env.PORT);
+console.log('MONGO_URI exists:', !!process.env.MONGO_URI);
+
+process.on('uncaughtException', err => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
 const app = express();
 
 // Middleware
