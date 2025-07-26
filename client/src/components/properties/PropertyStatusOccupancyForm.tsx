@@ -174,7 +174,7 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
   }
 
   const handleAssignTenant = async () => {
-    if (!selectedTenant || !formData._id) {
+    if (!selectedTenant || !selectedTenant._id || !formData._id) {
       showNotification('Property ID and tenant selection required', 'error')
       return
     }
@@ -206,7 +206,9 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
     setLoading(true)
     try {
       await tenantsApi.assignToProperty({
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         tenantId: selectedTenant._id!,
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         propertyId: formData._id!,
         leaseData: {
           startDate: leaseStartDate,
@@ -217,6 +219,7 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
         },
       })
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       onInputChange('occupancy.tenant', selectedTenant._id!)
       onInputChange('occupancy.isOccupied', true)
       onInputChange('status', 'occupied')
@@ -242,12 +245,14 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
 
   const handleUnassignTenant = async () => {
     const currentTenant = getCurrentTenant()
-    if (!currentTenant || !formData._id) return
+    if (!currentTenant || !currentTenant._id || !formData._id) return
 
     setLoading(true)
     try {
       await tenantsApi.unassignFromProperty({
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         tenantId: currentTenant._id!,
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         propertyId: formData._id!,
       })
 
