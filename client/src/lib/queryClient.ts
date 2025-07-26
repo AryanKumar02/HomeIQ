@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query'
+import { AxiosError } from 'axios'
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -7,9 +8,11 @@ export const queryClient = new QueryClient({
       gcTime: 30 * 60 * 1000, // 30 minutes - keep in memory longer
       retry: (failureCount, error) => {
         // Don't retry on 4xx errors
-        const axiosError = error as any
-        if (axiosError?.response?.status >= 400 && axiosError?.response?.status < 500) {
-          return false
+        if (error instanceof AxiosError && error.response) {
+          const status = error.response.status
+          if (status >= 400 && status < 500) {
+            return false
+          }
         }
         return failureCount < 2
       },
