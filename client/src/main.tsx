@@ -24,14 +24,29 @@ if (root) {
           return import('react-dom/client')
         })
         .then(() => {
-          status.innerHTML = '✅ ReactDOM imported! Testing App...'
+          status.innerHTML = '✅ ReactDOM imported! Testing MUI...'
           
-          return import('./App.tsx')
+          return import('@mui/material')
         })
         .then(() => {
-          status.innerHTML = '✅ App imported successfully! The issue is in App rendering.'
+          status.innerHTML = '✅ MUI imported! Testing React Router...'
+          
+          return import('react-router-dom')
+        })
+        .then(() => {
+          status.innerHTML = '✅ React Router imported! Testing TanStack Query...'
+          
+          return import('@tanstack/react-query')
+        })
+        .then(() => {
+          status.innerHTML = '✅ All major libs imported! Testing theme...'
+          
+          return import('./theme')
+        })
+        .then(() => {
+          status.innerHTML = '✅ All imports work! The issue is likely in a specific component.'
           status.style.color = 'green'
-          alert('✅ App import worked! Issue is in rendering.')
+          alert('✅ All major imports work!')
         })
         .catch((error) => {
           status.innerHTML = `❌ React import failed: ${String(error)}`
