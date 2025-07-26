@@ -1,9 +1,14 @@
+// Force execution check
+alert('🔍 MAIN.TSX IS RUNNING!')
 console.log('🔍 Starting main.tsx execution')
 
 // Remove initial loader immediately
 const loader = document.querySelector('.initial-loader')
 if (loader) {
   loader.remove()
+  alert('✅ Loader removed')
+} else {
+  alert('❌ No loader found')
 }
 
 const rootElement = document.getElementById('root')
