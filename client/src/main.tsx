@@ -1,4 +1,4 @@
-// import { StrictMode } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
@@ -13,7 +13,11 @@ const removeInitialLoader = () => {
 
 try {
   const root = createRoot(document.getElementById('root')!)
-  root.render(<App />)
+  root.render(
+    <StrictMode>
+      <App />
+    </StrictMode>
+  )
   removeInitialLoader()
 } catch (error) {
   console.error('App failed to mount:', error)
