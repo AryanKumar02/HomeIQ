@@ -19,9 +19,14 @@ if (root) {
       
       import('react')
         .then(() => {
-          status.innerHTML = '✅ React imported successfully!'
+          status.innerHTML = '✅ React imported! Testing ReactDOM...'
+          
+          return import('react-dom/client')
+        })
+        .then(() => {
+          status.innerHTML = '✅ ReactDOM imported successfully!'
           status.style.color = 'green'
-          alert('✅ React import worked!')
+          alert('✅ ReactDOM import worked!')
         })
         .catch((error) => {
           status.innerHTML = `❌ React import failed: ${String(error)}`
