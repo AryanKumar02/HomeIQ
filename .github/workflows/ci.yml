@@ -1,4 +1,4 @@
-name: Node.js CI
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,15 +30,33 @@ jobs:
         working-directory: ./client
 
       - name: Lint server
-        run: npm run lint || true
+        run: npm run lint
         working-directory: ./server
 
       - name: Lint client
-        run: npm run lint || true
+        run: npm run lint
         working-directory: ./client
 
       - name: Test server
         run: npm test
         working-directory: ./server
 
-      # Add more steps as needed (build, test client, etc.) 
+      - name: Build client
+        run: npm run build
+        working-directory: ./client
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Render
+        run: |
+          echo "Backend deployment triggered automatically by Render on push to main"
+          
+      - name: Deploy to Vercel
+        run: |
+          echo "Frontend deployment triggered automatically by Vercel on push to main" 
