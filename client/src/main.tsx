@@ -38,14 +38,56 @@ if (!rootElement) {
           if (testDiv) {
             const root = createRoot(testDiv)
             
+            // First show React works
             const TestComponent = () => {
               return React.createElement('div', { style: { color: 'green' } },
-                'Step 2: React rendering works ✅'
+                'Step 2: React rendering works ✅',
+                React.createElement('br'),
+                React.createElement('div', { id: 'app-test' }, 'Step 3: Testing App.tsx...')
               )
             }
             
             root.render(React.createElement(TestComponent))
             console.log('✅ React rendering successful')
+            
+            // Now test App.tsx import
+            setTimeout(() => {
+              console.log('📍 Testing App.tsx import...')
+              
+              import('./App.tsx').then(({ default: App }) => {
+                console.log('✅ App.tsx imported successfully')
+                
+                try {
+                  // Test rendering App component
+                  const appTestDiv = document.getElementById('app-test')
+                  if (appTestDiv) {
+                    appTestDiv.innerHTML = 'Step 3: App imported ✅ - Rendering App...'
+                    
+                    // Create new root for full app
+                    const rootEl = document.getElementById('root')
+                    if (rootEl) {
+                      const appRoot = createRoot(rootEl)
+                      appRoot.render(React.createElement(App))
+                    }
+                    console.log('✅ App component rendered successfully')
+                  }
+                } catch (error) {
+                  console.error('❌ App rendering failed:', error)
+                  const appTestDiv = document.getElementById('app-test')
+                  if (appTestDiv) {
+                    appTestDiv.innerHTML = `Step 3: ❌ App render failed: ${String(error)}`
+                  }
+                }
+                
+              }).catch(error => {
+                console.error('❌ App.tsx import failed:', error)
+                const appTestDiv = document.getElementById('app-test')
+                if (appTestDiv) {
+                  appTestDiv.innerHTML = `Step 3: ❌ App import failed: ${String(error)}`
+                }
+              })
+              
+            }, 1000)
           }
         } catch (error) {
           console.error('❌ React rendering failed:', error)
