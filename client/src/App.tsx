@@ -1,8 +1,9 @@
 import React, { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { ThemeProvider, CssBaseline, Box, CircularProgress } from '@mui/material'
+import { Box, CircularProgress } from '@mui/material'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { SpeedInsights } from '@vercel/speed-insights/react'
+import { ThemeProvider, CssBaseline } from '@mui/material'
 import theme from './theme'
 import { queryClient } from './lib/queryClient'
 import ErrorBoundary from './components/common/ErrorBoundary.tsx'
@@ -51,6 +52,132 @@ const AnalyticsPage = () => <div>Analytics Page</div>
 const MaintenancePage = () => <div>Maintenance Page</div>
 const SettingsPage = () => <div>Settings Page</div>
 
+// Component that renders the main app
+const AppWithProviders: React.FC = () => {
+  
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Router>
+        <ErrorBoundary>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
+                <Route path="/verify-email/:token" element={<VerifyEmail />} />
+                <Route path="/resend-verification" element={<ResendVerification />} />
+                <Route path="/terms-of-service" element={<TermsOfService />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
+                {/* Protected Routes */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/properties"
+                  element={
+                    <ProtectedRoute>
+                      <PropertyDetails />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/properties/:id"
+                  element={
+                    <ProtectedRoute>
+                      <PropertyDetails />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/properties/edit"
+                  element={
+                    <ProtectedRoute>
+                      <EditProperty />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/properties/edit/:id"
+                  element={
+                    <ProtectedRoute>
+                      <EditProperty />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/properties/add"
+                  element={
+                    <ProtectedRoute>
+                      <EditProperty />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tenants"
+                  element={
+                    <ProtectedRoute>
+                      <Tenants />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tenants/add"
+                  element={
+                    <ProtectedRoute>
+                      <CreateTenant />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tenants/:tenantId/edit"
+                  element={
+                    <ProtectedRoute>
+                      <CreateTenant />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/analytics"
+                  element={
+                    <ProtectedRoute>
+                      <AnalyticsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/maintenance"
+                  element={
+                    <ProtectedRoute>
+                      <MaintenancePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <SettingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
+        </Router>
+    </ThemeProvider>
+  )
+}
+
 function App() {
   // Initialize resource preloading for performance
   React.useEffect(() => {
@@ -65,125 +192,7 @@ function App() {
   
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Router>
-          <ErrorBoundary>
-            <Suspense fallback={<PageLoadingFallback />}>
-              <Routes>
-                  {/* Public Routes */}
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password/:token" element={<ResetPassword />} />
-                  <Route path="/verify-email/:token" element={<VerifyEmail />} />
-                  <Route path="/resend-verification" element={<ResendVerification />} />
-                  <Route path="/terms-of-service" element={<TermsOfService />} />
-                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-
-                  {/* Protected Routes */}
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/properties"
-                    element={
-                      <ProtectedRoute>
-                        <PropertyDetails />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/properties/:id"
-                    element={
-                      <ProtectedRoute>
-                        <PropertyDetails />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/properties/edit"
-                    element={
-                      <ProtectedRoute>
-                        <EditProperty />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/properties/edit/:id"
-                    element={
-                      <ProtectedRoute>
-                        <EditProperty />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/properties/add"
-                    element={
-                      <ProtectedRoute>
-                        <EditProperty />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/tenants"
-                    element={
-                      <ProtectedRoute>
-                        <Tenants />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/tenants/add"
-                    element={
-                      <ProtectedRoute>
-                        <CreateTenant />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/tenants/:tenantId/edit"
-                    element={
-                      <ProtectedRoute>
-                        <CreateTenant />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/analytics"
-                    element={
-                      <ProtectedRoute>
-                        <AnalyticsPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/maintenance"
-                    element={
-                      <ProtectedRoute>
-                        <MaintenancePage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/settings"
-                    element={
-                      <ProtectedRoute>
-                        <SettingsPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Routes>
-              </Suspense>
-            </ErrorBoundary>
-          </Router>
-      </ThemeProvider>
+      <AppWithProviders />
       {/* Load dev tools only in development */}
       {import.meta.env.DEV && (
         <Suspense fallback={null}>

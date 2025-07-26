@@ -25,7 +25,51 @@
     <!-- Preload critical resources -->
     <!-- Logo will be loaded when needed by navbar/sidebar -->
     
-    <!-- Critical CSS inlined (Material-UI handles this automatically) -->
+    <!-- Critical CSS inlined for immediate render -->
+    <style id="critical-css">
+      /* Critical layout styles for above-the-fold content */
+      .critical-layout {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      
+      /* Critical button styles */
+      .critical-button {
+        background: #036CA3;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background-color 0.3s;
+      }
+      
+      .critical-button:hover {
+        background: #025a87;
+      }
+      
+      /* Critical form styles */
+      .critical-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+        margin-bottom: 16px;
+      }
+      
+      /* Critical card styles */
+      .critical-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+    </style>
     
     <!-- Prevent FOUC with critical styles -->
     <style>
@@ -110,6 +154,17 @@
           document.documentElement.classList.add('font-loaded');
         }, 3000);
       }
+
+      // Remove critical CSS after MUI loads to prevent conflicts
+      document.addEventListener('DOMContentLoaded', () => {
+        // Wait for React to mount and MUI to load
+        setTimeout(() => {
+          const criticalCSS = document.getElementById('critical-css');
+          if (criticalCSS) {
+            criticalCSS.remove();
+          }
+        }, 2000);
+      });
     </script>
   </head>
   <body>
