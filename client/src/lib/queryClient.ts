@@ -7,8 +7,8 @@ export const queryClient = new QueryClient({
       gcTime: 30 * 60 * 1000, // 30 minutes - keep in memory longer
       retry: (failureCount, error) => {
         // Don't retry on 4xx errors
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (error?.response?.status >= 400 && error?.response?.status < 500) {
+        const axiosError = error as any
+        if (axiosError?.response?.status >= 400 && axiosError?.response?.status < 500) {
           return false
         }
         return failureCount < 2
