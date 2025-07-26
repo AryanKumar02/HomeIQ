@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { ThemeProvider, CssBaseline, Box, CircularProgress } from '@mui/material'
 import { QueryClientProvider } from '@tanstack/react-query'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import theme from './theme'
 import { queryClient } from './lib/queryClient'
 import ErrorBoundary from './components/common/ErrorBoundary.tsx'
@@ -189,6 +190,7 @@ function App() {
           <ReactQueryDevtools initialIsOpen={false} />
         </Suspense>
       )}
+      <SpeedInsights />
     </QueryClientProvider>
   )
 }
