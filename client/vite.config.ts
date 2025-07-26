@@ -1,11 +1,59 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { default as compression } from 'vite-plugin-compression'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    // PWA Service Worker
+    VitePWA({
+      registerType: 'autoUpdate',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/estatelink\.onrender\.com\/api\//,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 5 * 60, // 5 minutes
+              },
+            },
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|webp)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+              },
+            },
+          },
+        ],
+      },
+      manifest: {
+        name: 'HomeIQ Property Management',
+        short_name: 'HomeIQ',
+        description: 'Property management made simple',
+        theme_color: '#036CA3',
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: '/',
+        icons: [
+          {
+            src: '/assets/logo.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+        ],
+      },
+    }),
     // Enable compression for both dev and production
     compression({
       algorithm: 'gzip',
@@ -97,10 +145,22 @@ export default defineConfig({
       'react',
       'react-dom',
       'react-router-dom',
+      'react-is',
+      'prop-types',
       '@mui/material',
+      '@mui/material/styles',
       '@emotion/react',
       '@emotion/styled',
     ],
+    exclude: [
+      '@mui/icons-material', // Don't pre-bundle icons to reduce initial bundle
+    ],
+    esbuildOptions: {
+      // Define prop-types as external to avoid bundling issues
+      define: {
+        global: 'globalThis',
+      },
+    },
   },
   // Enable tree-shaking
   esbuild: {
@@ -109,6 +169,10 @@ export default defineConfig({
     treeShaking: true,
     // Fix emotion bundling issues
     keepNames: true,
+    // Fix prop-types compatibility with React 19
+    define: {
+      'process.env.NODE_ENV': '"development"',
+    },
   },
   // Enable CSS tree-shaking and optimization
   css: {
@@ -124,6 +188,8 @@ export default defineConfig({
     alias: {
       // Alias for smaller lodash imports if used
       'lodash': 'lodash-es',
+      // Fix React 19 compatibility issues
+      'react-is': 'react-is',
     },
   },
 })

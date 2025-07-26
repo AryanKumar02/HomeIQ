@@ -93,6 +93,16 @@ export const initializePreloading = () => {
   preloadCriticalImages()
   preloadCriticalFonts()
   preloadCriticalCSS()
+
+  // Prefetch critical components when idle
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      // Prefetch authentication components
+      import('../pages/Auth/Login.tsx').catch(() => {})
+      import('../pages/Dashboard/Dashboard').catch(() => {})
+      import('../pages/Properties/Property.tsx').catch(() => {})
+    })
+  }
 }
 
 /**
