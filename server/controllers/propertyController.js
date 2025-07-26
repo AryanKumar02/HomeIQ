@@ -21,9 +21,9 @@ export const getMyProperties = catchAsync(async (req, res) => {
       const properties = await Property.find({
         owner: req.user.id,
       })
-      .select('-images.metadata -__v') // Exclude large metadata and version field
-      .sort({ createdAt: -1 })
-      .lean(); // Return plain JS objects instead of Mongoose documents
+        .select('-images.metadata -__v') // Exclude large metadata and version field
+        .sort({ createdAt: -1 })
+        .lean(); // Return plain JS objects instead of Mongoose documents
 
       logger.info(`Retrieved ${properties.length} properties for user ${req.user.id}`);
 
