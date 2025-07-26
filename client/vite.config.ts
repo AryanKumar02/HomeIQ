@@ -5,12 +5,7 @@ import { default as compression } from 'vite-plugin-compression'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react({
-      jsxImportSource: '@emotion/react',
-      babel: {
-        plugins: ['@emotion/babel-plugin'],
-      },
-    }),
+    react(),
     // Enable compression for both dev and production
     compression({
       algorithm: 'gzip',

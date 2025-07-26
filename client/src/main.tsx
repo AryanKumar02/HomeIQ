@@ -1,7 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
 
 // Remove initial loader
 const removeInitialLoader = () => {
@@ -11,27 +10,67 @@ const removeInitialLoader = () => {
   }
 }
 
+// Step 1: Test React only
+const TestReact = () => <div>✅ React works</div>
+
+// Step 2: Test MUI without emotion
+const TestMUI = () => {
+  try {
+    // Import MUI components to test
+    const { CssBaseline } = require('@mui/material')
+    return (
+      <div>
+        <CssBaseline />
+        <div>✅ React + MUI CssBaseline works</div>
+      </div>
+    )
+  } catch (error) {
+    return <div>❌ MUI failed: {String(error)}</div>
+  }
+}
+
+// Step 3: Test emotion
+const TestEmotion = () => {
+  try {
+    const { css } = require('@emotion/react')
+    const style = css`color: green;`
+    return <div css={style}>✅ React + Emotion works</div>
+  } catch (error) {
+    return <div>❌ Emotion failed: {String(error)}</div>
+  }
+}
+
+// Progressive testing
+const DebugApp = () => {
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>HomeIQ Debug</h1>
+      <div style={{ marginBottom: '10px' }}><TestReact /></div>
+      <div style={{ marginBottom: '10px' }}><TestMUI /></div>
+      <div style={{ marginBottom: '10px' }}><TestEmotion /></div>
+      <button onClick={() => window.location.reload()}>Reload</button>
+    </div>
+  )
+}
+
 try {
   const root = createRoot(document.getElementById('root')!)
   root.render(
     <StrictMode>
-      <App />
+      <DebugApp />
     </StrictMode>
   )
   removeInitialLoader()
 } catch (error) {
-  console.error('App failed to mount:', error)
+  console.error('React mount failed:', error)
   removeInitialLoader()
-  // Show error message instead of loader
   const rootElement = document.getElementById('root')
   if (rootElement) {
     rootElement.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; gap: 16px;">
-        <h2>Application Error</h2>
-        <p>Please refresh the page or clear your browser cache.</p>
-        <button onclick="window.location.reload()" style="padding: 8px 16px; background: #036CA3; color: white; border: none; border-radius: 4px; cursor: pointer;">
-          Refresh Page
-        </button>
+      <div style="padding: 20px;">
+        <h2>❌ React Mount Failed</h2>
+        <pre style="background: #f5f5f5; padding: 10px;">${String(error)}</pre>
+        <button onclick="window.location.reload()">Reload</button>
       </div>
     `
   }
