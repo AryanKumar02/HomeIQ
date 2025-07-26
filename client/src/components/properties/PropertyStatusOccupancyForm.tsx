@@ -206,8 +206,8 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
     setLoading(true)
     try {
       await tenantsApi.assignToProperty({
-        tenantId: selectedTenant._id!,
-        propertyId: formData._id!,
+        tenantId: selectedTenant._id,
+        propertyId: formData._id,
         leaseData: {
           startDate: leaseStartDate,
           endDate: leaseEndDate,
@@ -247,8 +247,8 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
     setLoading(true)
     try {
       await tenantsApi.unassignFromProperty({
-        tenantId: currentTenant._id!,
-        propertyId: formData._id!,
+        tenantId: currentTenant._id,
+        propertyId: formData._id,
       })
 
       onInputChange('occupancy.tenant', '')
