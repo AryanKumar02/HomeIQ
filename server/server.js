@@ -56,27 +56,36 @@ const allowedOrigins = [
   'http://localhost:5173', // Development
   'http://localhost:3000', // Alternative dev port
   process.env.FRONTEND_URL, // Production Vercel URL
+  'https://home-iq-client.vercel.app', // Add your actual Vercel URL
 ].filter(Boolean); // Remove undefined values
 
+console.log('FRONTEND_URL env var:', process.env.FRONTEND_URL);
 console.log('Allowed origins:', allowedOrigins);
 
 app.use(
   cors({
     origin: (origin, callback) => {
+      console.log('CORS check - Origin:', origin);
+      console.log('CORS check - Allowed origins:', allowedOrigins);
+      
       // Allow requests with no origin (mobile apps, postman, etc)
       if (!origin) {
+        console.log('CORS: Allowing request with no origin');
         return callback(null, true);
       }
 
       if (allowedOrigins.includes(origin)) {
+        console.log('CORS: Allowing origin:', origin);
         return callback(null, true);
       }
 
       // In development, allow any localhost origin
       if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
+        console.log('CORS: Allowing localhost origin in development:', origin);
         return callback(null, true);
       }
 
+      console.log('CORS: Rejecting origin:', origin);
       callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
