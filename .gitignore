@@ -11,6 +11,13 @@ server/logs/
 # Testing
 /coverage
 .nyc_output
+coverage/
+server/coverage/
+client/coverage/
+*.lcov
+lcov.info
+clover.xml
+coverage-final.json
 
 # Production
 /build

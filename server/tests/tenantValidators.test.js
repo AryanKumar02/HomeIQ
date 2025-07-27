@@ -5,7 +5,6 @@ import mongoose from 'mongoose';
 // Jest globals are available in test environment
 
 // Load test environment variables
-dotenv.config({ path: '.env.test' });
 
 // Email service is mocked globally in setup.js
 

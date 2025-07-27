@@ -148,16 +148,10 @@ export const updateTenant = catchAsync(async (req, res, next) => {
   // Find tenant and ensure it belongs to the authenticated user
   const tenant = await Tenant.findOne({
     _id: req.params.id,
-    createdBy: req.user.id,
+    createdBy: String(req.user.id),
     isActive: true,
   });
-
-  // If not found with user filter, check if tenant exists at all
   if (!tenant) {
-    const anyTenant = await Tenant.findOne({ _id: req.params.id });
-    if (anyTenant) {
-      return next(new AppError('You do not have permission to update this tenant', 403));
-    }
     return next(new AppError('Tenant not found', 404));
   }
 

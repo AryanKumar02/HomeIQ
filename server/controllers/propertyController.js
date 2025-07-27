@@ -19,7 +19,7 @@ export const getMyProperties = catchAsync(async (req, res) => {
     cacheKey,
     async () => {
       const properties = await Property.find({
-        owner: req.user.id,
+        owner: String(req.user.id),
       })
         .select('-images.metadata -__v') // Exclude large metadata and version field
         .sort({ createdAt: -1 })
@@ -50,7 +50,7 @@ export const getProperty = catchAsync(async (req, res, next) => {
     async () => {
       const property = await Property.findOne({
         _id: req.params.id,
-        owner: req.user.id,
+        owner: String(req.user.id),
       }).populate(
         'occupancy.tenant',
         'personalInfo.firstName personalInfo.lastName contactInfo.email',
@@ -80,7 +80,7 @@ export const createProperty = catchAsync(async (req, res, next) => {
   // Add the owner to the property data
   const propertyData = {
     ...req.body,
-    owner: req.user.id,
+    owner: String(req.user.id),
   };
 
   const property = await Property.create(propertyData);
@@ -108,7 +108,7 @@ export const updateProperty = catchAsync(async (req, res, next) => {
   const property = await Property.findOneAndUpdate(
     {
       _id: req.params.id,
-      owner: req.user.id,
+      owner: String(req.user.id),
     },
     updateData,
     {
@@ -259,7 +259,7 @@ export const deleteProperty = catchAsync(async (req, res, next) => {
   // Use atomic findOneAndDelete operation
   const property = await Property.findOneAndDelete({
     _id: req.params.id,
-    owner: req.user.id,
+    owner: String(req.user.id),
   });
 
   if (!property) {
@@ -289,7 +289,7 @@ export const deleteProperty = catchAsync(async (req, res, next) => {
 export const addPropertyImages = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
-    owner: req.user.id,
+    owner: String(req.user.id),
   });
 
   if (!property) {
@@ -424,7 +424,7 @@ export const addPropertyImages = catchAsync(async (req, res, next) => {
 export const removePropertyImage = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
-    owner: req.user.id,
+    owner: String(req.user.id),
   });
 
   if (!property) {
@@ -499,7 +499,7 @@ export const removePropertyImage = catchAsync(async (req, res, next) => {
 export const setPrimaryImage = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
-    owner: req.user.id,
+    owner: String(req.user.id),
   });
 
   if (!property) {
@@ -536,7 +536,7 @@ export const setPrimaryImage = catchAsync(async (req, res, next) => {
 export const updatePropertyStatus = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
-    owner: req.user.id,
+    owner: String(req.user.id),
   });
 
   if (!property) {
@@ -566,7 +566,7 @@ export const updatePropertyStatus = catchAsync(async (req, res, next) => {
 export const updateOccupancy = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
-    owner: req.user.id,
+    owner: String(req.user.id),
   });
 
   if (!property) {
@@ -704,7 +704,7 @@ export const searchProperties = catchAsync(async (req, res) => {
 
   // Build filter object with whitelisted fields only
   const filter = {
-    owner: req.user.id,
+    owner: String(req.user.id),
   };
 
   // Whitelist of allowed property types
@@ -823,7 +823,7 @@ export const searchProperties = catchAsync(async (req, res) => {
 export const getUnits = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
-    owner: req.user.id,
+    owner: String(req.user.id),
   }).populate(
     'units.occupancy.tenant',
     'personalInfo.firstName personalInfo.lastName contactInfo.email',
@@ -852,7 +852,7 @@ export const getUnits = catchAsync(async (req, res, next) => {
 export const addUnit = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
-    owner: req.user.id,
+    owner: String(req.user.id),
   });
 
   if (!property) {
@@ -889,7 +889,7 @@ export const addUnit = catchAsync(async (req, res, next) => {
 export const updateUnit = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
-    owner: req.user.id,
+    owner: String(req.user.id),
   });
 
   if (!property) {
@@ -935,7 +935,7 @@ export const updateUnit = catchAsync(async (req, res, next) => {
 export const deleteUnit = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
-    owner: req.user.id,
+    owner: String(req.user.id),
   });
 
   if (!property) {
@@ -967,7 +967,7 @@ export const deleteUnit = catchAsync(async (req, res, next) => {
 export const assignTenantToUnit = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
-    owner: req.user.id,
+    owner: String(req.user.id),
   });
 
   if (!property) {
@@ -1024,7 +1024,7 @@ export const assignTenantToUnit = catchAsync(async (req, res, next) => {
 export const removeTenantFromUnit = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
-    owner: req.user.id,
+    owner: String(req.user.id),
   });
 
   if (!property) {
@@ -1069,7 +1069,7 @@ export const removeTenantFromUnit = catchAsync(async (req, res, next) => {
 export const getUnitAnalytics = catchAsync(async (req, res, next) => {
   const property = await Property.findOne({
     _id: req.params.id,
-    owner: req.user.id,
+    owner: String(req.user.id),
   });
 
   if (!property) {
