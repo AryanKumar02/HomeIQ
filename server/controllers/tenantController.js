@@ -145,12 +145,6 @@ export const createTenant = catchAsync(async (req, res, next) => {
 
 // Update a tenant
 export const updateTenant = catchAsync(async (req, res, next) => {
-  // Debug logging for 403 error investigation
-  console.log('UPDATE TENANT DEBUG:');
-  console.log('- Tenant ID:', req.params.id);
-  console.log('- User ID:', req.user.id);
-  console.log('- User email:', req.user.email);
-
   // Find tenant and ensure it belongs to the authenticated user
   const tenant = await Tenant.findOne({
     _id: req.params.id,
@@ -162,13 +156,8 @@ export const updateTenant = catchAsync(async (req, res, next) => {
   if (!tenant) {
     const anyTenant = await Tenant.findOne({ _id: req.params.id });
     if (anyTenant) {
-      console.log('- Tenant exists but access denied:');
-      console.log('- Tenant createdBy:', anyTenant.createdBy);
-      console.log('- Current user ID:', req.user.id);
-      console.log('- isActive:', anyTenant.isActive);
       return next(new AppError('You do not have permission to update this tenant', 403));
     }
-    console.log('- Tenant not found at all');
     return next(new AppError('Tenant not found', 404));
   }
 
