@@ -11,6 +11,8 @@ jest.mock('../services/emailService', () => ({
   sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
 }));
 
+dotenv.config({ path: '.env.test' });
+
 let mongoServer;
 let app;
 
