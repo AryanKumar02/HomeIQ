@@ -2,11 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { tenantsApi } from '../api/tenants'
 import type { Tenant } from '../api/tenants'
-import type { 
-  TenantTableData, 
-  TenantTableFilters, 
+import type {
+  TenantTableData,
+  TenantTableFilters,
   PaginationInfo,
-  TenantStatus 
+  TenantStatus,
 } from '../types/tenantTable'
 import { getDaysUntilLeaseEnd } from '../utils/dateUtils'
 
@@ -24,14 +24,18 @@ export const tenantTableKeys = {
  */
 const transformTenantForTable = (tenant: Tenant): TenantTableData => {
   const { personalInfo, contactInfo, leases, _id } = tenant
-  
+
   // Get the most recent active lease
-  const activeLease = leases?.find(lease => lease.status === 'active')
-  
+  const activeLease = leases?.find((lease) => lease.status === 'active')
+
   // Generate property display name
   let propertyDisplay = 'No property assigned'
   if (activeLease?.property) {
-    if (typeof activeLease.property === 'object' && activeLease.property !== null && 'title' in activeLease.property) {
+    if (
+      typeof activeLease.property === 'object' &&
+      activeLease.property !== null &&
+      'title' in activeLease.property
+    ) {
       propertyDisplay = (activeLease.property as { title: string }).title
       if (activeLease.unit) {
         propertyDisplay += `, Unit ${activeLease.unit}`
@@ -43,26 +47,26 @@ const transformTenantForTable = (tenant: Tenant): TenantTableData => {
       }
     }
   }
-  
+
   // Determine status based on application and lease information
   let status: TenantStatus = 'pending'
-  
+
   // Helper function to ensure status is a valid TenantStatus
   const normalizeStatus = (rawStatus: string): TenantStatus => {
     // Map common status variations to our TenantStatus type
     const statusMap: Record<string, TenantStatus> = {
-      'pending': 'pending',
-      'approved': 'approved', 
-      'rejected': 'rejected',
+      pending: 'pending',
+      approved: 'approved',
+      rejected: 'rejected',
       'under-review': 'under-review',
-      'waitlisted': 'waitlisted',
-      'withdrawn': 'withdrawn',
-      'expired': 'expired',
-      'active': 'active',
-      'expiring': 'expiring',
-      'terminated': 'terminated'
+      waitlisted: 'waitlisted',
+      withdrawn: 'withdrawn',
+      expired: 'expired',
+      active: 'active',
+      expiring: 'expiring',
+      terminated: 'terminated',
     }
-    
+
     return statusMap[rawStatus] || 'pending'
   }
 
@@ -82,7 +86,7 @@ const transformTenantForTable = (tenant: Tenant): TenantTableData => {
       status = 'active'
     }
   }
-  
+
   return {
     id: _id || '',
     name: `${personalInfo?.firstName || ''} ${personalInfo?.lastName || ''}`.trim() || 'Unknown',
@@ -90,7 +94,7 @@ const transformTenantForTable = (tenant: Tenant): TenantTableData => {
     property: propertyDisplay,
     leaseEnds: activeLease?.endDate || new Date().toISOString(),
     monthlyRent: activeLease?.monthlyRent || 0,
-    status
+    status,
   }
 }
 
@@ -106,24 +110,25 @@ export const useTenantsTable = (filters: TenantTableFilters = {}) => {
   const paginatedFilters = {
     page: 1,
     limit: 10,
-    ...filters
+    ...filters,
   }
 
   const {
     data: apiResponse,
     isLoading,
     error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: tenantTableKeys.list(paginatedFilters),
-    queryFn: () => tenantsApi.getAllPaginated({
-      page: paginatedFilters.page,
-      limit: paginatedFilters.limit,
-      search: paginatedFilters.search,
-      status: paginatedFilters.status,
-      property: paginatedFilters.property,
-      leaseExpiry: paginatedFilters.leaseExpiry
-    }),
+    queryFn: () =>
+      tenantsApi.getAllPaginated({
+        page: paginatedFilters.page,
+        limit: paginatedFilters.limit,
+        search: paginatedFilters.search,
+        status: paginatedFilters.status,
+        property: paginatedFilters.property,
+        leaseExpiry: paginatedFilters.leaseExpiry,
+      }),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   })
@@ -141,15 +146,15 @@ export const useTenantsTable = (filters: TenantTableFilters = {}) => {
         page: 1,
         limit: 10,
         total: 0,
-        totalPages: 0
+        totalPages: 0,
       }
     }
-    
+
     return {
       page: apiResponse.pagination.page,
       limit: apiResponse.pagination.limit,
       total: apiResponse.pagination.total,
-      totalPages: apiResponse.pagination.pages
+      totalPages: apiResponse.pagination.pages,
     }
   }, [apiResponse?.pagination])
 
@@ -163,7 +168,7 @@ export const useTenantsTable = (filters: TenantTableFilters = {}) => {
     hasNextPage: paginationInfo.page < paginationInfo.totalPages,
     hasPreviousPage: paginationInfo.page > 1,
     isEmpty: transformedTenants.length === 0 && !isLoading,
-    isEmptySearch: transformedTenants.length === 0 && !isLoading && filters.search
+    isEmptySearch: transformedTenants.length === 0 && !isLoading && filters.search,
   }
 }
 
@@ -177,10 +182,10 @@ export const usePaginationText = (pagination: PaginationInfo) => {
     if (pagination.total === 0) {
       return 'No tenants found'
     }
-    
+
     const startItem = (pagination.page - 1) * pagination.limit + 1
     const endItem = Math.min(pagination.page * pagination.limit, pagination.total)
-    
+
     return `Showing ${startItem} to ${endItem} of ${pagination.total} tenant${pagination.total === 1 ? '' : 's'}`
   }, [pagination])
 }

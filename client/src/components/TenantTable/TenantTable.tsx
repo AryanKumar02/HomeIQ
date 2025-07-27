@@ -20,7 +20,7 @@ import {
   Chip,
   useTheme,
   useMediaQuery,
-  type SelectChangeEvent
+  type SelectChangeEvent,
 } from '@mui/material'
 import {
   Person as PersonIcon,
@@ -28,7 +28,7 @@ import {
   CalendarToday as CalendarIcon,
   AttachMoney as MoneyIcon,
   Label as StatusIcon,
-  Settings as ActionsIcon
+  Settings as ActionsIcon,
 } from '@mui/icons-material'
 import type { TenantTableProps } from '../../types/tenantTable'
 import { useTenantsTable, usePaginationText, tenantTableKeys } from '../../hooks/useTenantsTable'
@@ -48,11 +48,21 @@ const TableRowSkeleton: React.FC = () => (
         </Box>
       </Box>
     </TableCell>
-    <TableCell><Skeleton variant="text" width="70%" /></TableCell>
-    <TableCell><Skeleton variant="text" width="80%" /></TableCell>
-    <TableCell><Skeleton variant="text" width="60%" /></TableCell>
-    <TableCell><Skeleton variant="rectangular" width={80} height={24} /></TableCell>
-    <TableCell><Skeleton variant="circular" width={32} height={32} /></TableCell>
+    <TableCell>
+      <Skeleton variant="text" width="70%" />
+    </TableCell>
+    <TableCell>
+      <Skeleton variant="text" width="80%" />
+    </TableCell>
+    <TableCell>
+      <Skeleton variant="text" width="60%" />
+    </TableCell>
+    <TableCell>
+      <Skeleton variant="rectangular" width={80} height={24} />
+    </TableCell>
+    <TableCell>
+      <Skeleton variant="circular" width={32} height={32} />
+    </TableCell>
   </TableRow>
 )
 
@@ -61,7 +71,7 @@ const TableRowSkeleton: React.FC = () => (
  */
 const EmptyState: React.FC<{ isSearch: boolean; searchTerm?: string }> = ({
   isSearch,
-  searchTerm
+  searchTerm,
 }) => {
   const theme = useTheme()
 
@@ -93,12 +103,12 @@ const EmptyState: React.FC<{ isSearch: boolean; searchTerm?: string }> = ({
             ${theme.palette.primary.main}08 90deg,
             transparent 180deg)`,
           animation: 'rotate 20s linear infinite',
-          opacity: 0.3
+          opacity: 0.3,
         },
         '@keyframes rotate': {
           from: { transform: 'rotate(0deg)' },
-          to: { transform: 'rotate(360deg)' }
-        }
+          to: { transform: 'rotate(360deg)' },
+        },
       }}
     >
       <PersonIcon
@@ -113,17 +123,22 @@ const EmptyState: React.FC<{ isSearch: boolean; searchTerm?: string }> = ({
           filter: 'drop-shadow(0 2px 4px rgba(3, 108, 163, 0.2))',
           mb: 2,
           position: 'relative',
-          zIndex: 1
+          zIndex: 1,
         }}
       />
-      <Typography variant="h6" sx={{ mb: 1, color: theme.palette.grey[600], position: 'relative', zIndex: 1 }}>
+      <Typography
+        variant="h6"
+        sx={{ mb: 1, color: theme.palette.grey[600], position: 'relative', zIndex: 1 }}
+      >
         {isSearch ? 'No tenants found' : 'No tenants yet'}
       </Typography>
-      <Typography variant="body2" sx={{ color: theme.palette.grey[500], position: 'relative', zIndex: 1 }}>
+      <Typography
+        variant="body2"
+        sx={{ color: theme.palette.grey[500], position: 'relative', zIndex: 1 }}
+      >
         {isSearch
           ? `No tenants match "${searchTerm}". Try adjusting your search terms.`
-          : 'Get started by adding your first tenant to the system.'
-        }
+          : 'Get started by adding your first tenant to the system.'}
       </Typography>
     </Box>
   )
@@ -140,7 +155,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
   searchTerm = '',
   onTenantView = () => {},
   onTenantEdit = () => {},
-  onTenantDelete = () => {}
+  onTenantDelete = () => {},
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -150,21 +165,17 @@ const TenantTable: React.FC<TenantTableProps> = ({
   const [pageSize, setPageSize] = useState(10)
 
   // Memoize filters to prevent unnecessary re-renders
-  const filters = useMemo(() => ({
-    page,
-    limit: pageSize,
-    search: searchTerm
-  }), [page, pageSize, searchTerm])
+  const filters = useMemo(
+    () => ({
+      page,
+      limit: pageSize,
+      search: searchTerm,
+    }),
+    [page, pageSize, searchTerm]
+  )
 
-  const {
-    tenants,
-    pagination,
-    isLoading,
-    error,
-    refetch,
-    isEmpty,
-    isEmptySearch
-  } = useTenantsTable(filters)
+  const { tenants, pagination, isLoading, error, refetch, isEmpty, isEmptySearch } =
+    useTenantsTable(filters)
 
   const paginationText = usePaginationText(pagination)
 
@@ -176,7 +187,6 @@ const TenantTable: React.FC<TenantTableProps> = ({
     setPageSize(Number(event.target.value))
     setPage(1) // Reset to first page when changing page size
   }
-
 
   // Set up delete mutation
   const queryClient = useQueryClient()
@@ -192,22 +202,21 @@ const TenantTable: React.FC<TenantTableProps> = ({
       if (error && typeof error === 'object' && 'response' in error) {
         const response = error.response as { status?: number; data?: { message?: string } }
         if (response.status === 400) {
-          alert(response.data?.message || 'Cannot delete tenant with active leases. Please terminate leases first.')
+          alert(
+            response.data?.message ||
+              'Cannot delete tenant with active leases. Please terminate leases first.'
+          )
           return
         }
       }
       alert('Failed to delete tenant. Please try again.')
-    }
+    },
   })
 
   const handleDeleteTenant = (tenantId: string) => {
     try {
       deleteMutation.mutate(tenantId)
       if (onTenantDelete && typeof onTenantDelete === 'function') {
-
-
-
-        
         onTenantDelete(tenantId)
       }
     } catch (error: unknown) {
@@ -221,12 +230,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
       <Alert
         severity="error"
         action={
-          <Chip
-            label="Retry"
-            onClick={() => void refetch()}
-            size="small"
-            variant="outlined"
-          />
+          <Chip label="Retry" onClick={() => void refetch()} size="small" variant="outlined" />
         }
         sx={{ mx: 2 }}
       >
@@ -237,8 +241,6 @@ const TenantTable: React.FC<TenantTableProps> = ({
 
   return (
     <Box sx={{ width: '100%', height: '100%' }}>
-
-
       {/* Table Container */}
       <TableContainer
         component={Paper}
@@ -254,14 +256,14 @@ const TenantTable: React.FC<TenantTableProps> = ({
           transition: 'box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
             boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.15)',
-          }
+          },
         }}
       >
         <Table
           sx={{
             width: '100%',
             minWidth: 650,
-            tableLayout: 'fixed'
+            tableLayout: 'fixed',
           }}
           aria-label="Tenant management table"
         >
@@ -286,8 +288,8 @@ const TenantTable: React.FC<TenantTableProps> = ({
                     ${theme.palette.primary.main}40 20%,
                     ${theme.palette.secondary.main}60 50%,
                     ${theme.palette.primary.main}40 80%,
-                    transparent 100%)`
-                }
+                    transparent 100%)`,
+                },
               }}
             >
               <TableCell sx={{ px: 3, py: 2, width: '30%' }}>
@@ -296,7 +298,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
                     fontSize="small"
                     sx={{
                       color: theme.palette.primary.main,
-                      filter: 'drop-shadow(0 1px 2px rgba(3, 108, 163, 0.2))'
+                      filter: 'drop-shadow(0 1px 2px rgba(3, 108, 163, 0.2))',
                     }}
                   />
                   <Typography variant="subtitle2" fontWeight={600}>
@@ -312,7 +314,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
                       fontSize="small"
                       sx={{
                         color: theme.palette.secondary.main,
-                        filter: 'drop-shadow(0 1px 2px rgba(61, 130, 247, 0.2))'
+                        filter: 'drop-shadow(0 1px 2px rgba(61, 130, 247, 0.2))',
                       }}
                     />
                     <Typography variant="subtitle2" fontWeight={600}>
@@ -329,7 +331,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
                       fontSize="small"
                       sx={{
                         color: theme.palette.warning.main,
-                        filter: 'drop-shadow(0 1px 2px rgba(255, 152, 0, 0.2))'
+                        filter: 'drop-shadow(0 1px 2px rgba(255, 152, 0, 0.2))',
                       }}
                     />
                     <Typography variant="subtitle2" fontWeight={600}>
@@ -341,12 +343,19 @@ const TenantTable: React.FC<TenantTableProps> = ({
 
               {!isTablet && (
                 <TableCell align="right" sx={{ px: 3, py: 2, width: '15%' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      justifyContent: 'flex-end',
+                    }}
+                  >
                     <MoneyIcon
                       fontSize="small"
                       sx={{
                         color: theme.palette.success.main,
-                        filter: 'drop-shadow(0 1px 2px rgba(76, 175, 80, 0.2))'
+                        filter: 'drop-shadow(0 1px 2px rgba(76, 175, 80, 0.2))',
                       }}
                     />
                     <Typography variant="subtitle2" fontWeight={600}>
@@ -362,7 +371,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
                     fontSize="small"
                     sx={{
                       color: theme.palette.info.main,
-                      filter: 'drop-shadow(0 1px 2px rgba(33, 150, 243, 0.2))'
+                      filter: 'drop-shadow(0 1px 2px rgba(33, 150, 243, 0.2))',
                     }}
                   />
                   <Typography variant="subtitle2" fontWeight={600}>
@@ -372,12 +381,14 @@ const TenantTable: React.FC<TenantTableProps> = ({
               </TableCell>
 
               <TableCell align="right" sx={{ px: 3, py: 2, width: '80px' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
+                <Box
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}
+                >
                   <ActionsIcon
                     fontSize="small"
                     sx={{
                       color: theme.palette.grey[600],
-                      filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))'
+                      filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))',
                     }}
                   />
                   <Typography variant="subtitle2" fontWeight={600}>
@@ -399,15 +410,16 @@ const TenantTable: React.FC<TenantTableProps> = ({
             )}
 
             {/* Data Rows */}
-            {!isLoading && tenants.map((tenant) => (
-              <TenantRow
-                key={tenant.id}
-                tenant={tenant}
-                onView={onTenantView}
-                onEdit={onTenantEdit}
-                onDelete={handleDeleteTenant}
-              />
-            ))}
+            {!isLoading &&
+              tenants.map((tenant) => (
+                <TenantRow
+                  key={tenant.id}
+                  tenant={tenant}
+                  onView={onTenantView}
+                  onEdit={onTenantEdit}
+                  onDelete={handleDeleteTenant}
+                />
+              ))}
           </TableBody>
         </Table>
       </TableContainer>
@@ -427,17 +439,17 @@ const TenantTable: React.FC<TenantTableProps> = ({
             mt: 3,
             mb: 2,
             flexWrap: 'wrap',
-            gap: 3
+            gap: 3,
           }}
         >
-                              {/* Pagination Info */}
+          {/* Pagination Info */}
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
               gap: 2,
               flexWrap: 'wrap',
-              minWidth: 'fit-content'
+              minWidth: 'fit-content',
             }}
           >
             <Typography
@@ -446,7 +458,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
                 color: theme.palette.text.secondary,
                 fontWeight: 500,
                 fontSize: '0.875rem',
-                letterSpacing: '0.02em'
+                letterSpacing: '0.02em',
               }}
             >
               {paginationText}
@@ -462,7 +474,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
                 gap: 2,
                 flex: '1',
                 justifyContent: 'center',
-                minWidth: 'fit-content'
+                minWidth: 'fit-content',
               }}
             >
               <Pagination
@@ -487,7 +499,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
                         ${theme.palette.secondary.main}06 100%)`,
                       border: `1px solid ${theme.palette.primary.main}20`,
                       transform: 'translateY(-1px)',
-                      boxShadow: `0 2px 8px rgba(3, 108, 163, 0.15)`
+                      boxShadow: `0 2px 8px rgba(3, 108, 163, 0.15)`,
                     },
                     '&.Mui-selected': {
                       background: `linear-gradient(135deg,
@@ -500,10 +512,10 @@ const TenantTable: React.FC<TenantTableProps> = ({
                         background: `linear-gradient(135deg,
                           ${theme.palette.primary.dark} 0%,
                           ${theme.palette.secondary.dark} 100%)`,
-                        transform: 'translateY(-1px)'
-                      }
-                    }
-                  }
+                        transform: 'translateY(-1px)',
+                      },
+                    },
+                  },
                 }}
               />
             </Box>
@@ -517,7 +529,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
                 color: theme.palette.text.secondary,
                 fontWeight: 500,
                 fontSize: '0.875rem',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
               }}
             >
               Show:
@@ -537,7 +549,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
                   transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   border: `1px solid ${theme.palette.divider}40`,
                   '& .MuiOutlinedInput-notchedOutline': {
-                    border: 'none'
+                    border: 'none',
                   },
                   '&:hover': {
                     background: `linear-gradient(135deg,
@@ -545,7 +557,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
                       ${theme.palette.secondary.main}04 100%)`,
                     border: `1px solid ${theme.palette.primary.main}30`,
                     transform: 'translateY(-1px)',
-                    boxShadow: `0 2px 12px rgba(3, 108, 163, 0.12)`
+                    boxShadow: `0 2px 12px rgba(3, 108, 163, 0.12)`,
                   },
                   '&.Mui-focused': {
                     background: `linear-gradient(135deg,
@@ -553,9 +565,9 @@ const TenantTable: React.FC<TenantTableProps> = ({
                       ${theme.palette.secondary.main}06 100%)`,
                     border: `1px solid ${theme.palette.primary.main}50`,
                     boxShadow: `0 0 0 3px ${theme.palette.primary.main}15`,
-                    transform: 'translateY(-1px)'
-                  }
-                }
+                    transform: 'translateY(-1px)',
+                  },
+                },
               }}
             >
               <Select
@@ -568,8 +580,8 @@ const TenantTable: React.FC<TenantTableProps> = ({
                   fontWeight: 500,
                   '& .MuiSelect-select': {
                     py: 1,
-                    px: 1.5
-                  }
+                    px: 1.5,
+                  },
                 }}
               >
                 <MenuItem value={5}>5</MenuItem>

@@ -7,12 +7,12 @@ import {
   Box,
   Tooltip,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
 } from '@mui/material'
 import {
   Home as PropertyIcon,
   Email as EmailIcon,
-  CalendarToday as CalendarIcon
+  CalendarToday as CalendarIcon,
 } from '@mui/icons-material'
 import type { TenantRowProps } from '../../types/tenantTable'
 import StatusBadge from './StatusBadge'
@@ -22,7 +22,7 @@ import {
   formatCurrency,
   generateInitials,
   generateAvatarColor,
-  getDaysUntilLeaseEnd
+  getDaysUntilLeaseEnd,
 } from '../../utils/dateUtils'
 
 /**
@@ -32,12 +32,7 @@ import {
  * @param props - Component props
  * @returns Table row component for a tenant
  */
-const TenantRow: React.FC<TenantRowProps> = ({
-  tenant,
-  onView,
-  onEdit,
-  onDelete
-}) => {
+const TenantRow: React.FC<TenantRowProps> = ({ tenant, onView, onEdit, onDelete }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'))
@@ -93,7 +88,7 @@ const TenantRow: React.FC<TenantRowProps> = ({
         }),
         ...(isExpiringSoon && {
           borderLeft: `4px solid ${theme.palette.warning.main}`,
-        })
+        }),
       }}
     >
       {/* Tenant Info Column - Always visible */}
@@ -110,7 +105,7 @@ const TenantRow: React.FC<TenantRowProps> = ({
                 height: 40,
                 // Add border for better visual separation
                 border: `2px solid ${theme.palette.background.paper}`,
-                boxShadow: theme.shadows[2]
+                boxShadow: theme.shadows[2],
               }}
               aria-label={`Avatar for ${tenant.name}`}
             >
@@ -126,7 +121,7 @@ const TenantRow: React.FC<TenantRowProps> = ({
                 color: theme.palette.text.primary,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
               }}
             >
               {tenant.name}
@@ -136,7 +131,7 @@ const TenantRow: React.FC<TenantRowProps> = ({
               <EmailIcon
                 sx={{
                   fontSize: '0.75rem',
-                  color: theme.palette.grey[500]
+                  color: theme.palette.grey[500],
                 }}
               />
               <Typography
@@ -145,7 +140,7 @@ const TenantRow: React.FC<TenantRowProps> = ({
                   color: theme.palette.grey[600],
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {tenant.email}
@@ -162,7 +157,7 @@ const TenantRow: React.FC<TenantRowProps> = ({
             <PropertyIcon
               sx={{
                 fontSize: '1rem',
-                color: theme.palette.grey[500]
+                color: theme.palette.grey[500],
               }}
             />
             <Tooltip title={tenant.property} arrow>
@@ -172,7 +167,7 @@ const TenantRow: React.FC<TenantRowProps> = ({
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  maxWidth: isTablet ? 120 : 200
+                  maxWidth: isTablet ? 120 : 200,
                 }}
               >
                 {tenant.property}
@@ -193,7 +188,7 @@ const TenantRow: React.FC<TenantRowProps> = ({
                   ? theme.palette.error.main
                   : isExpiringSoon
                     ? theme.palette.warning.main
-                    : theme.palette.grey[500]
+                    : theme.palette.grey[500],
               }}
             />
             <Box>
@@ -205,7 +200,7 @@ const TenantRow: React.FC<TenantRowProps> = ({
                     : isExpiringSoon
                       ? theme.palette.warning.main
                       : theme.palette.text.primary,
-                  fontWeight: (isOverdue || isExpiringSoon) ? 600 : 400
+                  fontWeight: isOverdue || isExpiringSoon ? 600 : 400,
                 }}
               >
                 {formattedLeaseEnd}
@@ -214,16 +209,13 @@ const TenantRow: React.FC<TenantRowProps> = ({
                 <Typography
                   variant="caption"
                   sx={{
-                    color: isOverdue
-                      ? theme.palette.error.main
-                      : theme.palette.warning.main,
-                    fontWeight: 500
+                    color: isOverdue ? theme.palette.error.main : theme.palette.warning.main,
+                    fontWeight: 500,
                   }}
                 >
                   {isOverdue
                     ? `${Math.abs(daysUntilLeaseEnd)} days overdue`
-                    : `${daysUntilLeaseEnd} days left`
-                  }
+                    : `${daysUntilLeaseEnd} days left`}
                 </Typography>
               )}
             </Box>
@@ -238,7 +230,7 @@ const TenantRow: React.FC<TenantRowProps> = ({
             variant="body2"
             sx={{
               fontWeight: 600,
-              color: theme.palette.text.primary
+              color: theme.palette.text.primary,
             }}
           >
             {formattedRent}
@@ -247,7 +239,7 @@ const TenantRow: React.FC<TenantRowProps> = ({
             variant="caption"
             sx={{
               color: theme.palette.grey[600],
-              display: 'block'
+              display: 'block',
             }}
           >
             /month
@@ -262,13 +254,7 @@ const TenantRow: React.FC<TenantRowProps> = ({
 
       {/* Actions Column - Always visible */}
       <TableCell align="right" sx={{ width: '80px' }}>
-        <ActionsMenu
-          tenantId={tenant.id}
-          onView={onView}
-          onEdit={onEdit}
-           
-          onDelete={onDelete}
-        />
+        <ActionsMenu tenantId={tenant.id} onView={onView} onEdit={onEdit} onDelete={onDelete} />
       </TableCell>
     </TableRow>
   )

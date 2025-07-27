@@ -132,7 +132,9 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
       !tenant.leases ||
       !Array.isArray(tenant.leases) ||
       !tenant.leases.some((lease) => lease.status === 'active')
-    const qualification = getQualificationStatus(tenant as unknown as { qualificationStatus?: { status?: string; issues?: unknown[] } })
+    const qualification = getQualificationStatus(
+      tenant as unknown as { qualificationStatus?: { status?: string; issues?: unknown[] } }
+    )
 
     // Include tenants that are either manually approved or automatically qualified
     const isApproved = tenant.applicationStatus?.status === 'approved'
@@ -326,7 +328,10 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
       </Box>
 
       {units.map((unit, index) => (
-        <Box key={index} sx={{ mb: 4, p: 3, border: '1px solid', borderColor: 'border.light', borderRadius: 2 }}>
+        <Box
+          key={index}
+          sx={{ mb: 4, p: 3, border: '1px solid', borderColor: 'border.light', borderRadius: 2 }}
+        >
           <Box
             sx={{
               display: 'flex',
@@ -483,7 +488,11 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
                         <Person color="primary" />
                         <Box>
                           <Typography variant="subtitle1" fontWeight="medium">
-                            {getTenantName(getCurrentTenant(unit)! as unknown as { personalInfo: { firstName: string; lastName: string } })}
+                            {getTenantName(
+                              getCurrentTenant(unit)! as unknown as {
+                                personalInfo: { firstName: string; lastName: string }
+                              }
+                            )}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
                             Assigned to Unit {unit.unitNumber}
@@ -503,8 +512,22 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
                   ) : (
                     <Autocomplete
                       options={availableTenants}
-                      getOptionLabel={(tenant) => getTenantName(tenant as unknown as { personalInfo: { firstName: string; lastName: string } })}
-                      onChange={(_, tenant) => handleTenantSelect(index, tenant as unknown as { _id: string; personalInfo: { firstName: string; lastName: string } } | null)}
+                      getOptionLabel={(tenant) =>
+                        getTenantName(
+                          tenant as unknown as {
+                            personalInfo: { firstName: string; lastName: string }
+                          }
+                        )
+                      }
+                      onChange={(_, tenant) =>
+                        handleTenantSelect(
+                          index,
+                          tenant as unknown as {
+                            _id: string
+                            personalInfo: { firstName: string; lastName: string }
+                          } | null
+                        )
+                      }
                       renderInput={(params) => (
                         <TextField
                           {...params}
@@ -515,7 +538,11 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
                         />
                       )}
                       renderOption={(props, tenant) => {
-                        const qualification = getQualificationStatus(tenant as unknown as { qualificationStatus?: { status?: string; issues?: unknown[] } })
+                        const qualification = getQualificationStatus(
+                          tenant as unknown as {
+                            qualificationStatus?: { status?: string; issues?: unknown[] }
+                          }
+                        )
                         return (
                           <Box
                             component="li"
@@ -523,7 +550,13 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
                             sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                           >
                             <Box sx={{ flexGrow: 1 }}>
-                              <Typography variant="body1">{getTenantName(tenant as unknown as { personalInfo: { firstName: string; lastName: string } })}</Typography>
+                              <Typography variant="body1">
+                                {getTenantName(
+                                  tenant as unknown as {
+                                    personalInfo: { firstName: string; lastName: string }
+                                  }
+                                )}
+                              </Typography>
                               <Typography variant="body2" color="text.secondary">
                                 {
                                   (tenant as { contactInfo?: { email?: string } }).contactInfo
@@ -767,8 +800,12 @@ const UnitManagement: React.FC<UnitManagementProps> = ({
         fullWidth
       >
         <DialogTitle>
-          Assign {selectedTenant && getTenantName(selectedTenant as unknown as { personalInfo: { firstName: string; lastName: string } })} to Unit{' '}
-          {selectedUnitIndex !== null ? units[selectedUnitIndex]?.unitNumber : ''}
+          Assign{' '}
+          {selectedTenant &&
+            getTenantName(
+              selectedTenant as unknown as { personalInfo: { firstName: string; lastName: string } }
+            )}{' '}
+          to Unit {selectedUnitIndex !== null ? units[selectedUnitIndex]?.unitNumber : ''}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1 }}>

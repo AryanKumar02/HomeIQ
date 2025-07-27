@@ -52,7 +52,8 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
     webp.onload = webp.onerror = () => {
       setWebpSupported(webp.height === 2)
     }
-    webp.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA'
+    webp.src =
+      'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA'
   }, [webpSupported])
 
   // Handle image load
@@ -62,29 +63,32 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   }, [])
 
   // Handle image error - fallback to PNG
-  const handleError = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = event.currentTarget
-    
-    // If we're showing WebP and it failed, try PNG
-    if (img.src.includes('.webp')) {
-      img.src = src.endsWith('.png') ? src : `${src}.png`
-      return
-    }
-    
-    // If PNG also failed, show error state
-    setIsLoading(false)
-    setHasError(true)
-  }, [src])
+  const handleError = useCallback(
+    (event: React.SyntheticEvent<HTMLImageElement>) => {
+      const img = event.currentTarget
+
+      // If we're showing WebP and it failed, try PNG
+      if (img.src.includes('.webp')) {
+        img.src = src.endsWith('.png') ? src : `${src}.png`
+        return
+      }
+
+      // If PNG also failed, show error state
+      setIsLoading(false)
+      setHasError(true)
+    },
+    [src]
+  )
 
   // Determine image source based on WebP support
   const getImageSrc = useCallback(() => {
     if (hasError) return ''
-    
+
     // If WebP is supported and we have a WebP version, use it
     if (webpSupported && !src.endsWith('.png')) {
       return `${src}.webp`
     }
-    
+
     // Fallback to PNG
     return src.endsWith('.png') ? src : `${src}.png`
   }, [src, webpSupported, hasError])

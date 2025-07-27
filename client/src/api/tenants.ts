@@ -13,7 +13,12 @@ export interface Reference {
   contactedDate?: string
   contactedBy?: string
   response?: string
-  recommendation?: 'strongly-recommend' | 'recommend' | 'neutral' | 'not-recommend' | 'strongly-not-recommend'
+  recommendation?:
+    | 'strongly-recommend'
+    | 'recommend'
+    | 'neutral'
+    | 'not-recommend'
+    | 'strongly-not-recommend'
   notes?: string
 }
 
@@ -306,28 +311,31 @@ export const tenantsApi = {
         }
       }>(url)
       console.log('GET ALL TENANTS API RESPONSE:', response)
-      
+
       const { tenants } = response.data.data
       const { pagination } = response.data
-      
+
       // If there are more pages, fetch them all for backward compatibility
       if (pagination.pages > 1) {
         const allTenants = [...tenants]
-        
+
         // Fetch remaining pages
-        for (let page = 2; page <= Math.min(pagination.pages, 10); page++) { // Cap at 10 pages (1000 tenants) for safety
+        for (let page = 2; page <= Math.min(pagination.pages, 10); page++) {
+          // Cap at 10 pages (1000 tenants) for safety
           try {
-            const pageResponse = await apiClient.get<typeof response.data>(`/tenants?page=${page}&limit=100`)
+            const pageResponse = await apiClient.get<typeof response.data>(
+              `/tenants?page=${page}&limit=100`
+            )
             allTenants.push(...pageResponse.data.data.tenants)
           } catch (pageError) {
             console.warn(`Failed to fetch page ${page}:`, pageError)
             break
           }
         }
-        
+
         return allTenants
       }
-      
+
       return tenants || []
     } catch (error) {
       console.error('GET ALL TENANTS API ERROR:', error)
@@ -355,17 +363,19 @@ export const tenantsApi = {
   }> => {
     try {
       const params = new URLSearchParams()
-      
+
       if (filters?.page) params.append('page', filters.page.toString())
       if (filters?.limit) params.append('limit', filters.limit.toString())
       if (filters?.search) params.append('search', filters.search)
       if (filters?.status && filters.status !== 'all') params.append('status', filters.status)
-      if (filters?.property && filters.property !== 'all') params.append('property', filters.property)
-      if (filters?.leaseStatus && filters.leaseStatus !== 'all') params.append('leaseStatus', filters.leaseStatus)
-      
+      if (filters?.property && filters.property !== 'all')
+        params.append('property', filters.property)
+      if (filters?.leaseStatus && filters.leaseStatus !== 'all')
+        params.append('leaseStatus', filters.leaseStatus)
+
       const queryString = params.toString()
       const url = `/tenants${queryString ? `?${queryString}` : ''}`
-      
+
       console.log('GET ALL TENANTS API CALL:', url)
       const response = await apiClient.get<{
         status: string
@@ -380,12 +390,12 @@ export const tenantsApi = {
           tenants: Tenant[]
         }
       }>(url)
-      
+
       console.log('GET ALL TENANTS API RESPONSE:', response)
-      
+
       return {
         tenants: response.data.data.tenants || [],
-        pagination: response.data.pagination
+        pagination: response.data.pagination,
       }
     } catch (error) {
       console.error('GET ALL TENANTS API ERROR:', error)
@@ -539,11 +549,7 @@ export const tenantsApi = {
     }
   }): Promise<{ tenant: Tenant; property: unknown; lease: unknown }> => {
     try {
-      console.log(
-        'ASSIGN TENANT TO PROPERTY API CALL:',
-        '/tenants/assign-to-property',
-        assignment
-      )
+      console.log('ASSIGN TENANT TO PROPERTY API CALL:', '/tenants/assign-to-property', assignment)
       const response = await apiClient.post<{
         data: { tenant: Tenant; property: unknown; lease: unknown }
       }>('/tenants/assign-to-property', assignment)
@@ -598,7 +604,11 @@ export const tenantsApi = {
     }
   ): Promise<Tenant> => {
     try {
-      console.log('UPDATE REFERENCING STATUS API CALL:', `/tenants/${id}/referencing`, referencingData)
+      console.log(
+        'UPDATE REFERENCING STATUS API CALL:',
+        `/tenants/${id}/referencing`,
+        referencingData
+      )
       const response = await apiClient.patch<TenantResponse>(
         `/tenants/${id}/referencing`,
         referencingData

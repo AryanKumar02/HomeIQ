@@ -40,7 +40,8 @@ const TenantFilters: React.FC<TenantFiltersProps> = ({
   const propertyCounts = tenants.reduce(
     (acc, tenant) => {
       const isAssigned = tenant.property !== 'No property assigned'
-      acc[isAssigned ? 'assigned' : 'unassigned'] = (acc[isAssigned ? 'assigned' : 'unassigned'] || 0) + 1
+      acc[isAssigned ? 'assigned' : 'unassigned'] =
+        (acc[isAssigned ? 'assigned' : 'unassigned'] || 0) + 1
       return acc
     },
     {} as Record<string, number>
@@ -110,7 +111,10 @@ const TenantFilters: React.FC<TenantFiltersProps> = ({
   }
 
   // Check if any filters are active
-  const hasActiveFilters = selectedFilters.status !== null || selectedFilters.property !== null || selectedFilters.leaseExpiry !== null
+  const hasActiveFilters =
+    selectedFilters.status !== null ||
+    selectedFilters.property !== null ||
+    selectedFilters.leaseExpiry !== null
 
   return (
     <Box
@@ -208,37 +212,40 @@ const TenantFilters: React.FC<TenantFiltersProps> = ({
         </Box>
 
         {/* Page Navigation on the right - using simple pagination since we don't have PageNavigation component */}
-        {currentPage !== undefined && totalPages !== undefined && onPageChange && totalPages > 1 && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Chip
-              label="Previous"
-              clickable={currentPage > 1}
-              onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
-              variant="outlined"
-              size="small"
-              sx={{
-                ...chipStyles,
-                opacity: currentPage > 1 ? 1 : 0.5,
-                cursor: currentPage > 1 ? 'pointer' : 'not-allowed',
-              }}
-            />
-            <Box sx={{ px: 1, fontSize: '0.85rem', fontWeight: 600 }}>
-              {currentPage} of {totalPages}
+        {currentPage !== undefined &&
+          totalPages !== undefined &&
+          onPageChange &&
+          totalPages > 1 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Chip
+                label="Previous"
+                clickable={currentPage > 1}
+                onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+                variant="outlined"
+                size="small"
+                sx={{
+                  ...chipStyles,
+                  opacity: currentPage > 1 ? 1 : 0.5,
+                  cursor: currentPage > 1 ? 'pointer' : 'not-allowed',
+                }}
+              />
+              <Box sx={{ px: 1, fontSize: '0.85rem', fontWeight: 600 }}>
+                {currentPage} of {totalPages}
+              </Box>
+              <Chip
+                label="Next"
+                clickable={currentPage < totalPages}
+                onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
+                variant="outlined"
+                size="small"
+                sx={{
+                  ...chipStyles,
+                  opacity: currentPage < totalPages ? 1 : 0.5,
+                  cursor: currentPage < totalPages ? 'pointer' : 'not-allowed',
+                }}
+              />
             </Box>
-            <Chip
-              label="Next"
-              clickable={currentPage < totalPages}
-              onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
-              variant="outlined"
-              size="small"
-              sx={{
-                ...chipStyles,
-                opacity: currentPage < totalPages ? 1 : 0.5,
-                cursor: currentPage < totalPages ? 'pointer' : 'not-allowed',
-              }}
-            />
-          </Box>
-        )}
+          )}
       </Box>
     </Box>
   )

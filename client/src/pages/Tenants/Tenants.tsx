@@ -30,9 +30,10 @@ const Tenants: React.FC = () => {
   })
 
   // Calculate pagination for filtered tenants
-  const filteredTenants = allTenants.filter(tenant => {
+  const filteredTenants = allTenants.filter((tenant) => {
     // Search filter
-    const matchesSearch = !searchTerm || 
+    const matchesSearch =
+      !searchTerm ||
       tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tenant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tenant.property.toLowerCase().includes(searchTerm.toLowerCase())
@@ -41,7 +42,8 @@ const Tenants: React.FC = () => {
     const matchesStatus = !filters.status || tenant.status === filters.status
 
     // Property filter
-    const matchesProperty = !filters.property || 
+    const matchesProperty =
+      !filters.property ||
       (filters.property === 'assigned' && tenant.property !== 'No property assigned') ||
       (filters.property === 'unassigned' && tenant.property === 'No property assigned')
 
@@ -64,10 +66,13 @@ const Tenants: React.FC = () => {
     setCurrentPage(1) // Reset to first page when searching
   }
 
-  const handleFilterChange = (filterType: 'status' | 'property' | 'leaseExpiry', value: string | null) => {
-    setFilters(prev => ({
+  const handleFilterChange = (
+    filterType: 'status' | 'property' | 'leaseExpiry',
+    value: string | null
+  ) => {
+    setFilters((prev) => ({
       ...prev,
-      [filterType]: value
+      [filterType]: value,
     }))
     setCurrentPage(1) // Reset to first page when filtering
   }
@@ -75,7 +80,6 @@ const Tenants: React.FC = () => {
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
   }
-
 
   const handleTenantView = (tenantId: string) => {
     console.log('View tenant:', tenantId)
@@ -131,14 +135,14 @@ const Tenants: React.FC = () => {
       {/* Main layout with sidebar and content */}
       <Box sx={{ display: 'flex', flexGrow: 1, pt: { xs: '120px', md: '120px' } }}>
         <Sidebar />
-        <Box 
-          component="main" 
-          id="main-content" 
-          tabIndex={-1} 
-          sx={{ 
-            flexGrow: 1, 
+        <Box
+          component="main"
+          id="main-content"
+          tabIndex={-1}
+          sx={{
+            flexGrow: 1,
             p: { xs: 1, sm: 1.5, md: 2 }, // Reduced padding for more table width
-            mt: 2 
+            mt: 2,
           }}
         >
           {/* Tenant Table */}

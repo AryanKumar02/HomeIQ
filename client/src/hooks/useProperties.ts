@@ -82,7 +82,7 @@ export const useUpdateProperty = () => {
 
         // Also optimistically update the list cache
         if (previousProperties) {
-          const optimisticProperties = previousProperties.map(property => 
+          const optimisticProperties = previousProperties.map((property) =>
             property._id === id ? updatedProperty : property
           )
           queryClient.setQueryData(propertyKeys.lists(), optimisticProperties)
@@ -105,11 +105,11 @@ export const useUpdateProperty = () => {
       // Update both caches with the actual server response
       if (updatedProperty) {
         queryClient.setQueryData(propertyKeys.detail(id), updatedProperty)
-        
+
         // Update the list cache with the server response
         const currentProperties = queryClient.getQueryData<Property[]>(propertyKeys.lists())
         if (currentProperties) {
-          const updatedProperties = currentProperties.map(property => 
+          const updatedProperties = currentProperties.map((property) =>
             property._id === id ? updatedProperty : property
           )
           queryClient.setQueryData(propertyKeys.lists(), updatedProperties)

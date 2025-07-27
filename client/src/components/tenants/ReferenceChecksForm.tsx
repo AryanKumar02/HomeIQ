@@ -43,20 +43,20 @@ interface ReferenceChecksFormProps {
 
 // Reference type configuration type
 interface ReferenceTypeConfig {
-  label: string;
-  description: string;
-  icon: React.ElementType;
-  color: string;
-  requiredFields: string[];
-  optionalFields: string[];
-  hideFields: string[];
-  relationshipSuggestions?: string[];
-  defaultRelationship?: string;
+  label: string
+  description: string
+  icon: React.ElementType
+  color: string
+  requiredFields: string[]
+  optionalFields: string[]
+  hideFields: string[]
+  relationshipSuggestions?: string[]
+  defaultRelationship?: string
 }
 
 // Reference type configuration
 const REFERENCE_TYPE_CONFIG: Record<string, ReferenceTypeConfig> = {
-  'personal': {
+  personal: {
     label: 'Personal Reference',
     description: 'Friend, family member, or personal acquaintance',
     icon: PersonIcon,
@@ -64,9 +64,9 @@ const REFERENCE_TYPE_CONFIG: Record<string, ReferenceTypeConfig> = {
     requiredFields: ['name', 'relationship', 'phone'],
     optionalFields: ['email', 'yearsKnown', 'notes'],
     hideFields: ['company'],
-    relationshipSuggestions: ['Friend', 'Family Member', 'Neighbor', 'Personal Acquaintance']
+    relationshipSuggestions: ['Friend', 'Family Member', 'Neighbor', 'Personal Acquaintance'],
   },
-  'professional': {
+  professional: {
     label: 'Professional Reference',
     description: 'Colleague, supervisor, or business contact',
     icon: BusinessIcon,
@@ -74,7 +74,7 @@ const REFERENCE_TYPE_CONFIG: Record<string, ReferenceTypeConfig> = {
     requiredFields: ['name', 'relationship', 'phone', 'company'],
     optionalFields: ['email', 'yearsKnown', 'notes'],
     hideFields: [],
-    relationshipSuggestions: ['Supervisor', 'Manager', 'Colleague', 'Business Partner', 'Client']
+    relationshipSuggestions: ['Supervisor', 'Manager', 'Colleague', 'Business Partner', 'Client'],
   },
   'previous-landlord': {
     label: 'Previous Landlord',
@@ -84,9 +84,9 @@ const REFERENCE_TYPE_CONFIG: Record<string, ReferenceTypeConfig> = {
     requiredFields: ['name', 'phone'],
     optionalFields: ['email', 'company', 'yearsKnown', 'notes'],
     hideFields: ['relationship'],
-    defaultRelationship: 'Previous Landlord'
+    defaultRelationship: 'Previous Landlord',
   },
-  'employer': {
+  employer: {
     label: 'Employer Reference',
     description: 'Current or previous employer HR or supervisor',
     icon: WorkIcon,
@@ -94,8 +94,8 @@ const REFERENCE_TYPE_CONFIG: Record<string, ReferenceTypeConfig> = {
     requiredFields: ['name', 'relationship', 'phone', 'company'],
     optionalFields: ['email', 'yearsKnown', 'notes'],
     hideFields: [],
-    relationshipSuggestions: ['HR Manager', 'Direct Supervisor', 'Department Manager', 'Director']
-  }
+    relationshipSuggestions: ['HR Manager', 'Direct Supervisor', 'Department Manager', 'Director'],
+  },
 } as const
 
 const RECOMMENDATION_OPTIONS = [
@@ -113,7 +113,8 @@ const isValidEmail = (email: string): boolean => {
 }
 
 const isValidUKPhone = (phone: string): boolean => {
-  const ukPhoneRegex = /^(\+44\s?)?(\(?0\d{4}\)?\s?\d{6}|\(?0\d{3}\)?\s?\d{7}|\(?0\d{2}\)?\s?\d{8}|07\d{9})$/
+  const ukPhoneRegex =
+    /^(\+44\s?)?(\(?0\d{4}\)?\s?\d{6}|\(?0\d{3}\)?\s?\d{7}|\(?0\d{2}\)?\s?\d{8}|07\d{9})$/
   return ukPhoneRegex.test(phone.replace(/\s/g, ''))
 }
 
@@ -122,7 +123,7 @@ const validateReference = (reference: Reference): string[] => {
   const config: ReferenceTypeConfig = REFERENCE_TYPE_CONFIG[reference.type]
 
   // Required field validation
-  config.requiredFields.forEach(field => {
+  config.requiredFields.forEach((field) => {
     if (!reference[field as keyof Reference] || reference[field as keyof Reference] === '') {
       errors.push(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`)
     }
@@ -139,7 +140,10 @@ const validateReference = (reference: Reference): string[] => {
   }
 
   // Years known validation
-  if (reference.yearsKnown !== undefined && (reference.yearsKnown < 0 || reference.yearsKnown > 50)) {
+  if (
+    reference.yearsKnown !== undefined &&
+    (reference.yearsKnown < 0 || reference.yearsKnown > 50)
+  ) {
     errors.push('Years known must be between 0 and 50')
   }
 
@@ -149,7 +153,7 @@ const validateReference = (reference: Reference): string[] => {
 // Reference Requirements Info Component
 const ReferenceRequirementsInfo: React.FC = () => {
   const theme = useTheme()
-  
+
   return (
     <Paper
       sx={{
@@ -159,11 +163,16 @@ const ReferenceRequirementsInfo: React.FC = () => {
         border: `1px solid ${theme.palette.primary.main}20`,
       }}
     >
-      <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>
+      <Typography
+        variant="h6"
+        gutterBottom
+        sx={{ color: theme.palette.primary.main, fontWeight: 600 }}
+      >
         Reference Requirements
       </Typography>
       <Typography variant="body2" color="text.secondary" paragraph>
-        Please provide at least 2-3 references to support your tenancy application. A good mix includes:
+        Please provide at least 2-3 references to support your tenancy application. A good mix
+        includes:
       </Typography>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
         {Object.entries(REFERENCE_TYPE_CONFIG).map(([type, config]) => {
@@ -178,7 +187,7 @@ const ReferenceRequirementsInfo: React.FC = () => {
               sx={{
                 borderColor: config.color,
                 color: config.color,
-                '& .MuiChip-icon': { color: config.color }
+                '& .MuiChip-icon': { color: config.color },
               }}
             />
           )
@@ -236,31 +245,31 @@ const ReferenceContactActions: React.FC<{
   const [isContacting, setIsContacting] = useState(false)
   const [isContacted, setIsContacted] = useState(false)
   const [contactedDate, setContactedDate] = useState<string | null>(null)
-  
+
   // Use local state if contactedDate exists in props OR if we've marked as contacted locally
   const hasBeenContacted = reference.contactedDate || isContacted
   const displayContactedDate = reference.contactedDate || contactedDate
-  
+
   // Debug: Log when component re-renders with new reference data (removed for cleaner console)
 
   const handleMarkAsContacted = () => {
     console.log('🔴 BUTTON CLICKED - Mark as Contacted')
     console.log('🔴 Current reference before update:', reference)
-    
+
     setIsContacting(true)
     const newContactedDate = new Date().toISOString()
     console.log('🔴 Generated contactedDate:', newContactedDate)
-    
+
     // Update local state immediately for instant UI feedback
     setIsContacted(true)
     setContactedDate(newContactedDate)
-    
+
     // Update the parent form state
     onUpdateReference('contactedDate', newContactedDate)
     // Note: contactedBy field removed as it requires ObjectId which we don't have in client
-    
+
     console.log('🔴 Updates sent, setting timeout...')
-    
+
     // Show the loading state briefly for better UX
     setTimeout(() => {
       console.log('🔴 Timeout complete, setting isContacting to false')
@@ -290,7 +299,10 @@ const ReferenceContactActions: React.FC<{
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <CheckCircleIcon fontSize="small" sx={{ color: 'success.main' }} />
             <Typography variant="body2" color="success.main" fontWeight={500}>
-              Contacted on {displayContactedDate ? new Date(displayContactedDate).toLocaleDateString() : 'Unknown'}
+              Contacted on{' '}
+              {displayContactedDate
+                ? new Date(displayContactedDate).toLocaleDateString()
+                : 'Unknown'}
             </Typography>
           </Box>
 
@@ -314,7 +326,7 @@ const ReferenceContactActions: React.FC<{
                 value={reference.recommendation || ''}
                 onChange={(e) => onUpdateReference('recommendation', e.target.value)}
               >
-                {RECOMMENDATION_OPTIONS.map(option => (
+                {RECOMMENDATION_OPTIONS.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Box
@@ -322,7 +334,7 @@ const ReferenceContactActions: React.FC<{
                           width: 12,
                           height: 12,
                           borderRadius: '50%',
-                          bgcolor: option.color
+                          bgcolor: option.color,
                         }}
                       />
                       {option.label}
@@ -399,8 +411,8 @@ const ReferenceCard: React.FC<{
           borderRadius: '8px 8px 0 0',
           '& .MuiAccordionSummary-content': {
             alignItems: 'center',
-            gap: 2
-          }
+            gap: 2,
+          },
         }}
       >
         <IconComponent sx={{ color: config.color }} />
@@ -452,7 +464,7 @@ const ReferenceCard: React.FC<{
                 disabled={readOnly}
                 sx={textFieldStyles}
                 InputProps={{
-                  startAdornment: <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                  startAdornment: <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />,
                 }}
               />
             </Grid>
@@ -494,7 +506,7 @@ const ReferenceCard: React.FC<{
               sx={textFieldStyles}
               placeholder="07XXX XXXXXX or +44 XXX XXXX XXXX"
               InputProps={{
-                startAdornment: <PhoneIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                startAdornment: <PhoneIcon sx={{ mr: 1, color: 'text.secondary' }} />,
               }}
             />
           </Grid>
@@ -512,7 +524,7 @@ const ReferenceCard: React.FC<{
               sx={textFieldStyles}
               placeholder="reference@example.com"
               InputProps={{
-                startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />,
               }}
             />
           </Grid>
@@ -530,7 +542,7 @@ const ReferenceCard: React.FC<{
                 disabled={readOnly}
                 sx={textFieldStyles}
                 InputProps={{
-                  startAdornment: <BusinessIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                  startAdornment: <BusinessIcon sx={{ mr: 1, color: 'text.secondary' }} />,
                 }}
               />
             </Grid>
@@ -554,17 +566,14 @@ const ReferenceCard: React.FC<{
 
         {/* Contact Actions */}
         {showContactActions && (
-          <ReferenceContactActions
-            reference={reference}
-            onUpdateReference={onUpdate}
-          />
+          <ReferenceContactActions reference={reference} onUpdateReference={onUpdate} />
         )}
-        
+
         {/* Debug: Show contact actions status */}
         {import.meta.env.MODE === 'development' && (
           <Box sx={{ mt: 1, p: 1, bgcolor: 'info.light', borderRadius: 1, fontSize: '0.75rem' }}>
-            Debug: showContactActions = {showContactActions ? 'true' : 'false'}, 
-            contactedDate = {reference.contactedDate || 'null'}
+            Debug: showContactActions = {showContactActions ? 'true' : 'false'}, contactedDate ={' '}
+            {reference.contactedDate || 'null'}
           </Box>
         )}
 
@@ -589,14 +598,13 @@ const ReferenceCard: React.FC<{
 
 // Reference Summary Component
 const ReferenceSummary: React.FC<{ references: Reference[] }> = ({ references }) => {
-  
   const summary = {
     total: references.length,
-    contacted: references.filter(ref => ref.contactedDate).length,
-    completed: references.filter(ref => ref.response && ref.recommendation).length,
-    positive: references.filter(ref => 
+    contacted: references.filter((ref) => ref.contactedDate).length,
+    completed: references.filter((ref) => ref.response && ref.recommendation).length,
+    positive: references.filter((ref) =>
       ['strongly-recommend', 'recommend'].includes(ref.recommendation || '')
-    ).length
+    ).length,
   }
 
   if (references.length === 0) return null
@@ -655,7 +663,7 @@ const ReferenceSummary: React.FC<{ references: Reference[] }> = ({ references })
 // Add Reference Button Component
 const AddReferenceButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
   const theme = useTheme()
-  
+
   return (
     <Button
       variant="outlined"
@@ -672,7 +680,7 @@ const AddReferenceButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
         '&:hover': {
           borderStyle: 'solid',
           bgcolor: `${theme.palette.secondary.main}08`,
-        }
+        },
       }}
     >
       Add Reference
@@ -686,9 +694,8 @@ const ReferenceChecksForm: React.FC<ReferenceChecksFormProps> = ({
   onInputChange,
   textFieldStyles,
   readOnly = false,
-  showContactActions = false
+  showContactActions = false,
 }) => {
-
   const addReference = () => {
     console.log('🔵 ADD REFERENCE CLICKED')
     const newReference: Reference = {

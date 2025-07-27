@@ -55,10 +55,13 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
   onPropertyUpdate,
 }) => {
   const theme = useTheme()
-  const [selectedTenant, setSelectedTenant] = useState<(Tenant & { 
-    leases?: { status: string }[]
-    applicationStatus: { status: string }
-  }) | null>(null)
+  const [selectedTenant, setSelectedTenant] = useState<
+    | (Tenant & {
+        leases?: { status: string }[]
+        applicationStatus: { status: string }
+      })
+    | null
+  >(null)
   const [leaseDialogOpen, setLeaseDialogOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [notification, setNotification] = useState<{
@@ -169,7 +172,12 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
       return
     }
 
-    setSelectedTenant(tenant as unknown as Tenant & { leases?: { status: string }[]; applicationStatus: { status: string } })
+    setSelectedTenant(
+      tenant as unknown as Tenant & {
+        leases?: { status: string }[]
+        applicationStatus: { status: string }
+      }
+    )
     setLeaseDialogOpen(true)
   }
 
@@ -384,7 +392,14 @@ const PropertyStatusOccupancyForm: React.FC<PropertyStatusOccupancyFormProps> = 
                 options={availableTenants}
                 getOptionLabel={(tenant) => getTenantName(tenant)}
                 value={selectedTenant}
-                onChange={(_, newValue) => handleTenantSelect(newValue as unknown as { _id: string; personalInfo: { firstName: string; lastName: string } } | null)}
+                onChange={(_, newValue) =>
+                  handleTenantSelect(
+                    newValue as unknown as {
+                      _id: string
+                      personalInfo: { firstName: string; lastName: string }
+                    } | null
+                  )
+                }
                 renderInput={(params) => (
                   <TextField
                     {...params}

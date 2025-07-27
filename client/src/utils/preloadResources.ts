@@ -19,7 +19,7 @@ export const preloadResource = (href: string, options: PreloadOptions = {}) => {
   const link = document.createElement('link')
   link.rel = 'preload'
   link.href = href
-  
+
   if (options.as) link.as = options.as
   if (options.crossOrigin) link.crossOrigin = options.crossOrigin
   if (options.type) link.type = options.type
@@ -36,10 +36,10 @@ export const preloadCriticalImages = () => {
     // Add other critical images that appear above the fold
   ]
 
-  criticalImages.forEach(src => {
+  criticalImages.forEach((src) => {
     // Try to preload WebP version first, with PNG fallback
     const webpSrc = src.replace('.png', '.webp')
-    
+
     // Check if WebP is supported
     const webp = new Image()
     webp.onload = () => {
@@ -52,7 +52,8 @@ export const preloadCriticalImages = () => {
     webp.onerror = () => {
       preloadResource(src, { as: 'image' })
     }
-    webp.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA'
+    webp.src =
+      'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA'
   })
 }
 
@@ -66,10 +67,10 @@ export const preloadCriticalFonts = () => {
   ]
 
   criticalFonts.forEach((src: string) => {
-    preloadResource(src, { 
-      as: 'font', 
+    preloadResource(src, {
+      as: 'font',
       type: 'font/woff2',
-      crossOrigin: 'anonymous'
+      crossOrigin: 'anonymous',
     })
   })
 }
@@ -100,19 +101,19 @@ export const initializePreloading = () => {
  */
 export const prefetchPageResources = (pageName: string) => {
   const pageResources: Record<string, string[]> = {
-    'dashboard': [
+    dashboard: [
       // Add dashboard-specific resources
     ],
-    'properties': [
+    properties: [
       // Add properties-specific resources
     ],
-    'tenants': [
+    tenants: [
       // Add tenants-specific resources
-    ]
+    ],
   }
 
   const resources = pageResources[pageName] || []
-  resources.forEach(src => {
+  resources.forEach((src) => {
     const link = document.createElement('link')
     link.rel = 'prefetch'
     link.href = src

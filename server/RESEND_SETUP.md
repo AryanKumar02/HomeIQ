@@ -18,12 +18,10 @@ CLIENT_URL=http://localhost:3000
 ## Important Notes
 
 1. **Domain Verification**:
-
    - For production, you'll need to verify your domain in Resend dashboard
    - Until then, you can only send to your own email address
 
 2. **From Email**:
-
    - Currently set to `noreply@estatelink.com` in the code
    - Update this in `server/services/emailService.js` to match your verified domain
 

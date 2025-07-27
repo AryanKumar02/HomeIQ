@@ -16,7 +16,7 @@ export const useLogin = () => {
     mutationFn: (data: LoginRequest) => authApi.login(data),
     onSuccess: async (data) => {
       console.log('🔐 Login API success, data:', data)
-      
+
       // Handle login data based on what's provided
       if (data.token && data.user) {
         // Direct login with both token and user data
@@ -28,11 +28,11 @@ export const useLogin = () => {
         try {
           // Store token temporarily so getCurrentUser can use it
           localStorage.setItem('authToken', data.token)
-          
+
           // Fetch user data with the token
           const userResponse = await authApi.getCurrentUser()
           console.log('🔐 Fetched user data:', userResponse)
-          
+
           if (userResponse.user) {
             const store = useAuthStore.getState()
             store.login(userResponse.user, data.token)
@@ -69,7 +69,7 @@ export const useLogout = () => {
       // Update Zustand store directly
       const store = useAuthStore.getState()
       await store.logout()
-      
+
       // Clear all queries
       queryClient.clear()
     },
@@ -98,7 +98,6 @@ export const useSignup = () => {
 
 // Hook for email verification mutation
 export const useVerifyEmail = () => {
-
   return useMutation({
     mutationFn: (token: string) => authApi.verifyEmail(token),
     onSuccess: (data) => {
