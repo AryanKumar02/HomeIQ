@@ -18,13 +18,13 @@ const tenantIdValidation = param('id').isMongoId().withMessage('Invalid tenant I
 const ukPhoneValidation = field =>
   body(field)
     .optional()
-    .matches(/^(\+44\s?)?(\(?0\d{4}\)?\s?\d{6}|\(?0\d{3}\)?\s?\d{7}|\(?0\d{2}\)?\s?\d{8}|07\d{9})$/)
+    .matches(/^(\+44\s?7\d{9}|\+44\s?\d{10,11}|07\d{9}|0\d{10,11})$/)
     .withMessage('Please provide a valid UK phone number');
 
 const ukPostcodeValidation = field =>
   body(field)
     .optional()
-    .matches(/^[A-Z]{1,2}[0-9R][0-9A-Z]? ?[0-9][A-Z]{2}$/i)
+    .matches(/^[A-Z]{1,2}[0-9R][0-9A-Z]?\s?[0-9][A-Z]{2}$/i)
     .withMessage('Please provide a valid UK postcode');
 
 // Validate tenant creation

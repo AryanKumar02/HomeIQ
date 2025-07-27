@@ -13,9 +13,14 @@ dotenv.config();
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'test-access-key',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'test-secret-key',
   },
+  // For testing environments, use LocalStack or mock endpoints
+  ...(process.env.NODE_ENV === 'test' && {
+    endpoint: process.env.AWS_ENDPOINT_URL || undefined,
+    forcePathStyle: true,
+  }),
 });
 
 // Allowed file types

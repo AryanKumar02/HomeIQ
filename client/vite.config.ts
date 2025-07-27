@@ -42,9 +42,9 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: 'HomeIQ Property Management',
-        short_name: 'HomeIQ',
-        description: 'Property management made simple',
+        name: 'EstateLink Property Management',
+        short_name: 'EstateLink',
+        description: 'Property management Simplified',
         theme_color: '#036CA3',
         background_color: '#ffffff',
         display: 'standalone',

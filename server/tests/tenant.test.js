@@ -1,17 +1,13 @@
 import dotenv from 'dotenv';
 import request from 'supertest';
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
+// MongoMemoryServer is now handled by global setup
 import { jest } from '@jest/globals';
 
 // Load test environment variables
 dotenv.config({ path: '.env.test' });
 
-// Mock the email service to prevent actual email sending during tests
-jest.mock('../services/emailService', () => ({
-  sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
-  sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
-}));
+// Email service is mocked globally in setup.js
 
 // eslint-disable-next-line import/first
 import app from '../server.js';
@@ -22,7 +18,7 @@ import Tenant from '../models/Tenant.js';
 // eslint-disable-next-line import/first
 import Property from '../models/Property.js';
 
-let mongoServer;
+// MongoDB server is handled globally
 
 describe('Tenant API', () => {
   let authToken;
@@ -129,18 +125,17 @@ describe('Tenant API', () => {
   };
 
   beforeAll(async () => {
-    // Start in-memory MongoDB instance
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-
-    // Connect to the in-memory database
-    await mongoose.connect(mongoUri);
+    // Use the global MongoDB instance from globalSetup
+    if (!mongoose.connection.readyState) {
+      await mongoose.connect(process.env.MONGODB_URI);
+    }
   });
 
   afterAll(async () => {
-    // Clean up
-    await mongoose.disconnect();
-    await mongoServer.stop();
+    // Clean up test data but don't disconnect
+    if (mongoose.connection.readyState) {
+      await mongoose.connection.db.dropDatabase();
+    }
   });
 
   beforeEach(async () => {

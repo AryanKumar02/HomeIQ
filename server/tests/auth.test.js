@@ -1,35 +1,29 @@
 import mongoose from 'mongoose';
 import request from 'supertest';
 import dotenv from 'dotenv';
-import { MongoMemoryServer } from 'mongodb-memory-server';
+// MongoMemoryServer is now handled by global setup
 import { jest } from '@jest/globals';
 
 import User from '../models/User.js';
 
-jest.mock('../services/emailService', () => ({
-  sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
-  sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
-}));
+// Email service is mocked globally in setup.js
 
 dotenv.config({ path: '.env.test' });
 
-let mongoServer;
 let app;
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  const uri = mongoServer.getUri();
-  await mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  // Use the global MongoDB instance from globalSetup
+  if (!mongoose.connection.readyState) {
+    await mongoose.connect(process.env.MONGODB_URI);
+  }
   app = (await import('../server.js')).default;
 });
 
 afterAll(async () => {
-  await mongoose.connection.close();
-  if (mongoServer) {
-    await mongoServer.stop();
+  // Clean up test data but don't disconnect
+  if (mongoose.connection.readyState) {
+    await mongoose.connection.db.dropDatabase();
   }
 });
 
