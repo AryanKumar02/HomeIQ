@@ -2,6 +2,7 @@ import Box from '@mui/material/Box'
 import LoginForm from '../../components/forms/LoginForm' // adjust path if needed
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
+import SplashImage from '../../components/common/SplashImage'
 
 const Login = () => {
   const theme = useTheme()
@@ -31,15 +32,11 @@ const Login = () => {
           overflow: 'hidden',
         }}
       >
-        <Box
-          component="img"
-          src="/assets/splashes/loginsplash.png"
+        <SplashImage
+          imageName="loginsplash"
           alt="Login splash"
+          objectPosition="35%"
           sx={{
-            width: '100%',
-            height: '100vh',
-            objectPosition: '35%',
-            objectFit: 'cover',
             borderRadius: '0 16px 16px 0',
           }}
         />

@@ -32,27 +32,12 @@ export const preloadResource = (href: string, options: PreloadOptions = {}) => {
  */
 export const preloadCriticalImages = () => {
   const criticalImages = [
-    '/assets/logo.png',
+    '/assets/logo.webp', // Use WebP directly since you have them
     // Add other critical images that appear above the fold
   ]
 
   criticalImages.forEach(src => {
-    // Try to preload WebP version first, with PNG fallback
-    const webpSrc = src.replace('.png', '.webp')
-    
-    // Check if WebP is supported
-    const webp = new Image()
-    webp.onload = () => {
-      if (webp.height === 2) {
-        preloadResource(webpSrc, { as: 'image' })
-      } else {
-        preloadResource(src, { as: 'image' })
-      }
-    }
-    webp.onerror = () => {
-      preloadResource(src, { as: 'image' })
-    }
-    webp.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA'
+    preloadResource(src, { as: 'image' })
   })
 }
 

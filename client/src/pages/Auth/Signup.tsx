@@ -2,6 +2,7 @@ import Box from '@mui/material/Box'
 import SignupForm from '../../components/forms/SignupForm'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
+import SplashImage from '../../components/common/SplashImage'
 
 const Signup = () => {
   const theme = useTheme()
@@ -31,15 +32,11 @@ const Signup = () => {
           overflow: 'hidden',
         }}
       >
-        <Box
-          component="img"
-          src="/assets/splashes/signinsplash2.png"
+        <SplashImage
+          imageName="signinsplash2"
           alt="Signup splash"
+          objectPosition="49%"
           sx={{
-            width: '100%',
-            height: '100vh',
-            objectPosition: '49%',
-            objectFit: 'cover',
             borderRadius: '0 16px 16px 0',
           }}
         />

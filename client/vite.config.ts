@@ -11,7 +11,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webp}'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB limit (WebP will be smaller)
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/estatelink\.onrender\.com\/api\//,
@@ -25,12 +26,12 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|webp)$/,
+            urlPattern: /\.(?:png|jpg|jpeg|svg|webp|avif)$/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'images-cache',
               expiration: {
-                maxEntries: 100,
+                maxEntries: 150, // More images since they're smaller
                 maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
               },
             },
@@ -46,6 +47,11 @@ export default defineConfig({
         display: 'standalone',
         start_url: '/',
         icons: [
+          {
+            src: '/assets/logo.webp',
+            sizes: '192x192',
+            type: 'image/webp',
+          },
           {
             src: '/assets/logo.png',
             sizes: '192x192',
