@@ -119,6 +119,11 @@ export const updateProperty = catchAsync(async (req, res, next) => {
   );
 
   if (!property) {
+    // Check if property exists but belongs to different user
+    const anyProperty = await Property.findById(req.params.id);
+    if (anyProperty) {
+      return next(new AppError('You do not have permission to update this property', 403));
+    }
     return next(new AppError('Property not found', 404));
   }
 
