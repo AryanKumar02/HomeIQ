@@ -57,7 +57,8 @@ const allowedOrigins = [
   'http://localhost:5173', // Development
   'http://localhost:3000', // Alternative dev port
   process.env.FRONTEND_URL, // Production Vercel URL
-  'https://estatelink.live',
+  'https://estatelink.live', // Your custom domain frontend
+  'https://estate-link-six.vercel.app', // Your Vercel frontend
 ].filter(Boolean); // Remove undefined values
 
 console.log('FRONTEND_URL env var:', process.env.FRONTEND_URL);

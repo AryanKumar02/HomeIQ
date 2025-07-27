@@ -29,7 +29,8 @@ export const csrfProtection = (req, res, next) => {
     'http://localhost:3000',
     process.env.CLIENT_URL,
     process.env.FRONTEND_URL, // Add the correct env var
-    'https://estate-link-six.vercel.app', // Hardcode your Vercel URL
+    'https://estate-link-six.vercel.app', // Your Vercel frontend
+    'https://estatelink.live', // Your custom domain frontend
   ].filter(Boolean);
 
   console.log('CSRF check - Origin:', origin);
