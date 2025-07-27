@@ -8,7 +8,6 @@ import User from '../models/User.js';
 
 // Email service is mocked globally in setup.js
 
-
 let app;
 
 beforeAll(async () => {
