@@ -35,15 +35,15 @@ export const setupS3Mocks = () => {
   // Mock AWS SDK v3 commands
   jest.doMock('@aws-sdk/client-s3', () => ({
     S3Client: jest.fn(() => mockS3Client),
-    PutObjectCommand: jest.fn((params) => {
+    PutObjectCommand: jest.fn(params => {
       mockPutObjectCommand(params);
       return params;
     }),
-    DeleteObjectCommand: jest.fn((params) => {
+    DeleteObjectCommand: jest.fn(params => {
       mockDeleteObjectCommand(params);
       return params;
     }),
-    GetObjectCommand: jest.fn((params) => {
+    GetObjectCommand: jest.fn(params => {
       mockGetObjectCommand(params);
       return params;
     }),
@@ -64,13 +64,13 @@ export const setupS3Mocks = () => {
         cb(null);
       }),
     }));
-    
+
     mockMulterS3.AUTO_CONTENT_TYPE = 'AUTO_CONTENT_TYPE';
     return mockMulterS3;
   });
 
   // Setup default successful responses
-  mockS3Client.send.mockImplementation((command) => {
+  mockS3Client.send.mockImplementation(command => {
     if (command.constructor.name === 'PutObjectCommand') {
       return Promise.resolve(mockS3Responses.putObject);
     }

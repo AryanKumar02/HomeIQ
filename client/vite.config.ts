@@ -4,85 +4,104 @@ import { default as compression } from 'vite-plugin-compression'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
-    // PWA Service Worker
-    VitePWA({
-      registerType: 'autoUpdate',
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webp}'],
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB limit (WebP will be smaller)
-        runtimeCaching: [
-          {
-            urlPattern: ({ url }) => {
-              // Cache all API calls regardless of origin (dev/prod)
-              return url.pathname.startsWith('/api/')
-            },
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 5 * 60, // 5 minutes
+    // Only enable PWA in production - major performance issue in Safari dev mode
+    ...(mode === 'production' ? [
+      VitePWA({
+        registerType: 'autoUpdate',
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webp}'],
+          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB limit (WebP will be smaller)
+          runtimeCaching: [
+            {
+              urlPattern: ({ url }) => {
+                // Cache all API calls regardless of origin (dev/prod)
+                return url.pathname.startsWith('/api/')
+              },
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'api-cache',
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 5 * 60, // 5 minutes
+                },
               },
             },
-          },
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|webp|avif)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images-cache',
-              expiration: {
-                maxEntries: 150, // More images since they're smaller
-                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+            {
+              urlPattern: /\.(?:png|jpg|jpeg|svg|webp|avif)$/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'images-cache',
+                expiration: {
+                  maxEntries: 150, // More images since they're smaller
+                  maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+                },
               },
             },
-          },
-        ],
-      },
-      manifest: {
-        name: 'EstateLink Property Management',
-        short_name: 'EstateLink',
-        description: 'Property management Simplified',
-        theme_color: '#036CA3',
-        background_color: '#ffffff',
-        display: 'standalone',
-        start_url: '/',
-        icons: [
-          {
-            src: '/assets/logo.webp',
-            sizes: '192x192',
-            type: 'image/webp',
-          },
-          {
-            src: '/assets/logo.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-        ],
-      },
-    }),
-    // Enable compression for both dev and production
-    compression({
-      algorithm: 'gzip',
-      ext: '.gz',
-      threshold: 1024,
-      deleteOriginFile: false,
-    }),
-    compression({
-      algorithm: 'brotliCompress',
-      ext: '.br',
-      threshold: 1024,
-      deleteOriginFile: false,
-    }),
+          ],
+        },
+        manifest: {
+          name: 'EstateLink Property Management',
+          short_name: 'EstateLink',
+          description: 'Property management Simplified',
+          theme_color: '#036CA3',
+          background_color: '#ffffff',
+          display: 'standalone',
+          start_url: '/',
+          icons: [
+            {
+              src: '/assets/logo.webp',
+              sizes: '192x192',
+              type: 'image/webp',
+            },
+            {
+              src: '/assets/logo.png',
+              sizes: '192x192',
+              type: 'image/png',
+            },
+          ],
+        },
+      })
+    ] : []),
+    // Only enable compression in production
+    ...(mode === 'production' ? [
+      compression({
+        algorithm: 'gzip',
+        ext: '.gz',
+        threshold: 1024,
+        deleteOriginFile: false,
+      }),
+      compression({
+        algorithm: 'brotliCompress',
+        ext: '.br',
+        threshold: 1024,
+        deleteOriginFile: false,
+      })
+    ] : []),
   ],
   server: {
+    // Safari-specific optimizations for development
+    host: true, // Allow external connections
+    port: 5173,
+    strictPort: true,
+    open: false, // Don't auto-open browser
+    cors: true,
+    // Improve Safari performance
+    hmr: {
+      overlay: false, // Disable error overlay that can slow Safari
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
+        timeout: 10000, // Increase timeout for Safari
+        // Safari-specific proxy options
+        headers: {
+          'Connection': 'keep-alive',
+        },
       },
     },
   },
@@ -150,8 +169,10 @@ export default defineConfig({
     assetsInlineLimit: 8192, // Inline more small assets (8KB instead of 4KB)
     reportCompressedSize: false, // Faster builds
   },
-  // Optimize dependencies
+  // Optimize dependencies for Safari
   optimizeDeps: {
+    // Safari-specific optimizations
+    force: mode === 'development', // Force re-optimization in dev mode
     include: [
       'react',
       'react-dom',
@@ -167,10 +188,13 @@ export default defineConfig({
       '@mui/icons-material', // Don't pre-bundle icons to reduce initial bundle
     ],
     esbuildOptions: {
-      // Define prop-types as external to avoid bundling issues
+      // Safari-specific build options
       define: {
         global: 'globalThis',
       },
+      // Improve Safari compatibility
+      target: 'safari14',
+      keepNames: true,
     },
   },
   // Enable tree-shaking
@@ -203,4 +227,4 @@ export default defineConfig({
       'react-is': 'react-is',
     },
   },
-})
+}))

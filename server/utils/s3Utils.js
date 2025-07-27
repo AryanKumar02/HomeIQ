@@ -10,7 +10,7 @@ import { s3Client } from '../config/s3.js';
 export const deleteS3Object = async key => {
   try {
     const bucketName = process.env.AWS_S3_BUCKET_NAME;
-    
+
     // Validate bucket name
     if (!bucketName) {
       console.error('AWS_S3_BUCKET_NAME environment variable is not defined');

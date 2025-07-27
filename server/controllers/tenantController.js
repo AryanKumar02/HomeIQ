@@ -145,6 +145,12 @@ export const createTenant = catchAsync(async (req, res, next) => {
 
 // Update a tenant
 export const updateTenant = catchAsync(async (req, res, next) => {
+  // Debug logging for 403 error investigation
+  console.log('UPDATE TENANT DEBUG:');
+  console.log('- Tenant ID:', req.params.id);
+  console.log('- User ID:', req.user.id);
+  console.log('- User email:', req.user.email);
+
   // Find tenant and ensure it belongs to the authenticated user
   const tenant = await Tenant.findOne({
     _id: req.params.id,
@@ -152,7 +158,17 @@ export const updateTenant = catchAsync(async (req, res, next) => {
     isActive: true,
   });
 
+  // If not found with user filter, check if tenant exists at all
   if (!tenant) {
+    const anyTenant = await Tenant.findOne({ _id: req.params.id });
+    if (anyTenant) {
+      console.log('- Tenant exists but access denied:');
+      console.log('- Tenant createdBy:', anyTenant.createdBy);
+      console.log('- Current user ID:', req.user.id);
+      console.log('- isActive:', anyTenant.isActive);
+      return next(new AppError('You do not have permission to update this tenant', 403));
+    }
+    console.log('- Tenant not found at all');
     return next(new AppError('Tenant not found', 404));
   }
 
@@ -226,15 +242,15 @@ export const updateTenant = catchAsync(async (req, res, next) => {
 
   // Update other top-level fields
   const {
-    personalInfo,
-    contactInfo,
-    addresses,
-    employment,
-    financialInfo,
-    applicationStatus,
-    referencing,
-    privacy,
-    references,
+    personalInfo, // eslint-disable-line no-unused-vars
+    contactInfo, // eslint-disable-line no-unused-vars
+    addresses, // eslint-disable-line no-unused-vars
+    employment, // eslint-disable-line no-unused-vars
+    financialInfo, // eslint-disable-line no-unused-vars
+    applicationStatus, // eslint-disable-line no-unused-vars
+    referencing, // eslint-disable-line no-unused-vars
+    privacy, // eslint-disable-line no-unused-vars
+    references, // eslint-disable-line no-unused-vars
     ...otherFields
   } = req.body;
   Object.assign(tenant, otherFields);

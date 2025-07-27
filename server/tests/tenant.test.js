@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import request from 'supertest';
 import mongoose from 'mongoose';
 // MongoMemoryServer is now handled by global setup
-import { jest } from '@jest/globals';
+// Jest globals are available in test environment
 
 // Load test environment variables
 dotenv.config({ path: '.env.test' });
@@ -936,7 +936,7 @@ describe('Tenant API', () => {
   });
 
   describe('Bulk Operations', () => {
-    let tenant1Id, tenant2Id;
+    let tenant1Id, tenant2Id; // eslint-disable-line no-unused-vars
 
     beforeEach(async () => {
       // Create two test tenants

@@ -1,12 +1,14 @@
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
+import { MongoMemoryServer } from 'mongodb-memory-server';
+
 export default async function globalSetup() {
   // Clean up any existing lockfiles from previous runs
-  const cacheDir = process.env.MONGOMS_DOWNLOAD_DIR || path.join(os.homedir(), '.cache', 'mongodb-binaries');
-  
+  const cacheDir =
+    process.env.MONGOMS_DOWNLOAD_DIR || path.join(os.homedir(), '.cache', 'mongodb-binaries');
+
   try {
     // Remove any existing lockfiles
     const files = fs.readdirSync(cacheDir).filter(file => file.endsWith('.lock'));
@@ -35,10 +37,10 @@ export default async function globalSetup() {
   });
 
   const uri = mongod.getUri();
-  
+
   // Store the instance reference and URI globally
   global.__MONGOD__ = mongod;
   process.env.MONGODB_URI = uri;
-  
+
   console.log(`MongoDB Memory Server started at: ${uri}`);
 }

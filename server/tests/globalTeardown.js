@@ -9,9 +9,10 @@ export default async function globalTeardown() {
   const path = await import('path');
   const fs = await import('fs');
   const os = await import('os');
-  
-  const cacheDir = process.env.MONGOMS_DOWNLOAD_DIR || path.join(os.homedir(), '.cache', 'mongodb-binaries');
-  
+
+  const cacheDir =
+    process.env.MONGOMS_DOWNLOAD_DIR || path.join(os.homedir(), '.cache', 'mongodb-binaries');
+
   try {
     const files = fs.readdirSync(cacheDir).filter(file => file.endsWith('.lock'));
     for (const file of files) {

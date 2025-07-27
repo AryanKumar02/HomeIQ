@@ -9,14 +9,14 @@ if (isCI) {
   const cacheDir = path.join(os.tmpdir(), `mongodb-binaries-${process.pid}-${Date.now()}`);
   process.env.MONGOMS_DOWNLOAD_DIR = cacheDir;
   process.env.MONGOMS_ARCHIVE_NAME = 'mongodb-binaries';
-  
+
   // Disable MongoDB Memory Server instance sharing
   process.env.MONGOMS_DISABLE_POSTINSTALL = 'true';
-  
+
   // Configure for CI environment
   process.env.MONGOMS_SYSTEM_BINARY = undefined;
   process.env.MONGOMS_VERSION = '7.0.14';
-  
+
   // Use faster but less isolated mode for CI
   process.env.MONGOMS_USE_SHARED_MEMORY = 'false';
 }

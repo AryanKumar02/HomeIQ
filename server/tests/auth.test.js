@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import dotenv from 'dotenv';
 // MongoMemoryServer is now handled by global setup
-import { jest } from '@jest/globals';
+// Jest globals are available in test environment
 
 import User from '../models/User.js';
 
