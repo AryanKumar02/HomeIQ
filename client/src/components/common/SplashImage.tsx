@@ -12,11 +12,11 @@ interface SplashImageProps {
  * Optimized splash image component that serves WebP with PNG fallback
  * for auth page background images
  */
-const SplashImage: React.FC<SplashImageProps> = ({ 
-  imageName, 
-  alt, 
+const SplashImage: React.FC<SplashImageProps> = ({
+  imageName,
+  alt,
   objectPosition = 'center',
-  sx = {} 
+  sx = {},
 }) => {
   const webpSrc = `/assets/splashes/${imageName}.webp`
   const pngSrc = `/assets/splashes/${imageName}.png`
@@ -35,7 +35,7 @@ const SplashImage: React.FC<SplashImageProps> = ({
           height: '100vh',
           objectFit: 'cover',
           objectPosition,
-          ...sx
+          ...sx,
         }}
       />
     </picture>

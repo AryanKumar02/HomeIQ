@@ -10,7 +10,7 @@ import type { StatusBadgeProps, TenantStatus } from '../../types/tenantTable'
  */
 const getStatusConfig = (status: TenantStatus, theme: Theme) => {
   const statusLower = status.toLowerCase()
-  
+
   // Approved status - green
   if (status === 'approved') {
     return {
@@ -18,10 +18,10 @@ const getStatusConfig = (status: TenantStatus, theme: Theme) => {
       backgroundColor: theme.palette.success.light,
       icon: '✓',
       label: 'Approved',
-      textColor: theme.palette.success.contrastText
+      textColor: theme.palette.success.contrastText,
     }
   }
-  
+
   // Active lease - green
   if (status === 'active') {
     return {
@@ -29,10 +29,10 @@ const getStatusConfig = (status: TenantStatus, theme: Theme) => {
       backgroundColor: theme.palette.success.light,
       icon: '✓',
       label: 'Active',
-      textColor: theme.palette.success.contrastText
+      textColor: theme.palette.success.contrastText,
     }
   }
-  
+
   // Pending application - blue
   if (status === 'pending') {
     return {
@@ -40,10 +40,10 @@ const getStatusConfig = (status: TenantStatus, theme: Theme) => {
       backgroundColor: theme.palette.info.light,
       icon: '○',
       label: 'Pending',
-      textColor: theme.palette.info.contrastText
+      textColor: theme.palette.info.contrastText,
     }
   }
-  
+
   // Under review - orange
   if (status === 'under-review') {
     return {
@@ -51,10 +51,10 @@ const getStatusConfig = (status: TenantStatus, theme: Theme) => {
       backgroundColor: theme.palette.warning.light,
       icon: '⚠',
       label: 'Under Review',
-      textColor: theme.palette.warning.contrastText
+      textColor: theme.palette.warning.contrastText,
     }
   }
-  
+
   // Rejected - red
   if (status === 'rejected') {
     return {
@@ -62,10 +62,10 @@ const getStatusConfig = (status: TenantStatus, theme: Theme) => {
       backgroundColor: theme.palette.error.light,
       icon: '✗',
       label: 'Rejected',
-      textColor: theme.palette.error.contrastText
+      textColor: theme.palette.error.contrastText,
     }
   }
-  
+
   // Expiring or expired lease - warning
   if (statusLower.includes('expiring') || statusLower.includes('expired')) {
     return {
@@ -73,32 +73,32 @@ const getStatusConfig = (status: TenantStatus, theme: Theme) => {
       backgroundColor: theme.palette.warning.light,
       icon: '⚠',
       label: status,
-      textColor: theme.palette.warning.contrastText
+      textColor: theme.palette.warning.contrastText,
     }
   }
-  
+
   // Default/unknown status - gray
   return {
     color: theme.palette.grey[600],
     backgroundColor: theme.palette.grey[200],
     icon: '?',
     label: status,
-    textColor: theme.palette.grey[800]
+    textColor: theme.palette.grey[800],
   }
 }
 
 /**
  * StatusBadge component displays a tenant's status with appropriate styling
- * Supports application statuses (approved, pending, under-review, rejected) 
+ * Supports application statuses (approved, pending, under-review, rejected)
  * and lease statuses (active, expiring, expired)
- * 
+ *
  * @param props - Component props
  * @returns Styled status badge component
  */
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   const theme = useTheme()
   const config = getStatusConfig(status, theme)
-  
+
   return (
     <Chip
       icon={
@@ -155,8 +155,8 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
             bottom: 0,
             width: '3px',
             backgroundColor: config.color,
-            borderRadius: '12px 0 0 12px'
-          }
+            borderRadius: '12px 0 0 12px',
+          },
         }),
         // Enhanced animation for expiring/expired statuses
         ...(status.toLowerCase().includes('expired') && {
@@ -175,7 +175,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
               transform: 'scale(1)',
             },
           },
-        })
+        }),
       }}
     />
   )

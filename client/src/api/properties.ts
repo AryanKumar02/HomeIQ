@@ -70,7 +70,7 @@ export const propertiesApi = {
       if (cleanedData.occupancy?.tenant === '') {
         cleanedData.occupancy.tenant = undefined
       }
-      
+
       console.log('Updating property with data:', JSON.stringify(cleanedData, null, 2))
       const response = await apiClient.put<PropertyResponse>(`/property/${id}`, cleanedData)
       const property = response.data.property || response.data.data?.property
@@ -108,10 +108,7 @@ export const propertiesApi = {
 
   // Update property occupancy
   updateOccupancy: async (id: string, occupancy: Property['occupancy']): Promise<Property> => {
-    const response = await apiClient.patch<PropertyResponse>(
-      `/property/${id}/occupancy`,
-      occupancy
-    )
+    const response = await apiClient.patch<PropertyResponse>(`/property/${id}/occupancy`, occupancy)
     const property = response.data.property || response.data.data?.property
     if (!property) {
       throw new Error('Failed to update property occupancy')
@@ -121,15 +118,11 @@ export const propertiesApi = {
 
   // Image management
   addImages: async (id: string, images: FormData): Promise<Property> => {
-    const response = await apiClient.post<PropertyResponse>(
-      `/property/${id}/images`,
-      images,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    )
+    const response = await apiClient.post<PropertyResponse>(`/property/${id}/images`, images, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
     const property = response.data.property || response.data.data?.property
     if (!property) {
       throw new Error('Failed to add images')
@@ -138,9 +131,7 @@ export const propertiesApi = {
   },
 
   removeImage: async (id: string, imageId: string): Promise<Property> => {
-    const response = await apiClient.delete<PropertyResponse>(
-      `/property/${id}/images/${imageId}`
-    )
+    const response = await apiClient.delete<PropertyResponse>(`/property/${id}/images/${imageId}`)
     const property = response.data.property || response.data.data?.property
     if (!property) {
       throw new Error('Failed to remove image')

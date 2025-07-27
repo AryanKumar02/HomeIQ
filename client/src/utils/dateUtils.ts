@@ -13,11 +13,11 @@ export const formatLeaseEndDate = (dateString: string): string => {
     if (isNaN(date.getTime())) {
       return 'Invalid date'
     }
-    
+
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     })
   } catch (error) {
     console.error('Error formatting date:', error)
@@ -34,14 +34,14 @@ export const getDaysUntilLeaseEnd = (dateString: string): number => {
   try {
     const leaseEndDate = new Date(dateString)
     const today = new Date()
-    
+
     // Reset time to compare dates only
     today.setHours(0, 0, 0, 0)
     leaseEndDate.setHours(0, 0, 0, 0)
-    
+
     const diffTime = leaseEndDate.getTime() - today.getTime()
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    
+
     return diffDays
   } catch (error) {
     console.error('Error calculating days until lease end:', error)
@@ -69,7 +69,7 @@ export const formatCurrency = (amount: number): string => {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
   }).format(amount)
 }
 
@@ -82,16 +82,16 @@ export const generateInitials = (name: string): string => {
   if (!name || typeof name !== 'string') {
     return '?'
   }
-  
+
   const words = name.trim().split(/\s+/)
   if (words.length === 0) {
     return '?'
   }
-  
+
   if (words.length === 1) {
     return words[0].charAt(0).toUpperCase()
   }
-  
+
   return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase()
 }
 
@@ -111,19 +111,19 @@ export const generateAvatarColor = (name: string): string => {
     '#5d4037', // Brown
     '#455a64', // Blue Grey
     '#e91e63', // Pink
-    '#009688'  // Teal
+    '#009688', // Teal
   ]
-  
+
   if (!name || typeof name !== 'string') {
     return colors[0]
   }
-  
+
   // Generate a hash from the name to ensure consistent colors
   let hash = 0
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash)
   }
-  
+
   const index = Math.abs(hash) % colors.length
   return colors[index]
 }

@@ -15,5 +15,5 @@ export type {
   StatusBadgeProps,
   ActionsMenuProps,
   TenantRowProps,
-  TenantTableProps
+  TenantTableProps,
 } from '../../types/tenantTable'

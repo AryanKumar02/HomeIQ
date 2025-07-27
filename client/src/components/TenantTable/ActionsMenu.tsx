@@ -12,13 +12,13 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  Button
+  Button,
 } from '@mui/material'
 import {
   MoreVert as MoreVertIcon,
   Visibility as ViewIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
 } from '@mui/icons-material'
 import type { ActionsMenuProps } from '../../types/tenantTable'
 
@@ -29,12 +29,7 @@ import type { ActionsMenuProps } from '../../types/tenantTable'
  * @param props - Component props
  * @returns Actions menu component
  */
-const ActionsMenu: React.FC<ActionsMenuProps> = ({
-  tenantId,
-  onView,
-  onEdit,
-  onDelete
-}) => {
+const ActionsMenu: React.FC<ActionsMenuProps> = ({ tenantId, onView, onEdit, onDelete }) => {
   const theme = useTheme()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -72,10 +67,6 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({
     setDeleteDialogOpen(false)
     try {
       if (typeof onDelete === 'function') {
-
-
-
-         
         onDelete(tenantId)
       }
     } catch (error: unknown) {
@@ -109,7 +100,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({
             '&:focus': {
               outline: `2px solid ${theme.palette.primary.main}`,
               outlineOffset: 2,
-            }
+            },
           }}
         >
           <MoreVertIcon fontSize="small" />
@@ -132,7 +123,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({
         slotProps={{
           root: {
             'aria-labelledby': `Actions for tenant ${tenantId}`,
-            role: 'menu'
+            role: 'menu',
           },
           paper: {
             sx: {
@@ -151,10 +142,10 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({
                 },
                 '&:focus': {
                   backgroundColor: theme.palette.action.focus,
-                }
-              }
-            }
-          }
+                },
+              },
+            },
+          },
         }}
       >
         <MenuItem
@@ -163,46 +154,23 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({
           aria-label={`View details for tenant ${tenantId}`}
         >
           <ListItemIcon>
-            <ViewIcon
-              fontSize="small"
-              sx={{ color: theme.palette.primary.main }}
-            />
+            <ViewIcon fontSize="small" sx={{ color: theme.palette.primary.main }} />
           </ListItemIcon>
-          <ListItemText>
-            View Details
-          </ListItemText>
+          <ListItemText>View Details</ListItemText>
         </MenuItem>
 
-        <MenuItem
-          onClick={handleEdit}
-          role="menuitem"
-          aria-label={`Edit tenant ${tenantId}`}
-        >
+        <MenuItem onClick={handleEdit} role="menuitem" aria-label={`Edit tenant ${tenantId}`}>
           <ListItemIcon>
-            <EditIcon
-              fontSize="small"
-              sx={{ color: theme.palette.secondary.main }}
-            />
+            <EditIcon fontSize="small" sx={{ color: theme.palette.secondary.main }} />
           </ListItemIcon>
-          <ListItemText>
-            Edit Tenant
-          </ListItemText>
+          <ListItemText>Edit Tenant</ListItemText>
         </MenuItem>
 
-        <MenuItem
-          onClick={handleDelete}
-          role="menuitem"
-          aria-label={`Delete tenant ${tenantId}`}
-        >
+        <MenuItem onClick={handleDelete} role="menuitem" aria-label={`Delete tenant ${tenantId}`}>
           <ListItemIcon>
-            <DeleteIcon
-              fontSize="small"
-              sx={{ color: theme.palette.error.main }}
-            />
+            <DeleteIcon fontSize="small" sx={{ color: theme.palette.error.main }} />
           </ListItemIcon>
-          <ListItemText>
-            Delete Tenant
-          </ListItemText>
+          <ListItemText>Delete Tenant</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -213,9 +181,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({
         aria-labelledby="delete-dialog-title"
         aria-describedby="delete-dialog-description"
       >
-        <DialogTitle id="delete-dialog-title">
-          Delete Tenant
-        </DialogTitle>
+        <DialogTitle id="delete-dialog-title">Delete Tenant</DialogTitle>
         <DialogContent>
           <DialogContentText id="delete-dialog-description">
             Are you sure you want to delete this tenant? This action cannot be undone.
@@ -225,12 +191,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({
           <Button onClick={handleCancelDelete} color="primary">
             Cancel
           </Button>
-          <Button
-            onClick={handleConfirmDelete}
-            color="error"
-            variant="contained"
-            autoFocus
-          >
+          <Button onClick={handleConfirmDelete} color="error" variant="contained" autoFocus>
             Delete
           </Button>
         </DialogActions>

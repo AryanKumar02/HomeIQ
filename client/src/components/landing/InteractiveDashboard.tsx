@@ -173,7 +173,9 @@ const InteractiveDashboard: React.FC = () => {
           </Box>
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <AssignmentTurnedInIcon sx={{ mr: 0.5, color: 'secondary.main', fontSize: '1.1rem' }} />
+              <AssignmentTurnedInIcon
+                sx={{ mr: 0.5, color: 'secondary.main', fontSize: '1.1rem' }}
+              />
               <Typography variant="body1" component="span" fontWeight="medium">
                 12
               </Typography>

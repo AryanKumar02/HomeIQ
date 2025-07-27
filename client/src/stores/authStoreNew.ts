@@ -47,53 +47,64 @@ export const useAuthStore = create<AuthStore>((set, get) => {
     cachedActionsResult = null
     set(newState)
   }
-  
+
   return {
-  ...initialState,
+    ...initialState,
 
-  initialize: async () => {
-    try {
-      const storedToken = localStorage.getItem('authToken')
-      const storedUser = localStorage.getItem('userData')
+    initialize: async () => {
+      try {
+        const storedToken = localStorage.getItem('authToken')
+        const storedUser = localStorage.getItem('userData')
 
-      // Clear corrupted data
-      if (storedUser === 'undefined' || storedUser === 'null') {
-        localStorage.removeItem('authToken')
-        localStorage.removeItem('userData')
-        debugSet({
-          user: null,
-          token: null,
-          isInitialized: true,
-          isLoading: false,
-          isAuthenticated: false,
-        })
-        return
-      }
-
-      if (storedToken && storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser) as User
-          
-          // Set temporary state with stored data
+        // Clear corrupted data
+        if (storedUser === 'undefined' || storedUser === 'null') {
+          localStorage.removeItem('authToken')
+          localStorage.removeItem('userData')
           debugSet({
-            user: parsedUser,
-            token: storedToken,
-            isInitialized: false,
-            isLoading: true,
+            user: null,
+            token: null,
+            isInitialized: true,
+            isLoading: false,
             isAuthenticated: false,
           })
+          return
+        }
 
-          // Validate token with server
-          const isValid = await get().validateToken()
-          
-          if (isValid) {
+        if (storedToken && storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser) as User
+
+            // Set temporary state with stored data
             debugSet({
-              isInitialized: true,
-              isLoading: false,
-              isAuthenticated: true,
+              user: parsedUser,
+              token: storedToken,
+              isInitialized: false,
+              isLoading: true,
+              isAuthenticated: false,
             })
-          } else {
-            // Token is invalid, clear auth
+
+            // Validate token with server
+            const isValid = await get().validateToken()
+
+            if (isValid) {
+              debugSet({
+                isInitialized: true,
+                isLoading: false,
+                isAuthenticated: true,
+              })
+            } else {
+              // Token is invalid, clear auth
+              localStorage.removeItem('authToken')
+              localStorage.removeItem('userData')
+              debugSet({
+                user: null,
+                token: null,
+                isInitialized: true,
+                isLoading: false,
+                isAuthenticated: false,
+              })
+            }
+          } catch {
             localStorage.removeItem('authToken')
             localStorage.removeItem('userData')
             debugSet({
@@ -104,9 +115,7 @@ export const useAuthStore = create<AuthStore>((set, get) => {
               isAuthenticated: false,
             })
           }
-        } catch {
-          localStorage.removeItem('authToken')
-          localStorage.removeItem('userData')
+        } else {
           debugSet({
             user: null,
             token: null,
@@ -115,7 +124,8 @@ export const useAuthStore = create<AuthStore>((set, get) => {
             isAuthenticated: false,
           })
         }
-      } else {
+      } catch (error) {
+        console.error('Auth initialization error:', error)
         debugSet({
           user: null,
           token: null,
@@ -124,83 +134,109 @@ export const useAuthStore = create<AuthStore>((set, get) => {
           isAuthenticated: false,
         })
       }
-    } catch (error) {
-      console.error('Auth initialization error:', error)
-      debugSet({
-        user: null,
-        token: null,
-        isInitialized: true,
-        isLoading: false,
-        isAuthenticated: false,
-      })
-    }
-  },
+    },
 
-  validateToken: async () => {
-    try {
-      const { token } = get()
-      if (!token) {
+    validateToken: async () => {
+      try {
+        const { token } = get()
+        if (!token) {
+          return false
+        }
+
+        // Call the API to validate token and get fresh user data
+        const response = await authApi.getCurrentUser()
+
+        if (response.user) {
+          // Update user data with fresh data from server
+          localStorage.setItem('userData', JSON.stringify(response.user))
+          debugSet({
+            user: response.user,
+          })
+          return true
+        }
+
+        return false
+      } catch (error) {
+        console.error('Token validation failed:', error)
         return false
       }
+    },
 
-      // Call the API to validate token and get fresh user data
-      const response = await authApi.getCurrentUser()
-      
-      if (response.user) {
-        // Update user data with fresh data from server
-        localStorage.setItem('userData', JSON.stringify(response.user))
+    setUser: (user) => {
+      const { token } = get()
+      debugSet({
+        user,
+        isAuthenticated: !!user && !!token,
+      })
+    },
+
+    setToken: (token) => {
+      const { user } = get()
+      debugSet({
+        token,
+        isAuthenticated: !!user && !!token,
+      })
+    },
+
+    setLoading: (isLoading) => {
+      debugSet({ isLoading })
+    },
+
+    login: (user, token) => {
+      localStorage.setItem('authToken', token)
+      localStorage.setItem('userData', JSON.stringify(user))
+      debugSet({
+        user,
+        token,
+        isLoading: false,
+        isAuthenticated: true,
+      })
+    },
+
+    logout: async () => {
+      try {
+        // Call server logout endpoint to invalidate server-side session
+        await authApi.logout()
+      } catch (error) {
+        console.error('Server logout failed:', error)
+        // Continue with local logout even if server call fails
+      } finally {
+        localStorage.removeItem('authToken')
+        localStorage.removeItem('userData')
         debugSet({
-          user: response.user,
+          user: null,
+          token: null,
+          isLoading: false,
+          isAuthenticated: false,
         })
-        return true
       }
-      
-      return false
-    } catch (error) {
-      console.error('Token validation failed:', error)
-      return false
-    }
-  },
+    },
 
-  setUser: (user) => {
-    const { token } = get()
-    debugSet({
-      user,
-      isAuthenticated: !!user && !!token,
-    })
-  },
+    refreshUserData: async () => {
+      try {
+        const { isAuthenticated } = get()
+        if (!isAuthenticated) {
+          return
+        }
 
-  setToken: (token) => {
-    const { user } = get()
-    debugSet({
-      token,
-      isAuthenticated: !!user && !!token,
-    })
-  },
+        const response = await authApi.getCurrentUser()
 
-  setLoading: (isLoading) => {
-    debugSet({ isLoading })
-  },
+        if (response.user) {
+          // Update user data with fresh data from server
+          localStorage.setItem('userData', JSON.stringify(response.user))
+          debugSet({
+            user: response.user,
+          })
+        }
+      } catch (error) {
+        console.error('Failed to refresh user data:', error)
+        // If refresh fails, it might mean token is invalid
+        // Clear auth to force re-login
+        get().clearAuth()
+      }
+    },
 
-  login: (user, token) => {
-    localStorage.setItem('authToken', token)
-    localStorage.setItem('userData', JSON.stringify(user))
-    debugSet({
-      user,
-      token,
-      isLoading: false,
-      isAuthenticated: true,
-    })
-  },
-
-  logout: async () => {
-    try {
-      // Call server logout endpoint to invalidate server-side session
-      await authApi.logout()
-    } catch (error) {
-      console.error('Server logout failed:', error)
-      // Continue with local logout even if server call fails
-    } finally {
+    clearAuth: () => {
       localStorage.removeItem('authToken')
       localStorage.removeItem('userData')
       debugSet({
@@ -209,53 +245,17 @@ export const useAuthStore = create<AuthStore>((set, get) => {
         isLoading: false,
         isAuthenticated: false,
       })
-    }
-  },
+    },
 
-  refreshUserData: async () => {
-    try {
-      const { isAuthenticated } = get()
-      if (!isAuthenticated) {
-        return
+    updateUser: (userData) => {
+      const { user } = get()
+      if (user) {
+        const updatedUser = { ...user, ...userData }
+        localStorage.setItem('userData', JSON.stringify(updatedUser))
+        debugSet({ user: updatedUser })
       }
-
-      const response = await authApi.getCurrentUser()
-      
-      if (response.user) {
-        // Update user data with fresh data from server
-        localStorage.setItem('userData', JSON.stringify(response.user))
-        debugSet({
-          user: response.user,
-        })
-      }
-    } catch (error) {
-      console.error('Failed to refresh user data:', error)
-      // If refresh fails, it might mean token is invalid
-      // Clear auth to force re-login
-      get().clearAuth()
-    }
-  },
-
-  clearAuth: () => {
-    localStorage.removeItem('authToken')
-    localStorage.removeItem('userData')
-    debugSet({
-      user: null,
-      token: null,
-      isLoading: false,
-      isAuthenticated: false,
-    })
-  },
-
-  updateUser: (userData) => {
-    const { user } = get()
-    if (user) {
-      const updatedUser = { ...user, ...userData }
-      localStorage.setItem('userData', JSON.stringify(updatedUser))
-      debugSet({ user: updatedUser })
-    }
-  },
-}
+    },
+  }
 })
 
 // Initialize auth immediately when the store is created
@@ -289,7 +289,7 @@ export const useAuth = () => {
     // State has changed, create new result and cache it
     lastStateSnapshot = currentSnapshot
     cachedAuthResult = getAuthState(state)
-    
+
     return cachedAuthResult
   })
 }

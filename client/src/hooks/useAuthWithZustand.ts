@@ -83,7 +83,7 @@ export const useLogout = () => {
     onSuccess: () => {
       // Update Zustand store
       zustandLogout()
-      
+
       // Clear all queries (fresh start after logout)
       queryClient.clear()
     },
@@ -181,7 +181,7 @@ export const useAuthWithReactQuery = () => {
     isLoading: state.isLoading,
     isInitialized: state.isInitialized,
   }))
-  
+
   const actions = useAuthActions()
   const currentUserQuery = useCurrentUser(auth.isInitialized && !!auth.token)
   const loginMutation = useLogin()

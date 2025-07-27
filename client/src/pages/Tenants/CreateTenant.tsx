@@ -205,7 +205,7 @@ const CreateTenant: React.FC = () => {
   const {
     data: tenantData,
     isLoading: isLoadingTenant,
-    error: fetchError
+    error: fetchError,
   } = useTenant(tenantId!, { enabled: !!tenantId })
 
   // Get the appropriate mutation based on mode
@@ -1071,16 +1071,18 @@ const CreateTenant: React.FC = () => {
       ...(formData.financialInfo && { financialInfo: formData.financialInfo }),
       ...(formData.pets && formData.pets.length > 0 && { pets: formData.pets }),
       ...(formData.vehicles && formData.vehicles.length > 0 && { vehicles: formData.vehicles }),
-      ...(formData.references && formData.references.length > 0 && { references: formData.references }),
+      ...(formData.references &&
+        formData.references.length > 0 && { references: formData.references }),
       ...(formData.privacy && { privacy: formData.privacy }),
       isActive: true,
       // Set application status for both new and existing tenants
-      applicationStatus: isEditMode && tenantData?.applicationStatus
-        ? tenantData.applicationStatus
-        : {
-            status: 'pending',
-            applicationDate: new Date().toISOString(),
-          },
+      applicationStatus:
+        isEditMode && tenantData?.applicationStatus
+          ? tenantData.applicationStatus
+          : {
+              status: 'pending',
+              applicationDate: new Date().toISOString(),
+            },
     }
 
     console.log(`${isEditMode ? 'Updating' : 'Creating'} tenant with data:`, tenantPayload)
@@ -1374,9 +1376,7 @@ const CreateTenant: React.FC = () => {
               />
 
               {/* Divider - Only show when status form is visible */}
-              {isEditMode && tenantData && (
-                <Divider sx={{ my: 4, mx: 2 }} />
-              )}
+              {isEditMode && tenantData && <Divider sx={{ my: 4, mx: 2 }} />}
 
               {/* Overall Referencing Status - Only in edit mode */}
               {isEditMode && tenantData && (

@@ -96,12 +96,14 @@ export default function PropertyAssignment({
       !tenantLeases ||
       !Array.isArray(tenantLeases) ||
       !tenantLeases.some((lease) => lease.status === 'active')
-    
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const qualification = getQualificationStatus(tenant)
-    
+
     // Include tenants that are either manually approved or automatically qualified
-    const isApproved = (tenant as { applicationStatus?: { status?: string } }).applicationStatus?.status === 'approved'
+    const isApproved =
+      (tenant as { applicationStatus?: { status?: string } }).applicationStatus?.status ===
+      'approved'
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const isQualified = qualification.status === 'qualified'
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access

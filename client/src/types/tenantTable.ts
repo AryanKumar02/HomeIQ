@@ -34,9 +34,16 @@ export interface PaginationInfo {
 }
 
 // Application statuses
-export type ApplicationStatus = 'pending' | 'approved' | 'rejected' | 'under-review' | 'waitlisted' | 'withdrawn' | 'expired'
+export type ApplicationStatus =
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'under-review'
+  | 'waitlisted'
+  | 'withdrawn'
+  | 'expired'
 
-// Lease statuses  
+// Lease statuses
 export type LeaseStatus = 'active' | 'expiring' | 'expired' | 'terminated'
 
 // Combined tenant status type

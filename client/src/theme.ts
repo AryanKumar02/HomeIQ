@@ -1,24 +1,24 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles'
 
 // Extend the theme interface to include custom colors
 declare module '@mui/material/styles' {
   interface Palette {
     border: {
-      light: string;
-      main: string;
-    };
+      light: string
+      main: string
+    }
     text: {
-      primary: string;
-      secondary: string;
-      disabled: string;
-    };
+      primary: string
+      secondary: string
+      disabled: string
+    }
   }
 
   interface PaletteOptions {
     border?: {
-      light?: string;
-      main?: string;
-    };
+      light?: string
+      main?: string
+    }
   }
 }
 
@@ -180,7 +180,8 @@ const theme = createTheme({
             '& fieldset': {
               borderColor: '#e0e3e7',
               borderWidth: '1.5px',
-              transition: 'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
+              transition:
+                'border-color 0.35s cubic-bezier(0.4,0,0.2,1), border-width 0.25s cubic-bezier(0.4,0,0.2,1)',
             },
             '&:hover fieldset': {
               borderColor: '#036CA3',
@@ -222,6 +223,6 @@ const theme = createTheme({
       },
     },
   },
-});
+})
 
-export default theme;
+export default theme

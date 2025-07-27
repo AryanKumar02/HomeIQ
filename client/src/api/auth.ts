@@ -147,10 +147,7 @@ export const authApi = {
   resetPassword: async (token: string, data: ResetPasswordRequest): Promise<AuthResponse> => {
     try {
       console.log('RESET PASSWORD API CALL:', `/api/v1/auth/reset-password/${token}`)
-      const response = await authApiClient.post<AuthResponse>(
-        `/auth/reset-password/${token}`,
-        data
-      )
+      const response = await authApiClient.post<AuthResponse>(`/auth/reset-password/${token}`, data)
       console.log('RESET PASSWORD API RESPONSE:', response.data)
       return response.data
     } catch (error) {
@@ -165,10 +162,7 @@ export const authApi = {
       console.log('RESEND VERIFICATION API CALL:', '/api/v1/auth/resend-verification', {
         email: data.email,
       })
-      const response = await authApiClient.post<AuthResponse>(
-        '/auth/resend-verification',
-        data
-      )
+      const response = await authApiClient.post<AuthResponse>('/auth/resend-verification', data)
       console.log('RESEND VERIFICATION API RESPONSE:', response.data)
       return response.data
     } catch (error) {

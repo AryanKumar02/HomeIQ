@@ -5,7 +5,6 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import { jest } from '@jest/globals';
 
 // Load test environment variables
-dotenv.config({ path: '.env.test' });
 
 // Mock the email service to prevent actual email sending during tests
 jest.mock('../services/emailService', () => ({
