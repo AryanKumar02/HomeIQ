@@ -15,7 +15,10 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB limit (WebP will be smaller)
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/estatelink\.onrender\.com\/api\//,
+            urlPattern: ({ url }) => {
+              // Cache all API calls regardless of origin (dev/prod)
+              return url.pathname.startsWith('/api/')
+            },
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
@@ -122,15 +125,17 @@ export default defineConfig({
         chunkFileNames: 'js/[name]-[hash].js',
         entryFileNames: 'js/[name]-[hash].js',
         assetFileNames: (assetInfo) => {
-          const info = assetInfo.name!.split('.')
-          const ext = info[info.length - 1]
-          if (/\.(png|jpe?g|gif|svg|webp|avif)$/i.test(assetInfo.name!)) {
-            return `images/[name]-[hash].${ext}`
+          if (!assetInfo.names || assetInfo.names.length === 0) {
+            return 'assets/[name]-[hash][extname]'
           }
-          if (/\.(woff2?|eot|ttf|otf)$/i.test(assetInfo.name!)) {
-            return `fonts/[name]-[hash].${ext}`
+          const name = assetInfo.names[0]
+          if (/\.(png|jpe?g|gif|svg|webp|avif)$/i.test(name)) {
+            return 'images/[name]-[hash][extname]'
           }
-          return `assets/[name]-[hash].${ext}`
+          if (/\.(woff2?|eot|ttf|otf)$/i.test(name)) {
+            return 'fonts/[name]-[hash][extname]'
+          }
+          return 'assets/[name]-[hash][extname]'
         },
       },
     },
@@ -177,7 +182,7 @@ export default defineConfig({
     keepNames: true,
     // Fix prop-types compatibility with React 19
     define: {
-      'process.env.NODE_ENV': '"development"',
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
     },
   },
   // Enable CSS tree-shaking and optimization

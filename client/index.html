@@ -157,13 +157,59 @@
 
       // Remove critical CSS after MUI loads to prevent conflicts
       document.addEventListener('DOMContentLoaded', () => {
-        // Wait for React to mount and MUI to load
-        setTimeout(() => {
+        // Function to check if MUI has loaded
+        const checkMUILoaded = () => {
+          // Check for MUI theme provider or any MUI component in DOM
+          const muiElements = document.querySelector('[class*="Mui"], [class*="mui"], [data-mui]');
+          const muiStyleSheets = Array.from(document.styleSheets).some(sheet => {
+            try {
+              return sheet.href && (sheet.href.includes('mui') || sheet.href.includes('emotion'));
+            } catch (e) {
+              return false;
+            }
+          });
+          
+          return muiElements || muiStyleSheets || window.React;
+        };
+
+        // Function to safely remove critical CSS
+        const removeCriticalCSS = () => {
           const criticalCSS = document.getElementById('critical-css');
           if (criticalCSS) {
             criticalCSS.remove();
           }
-        }, 2000);
+        };
+
+        // Check if MUI is already loaded
+        if (checkMUILoaded()) {
+          removeCriticalCSS();
+          return;
+        }
+
+        // Poll for MUI loading with exponential backoff
+        let attempts = 0;
+        const maxAttempts = 20; // Max 10 seconds
+        const checkInterval = () => {
+          attempts++;
+          
+          if (checkMUILoaded()) {
+            removeCriticalCSS();
+            return;
+          }
+          
+          if (attempts >= maxAttempts) {
+            // Fallback: remove after max attempts to prevent indefinite critical CSS
+            removeCriticalCSS();
+            return;
+          }
+          
+          // Exponential backoff: 100ms, 200ms, 400ms, 800ms, then 500ms
+          const delay = attempts <= 4 ? 100 * Math.pow(2, attempts - 1) : 500;
+          setTimeout(checkInterval, delay);
+        };
+
+        // Start checking after a short delay
+        setTimeout(checkInterval, 100);
       });
     </script>
   </head>
