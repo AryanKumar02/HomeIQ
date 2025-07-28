@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { tenantsApi } from '../../api/tenants'
 import {
@@ -150,13 +150,25 @@ const EmptyState: React.FC<{ isSearch: boolean; searchTerm?: string }> = ({
  * @returns Complete tenant table with pagination and controls
  */
 const TenantTable: React.FC<TenantTableProps> = ({
-  tenants: allTenants,
+  tenants = [],
   searchTerm = '',
   isLoading: externalLoading = false,
   onTenantView = () => {},
   onTenantEdit = () => {},
   onTenantDelete = () => {},
 }) => {
+  // Ensure we have a properly typed tenant array - using explicit type assertion for safety
+  const allTenants: TenantTableData[] = useMemo(() => {
+    const safeTenants: TenantTableData[] = []
+    if (tenants && Array.isArray(tenants)) {
+      tenants.forEach((tenant) => {
+        if (tenant && typeof tenant === 'object' && 'id' in tenant) {
+          safeTenants.push(tenant as TenantTableData)
+        }
+      })
+    }
+    return safeTenants
+  }, [tenants])
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'))
@@ -164,24 +176,21 @@ const TenantTable: React.FC<TenantTableProps> = ({
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
 
-  // Client-side pagination - ensure we have a safe array with proper typing
-  const safeAllTenants: TenantTableData[] = Array.isArray(allTenants) 
-    ? (allTenants as TenantTableData[])
-    : []
-  const totalPages: number = Math.ceil(safeAllTenants.length / pageSize)
+  // Client-side pagination
+  const totalPages: number = Math.ceil(allTenants.length / pageSize)
   const startIndex: number = (page - 1) * pageSize
-  const tenants: TenantTableData[] = safeAllTenants.slice(startIndex, startIndex + pageSize)
+  const paginatedTenants: TenantTableData[] = allTenants.slice(startIndex, startIndex + pageSize)
 
   // Loading state - use external loading state with type safety
   const isLoading: boolean = Boolean(externalLoading)
-  const isEmpty = safeAllTenants.length === 0
+  const isEmpty = allTenants.length === 0
   const isEmptySearch = isEmpty && !!searchTerm
 
   // Create pagination info for display
   const pagination: PaginationInfo = {
     page,
     limit: pageSize,
-    total: safeAllTenants.length,
+    total: allTenants.length,
     totalPages,
   }
 
@@ -415,7 +424,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
 
             {/* Data Rows */}
             {!isLoading &&
-              tenants.map((tenant) => (
+              paginatedTenants.map((tenant) => (
                 <TenantRow
                   key={tenant.id}
                   tenant={tenant}
