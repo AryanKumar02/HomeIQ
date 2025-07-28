@@ -506,8 +506,8 @@ const Sidebar: React.FC = () => {
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      {isMobile && (
+      {/* Mobile Menu Button - Only show when drawer is closed */}
+      {isMobile && !mobileOpen && (
         <IconButton
           color="inherit"
           aria-label="open drawer"
@@ -515,17 +515,27 @@ const Sidebar: React.FC = () => {
           onClick={handleDrawerToggle}
           sx={{
             position: 'fixed',
-            top: 16,
-            left: 16,
+            top: { xs: 13, sm: 12, md: 20 }, // Fine-tune position - one pixel up on mobile
+            left: { xs: 20, sm: 20, md: 20 }, // Add more space on the right by moving further right
             zIndex: theme.zIndex.drawer + 1,
-            backgroundColor: theme.palette.primary.main,
-            color: 'white',
+            backgroundColor: 'transparent',
+            color: theme.palette.text.primary,
+            width: 'auto',
+            height: 'auto',
+            borderRadius: 0,
+            boxShadow: 'none',
+            p: 0, // Remove padding to align precisely
+            transition: 'color 0.2s ease',
             '&:hover': {
-              backgroundColor: theme.palette.primary.dark,
+              backgroundColor: 'transparent',
+              color: theme.palette.primary.main,
+            },
+            '&:active': {
+              transform: 'none',
             },
           }}
         >
-          <MenuIcon />
+          <MenuIcon sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem' } }} />
         </IconButton>
       )}
 

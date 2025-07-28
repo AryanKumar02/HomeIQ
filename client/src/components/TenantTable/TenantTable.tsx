@@ -249,7 +249,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
           overflow: 'hidden',
           width: '100%',
           maxWidth: '100%',
-          minWidth: 650,
+          minWidth: isMobile ? 350 : 650,
           flex: 1,
           mt: 2,
           boxShadow: '0 2px 8px 0 rgba(0, 0, 0, 0.1)',
@@ -262,7 +262,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
         <Table
           sx={{
             width: '100%',
-            minWidth: 650,
+            minWidth: isMobile ? 350 : 650,
             tableLayout: 'fixed',
           }}
           aria-label="Tenant management table"
@@ -292,7 +292,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
                 },
               }}
             >
-              <TableCell sx={{ px: 3, py: 2, width: '30%' }}>
+              <TableCell sx={{ px: isMobile ? 1 : 3, py: 2, width: isMobile ? '35%' : '30%' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <PersonIcon
                     fontSize="small"
@@ -341,8 +341,12 @@ const TenantTable: React.FC<TenantTableProps> = ({
                 </TableCell>
               )}
 
-              {!isTablet && (
-                <TableCell align="right" sx={{ px: 3, py: 2, width: '15%' }}>
+              {/* Rent Column - Show on mobile, hide on tablet */}
+              {(isMobile || !isTablet) && (
+                <TableCell
+                  align="right"
+                  sx={{ px: isMobile ? 2 : 3, py: 2, width: isMobile ? '20%' : '15%' }}
+                >
                   <Box
                     sx={{
                       display: 'flex',
@@ -358,14 +362,16 @@ const TenantTable: React.FC<TenantTableProps> = ({
                         filter: 'drop-shadow(0 1px 2px rgba(76, 175, 80, 0.2))',
                       }}
                     />
-                    <Typography variant="subtitle2" fontWeight={600}>
-                      Rent
-                    </Typography>
+                    {!isMobile && (
+                      <Typography variant="subtitle2" fontWeight={600}>
+                        Rent
+                      </Typography>
+                    )}
                   </Box>
                 </TableCell>
               )}
 
-              <TableCell sx={{ px: 3, py: 2, width: '15%' }}>
+              <TableCell sx={{ px: isMobile ? 3 : 3, py: 2, width: isMobile ? '23%' : '15%' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <StatusIcon
                     fontSize="small"
@@ -380,7 +386,10 @@ const TenantTable: React.FC<TenantTableProps> = ({
                 </Box>
               </TableCell>
 
-              <TableCell align="right" sx={{ px: 3, py: 2, width: '80px' }}>
+              <TableCell
+                align="right"
+                sx={{ px: isMobile ? 3 : 3, py: 2, width: isMobile ? '22%' : '80px' }}
+              >
                 <Box
                   sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}
                 >
@@ -391,9 +400,11 @@ const TenantTable: React.FC<TenantTableProps> = ({
                       filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))',
                     }}
                   />
-                  <Typography variant="subtitle2" fontWeight={600}>
-                    Actions
-                  </Typography>
+                  {!isMobile && (
+                    <Typography variant="subtitle2" fontWeight={600}>
+                      Actions
+                    </Typography>
+                  )}
                 </Box>
               </TableCell>
             </TableRow>
@@ -434,12 +445,13 @@ const TenantTable: React.FC<TenantTableProps> = ({
         <Box
           sx={{
             display: 'flex',
-            justifyContent: 'space-between',
+            justifyContent: isMobile ? 'center' : 'space-between',
             alignItems: 'center',
             mt: 3,
             mb: 2,
             flexWrap: 'wrap',
-            gap: 3,
+            gap: isMobile ? 2 : 3,
+            flexDirection: isMobile ? 'column' : 'row',
           }}
         >
           {/* Pagination Info */}
@@ -457,8 +469,9 @@ const TenantTable: React.FC<TenantTableProps> = ({
               sx={{
                 color: theme.palette.text.secondary,
                 fontWeight: 500,
-                fontSize: '0.875rem',
+                fontSize: isMobile ? '0.8rem' : '0.875rem',
                 letterSpacing: '0.02em',
+                textAlign: isMobile ? 'center' : 'left',
               }}
             >
               {paginationText}
@@ -482,7 +495,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
                 page={pagination.page}
                 onChange={handlePageChange}
                 color="primary"
-                size={isMobile ? 'small' : 'medium'}
+                size="small"
                 showFirstButton
                 showLastButton
                 aria-label="Tenant table pagination"
@@ -522,13 +535,20 @@ const TenantTable: React.FC<TenantTableProps> = ({
           )}
 
           {/* Page Size Selector */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 'fit-content' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: isMobile ? 1 : 2,
+              minWidth: 'fit-content',
+            }}
+          >
             <Typography
               variant="body2"
               sx={{
                 color: theme.palette.text.secondary,
                 fontWeight: 500,
-                fontSize: '0.875rem',
+                fontSize: isMobile ? '0.8rem' : '0.875rem',
                 whiteSpace: 'nowrap',
               }}
             >
