@@ -9,7 +9,6 @@ import Box from '@mui/material/Box'
 import { Link as RouterLink } from 'react-router-dom'
 import MobileMenuDrawer from './MobileMenuDrawer'
 import { useTheme } from '@mui/material/styles'
-import { useMediaQuery } from '@mui/material'
 
 const navLinks = [
   { label: 'Features', to: '/#features' },
@@ -21,7 +20,6 @@ const navLinks = [
 const Navbar: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen)

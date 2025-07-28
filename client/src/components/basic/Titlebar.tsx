@@ -13,7 +13,6 @@ import AddIcon from '@mui/icons-material/Add'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
 import SearchBar from './SearchBar'
-import CustomButton from './CustomButton'
 
 interface TitlebarProps {
   onAdd?: () => void
@@ -30,7 +29,6 @@ const Titlebar: React.FC<TitlebarProps> = ({
   onSearch,
   title = 'Properties',
   searchPlaceholder = 'Search properties...',
-  addButtonText = 'Add Property',
   showSearch = true,
   children,
 }) => {
