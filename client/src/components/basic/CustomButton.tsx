@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, useTheme } from '@mui/material'
+import { Button, useTheme, useMediaQuery } from '@mui/material'
 
 interface CustomButtonProps {
   text: string
@@ -31,6 +31,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   size = 'small',
 }) => {
   const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   // Default colors based on variant
   const getDefaultColors = () => {
@@ -73,18 +74,34 @@ const CustomButton: React.FC<CustomButtonProps> = ({
       endIcon={endIcon}
       disabled={disabled}
       sx={{
-        height: '40px',
+        height: isMobile ? '36px' : '40px',
         backgroundColor: backgroundColor || defaults.backgroundColor,
         color: textColor || defaults.textColor,
         borderColor: borderColor || defaults.borderColor,
         fontFamily: theme.typography.fontFamily,
         fontWeight: 600,
-        fontSize: { xs: '0.8rem', sm: '0.875rem', md: '0.9rem' },
+        fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.875rem' },
         textTransform: 'none',
         borderRadius: theme.shape.borderRadius,
-        px: { xs: 2, sm: 3 },
-        py: { xs: 1, sm: 1.5 },
+        px: { xs: 1.5, sm: 2, md: 3 },
+        py: { xs: 0.5, sm: 1, md: 1.5 },
+        minWidth: isMobile ? '60px' : '80px',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        '& .MuiButton-startIcon': {
+          marginRight: isMobile ? '4px' : '8px',
+          '& > *:first-of-type': {
+            fontSize: isMobile ? '16px' : '20px',
+          },
+        },
+        '& .MuiButton-endIcon': {
+          marginLeft: isMobile ? '4px' : '8px',
+          '& > *:first-of-type': {
+            fontSize: isMobile ? '16px' : '20px',
+          },
+        },
         '&:hover': {
           backgroundColor: hoverBackgroundColor || defaults.hoverBackgroundColor,
           borderColor: hoverBorderColor || defaults.hoverBorderColor,

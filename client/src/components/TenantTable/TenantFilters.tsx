@@ -1,8 +1,9 @@
 import React from 'react'
-import { Box, Chip } from '@mui/material'
+import { Box, Chip, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { TenantTableData } from '../../types/tenantTable'
 import { getDaysUntilLeaseEnd } from '../../utils/dateUtils'
+import MobileFilters from './MobileFilters'
 
 interface TenantFiltersProps {
   tenants: TenantTableData[]
@@ -26,6 +27,7 @@ const TenantFilters: React.FC<TenantFiltersProps> = ({
   onPageChange,
 }) => {
   const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   // Calculate counts for tenant statuses
   const statusCounts = tenants.reduce(
@@ -88,13 +90,13 @@ const TenantFilters: React.FC<TenantFiltersProps> = ({
 
   const chipStyles = {
     fontWeight: 600,
-    fontSize: '0.85rem',
-    height: '32px',
+    fontSize: isMobile ? '0.75rem' : '0.85rem',
+    height: isMobile ? '28px' : '32px',
     '&:hover': {
       backgroundColor: `${theme.palette.secondary.main}15`,
     },
     '& .MuiChip-label': {
-      px: 1.5,
+      px: isMobile ? 1 : 1.5,
     },
   }
 
@@ -116,6 +118,77 @@ const TenantFilters: React.FC<TenantFiltersProps> = ({
     selectedFilters.property !== null ||
     selectedFilters.leaseExpiry !== null
 
+  // Use mobile component on mobile devices
+  if (isMobile) {
+    return (
+      <Box
+        sx={{
+          px: 2,
+          py: 1.5,
+          backgroundColor: 'background.paper',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <MobileFilters
+          tenants={tenants}
+          selectedFilters={selectedFilters}
+          onFilterChange={onFilterChange}
+        />
+
+        {/* Mobile Pagination */}
+        {currentPage !== undefined &&
+          totalPages !== undefined &&
+          onPageChange &&
+          totalPages > 1 && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
+              <Chip
+                label="Previous"
+                clickable={currentPage > 1}
+                onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+                variant="outlined"
+                size="small"
+                sx={{
+                  ...chipStyles,
+                  opacity: currentPage > 1 ? 1 : 0.5,
+                  cursor: currentPage > 1 ? 'pointer' : 'not-allowed',
+                }}
+              />
+              <Box
+                sx={{
+                  px: 1,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                }}
+              >
+                {currentPage} of {totalPages}
+              </Box>
+              <Chip
+                label="Next"
+                clickable={currentPage < totalPages}
+                onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
+                variant="outlined"
+                size="small"
+                sx={{
+                  ...chipStyles,
+                  opacity: currentPage < totalPages ? 1 : 0.5,
+                  cursor: currentPage < totalPages ? 'pointer' : 'not-allowed',
+                }}
+              />
+            </Box>
+          )}
+      </Box>
+    )
+  }
+
+  // Desktop version
   return (
     <Box
       sx={{
@@ -133,7 +206,14 @@ const TenantFilters: React.FC<TenantFiltersProps> = ({
           justifyContent: 'space-between',
         }}
       >
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 1,
+            alignItems: 'center',
+          }}
+        >
           {/* All Tenants - First */}
           <Chip
             label={`All Tenants (${tenants.length})`}
@@ -216,7 +296,13 @@ const TenantFilters: React.FC<TenantFiltersProps> = ({
           totalPages !== undefined &&
           onPageChange &&
           totalPages > 1 && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
               <Chip
                 label="Previous"
                 clickable={currentPage > 1}
@@ -229,7 +315,13 @@ const TenantFilters: React.FC<TenantFiltersProps> = ({
                   cursor: currentPage > 1 ? 'pointer' : 'not-allowed',
                 }}
               />
-              <Box sx={{ px: 1, fontSize: '0.85rem', fontWeight: 600 }}>
+              <Box
+                sx={{
+                  px: isMobile ? 0.75 : 1,
+                  fontSize: isMobile ? '0.75rem' : '0.85rem',
+                  fontWeight: 600,
+                }}
+              >
                 {currentPage} of {totalPages}
               </Box>
               <Chip

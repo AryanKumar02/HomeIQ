@@ -1,8 +1,9 @@
 import React from 'react'
-import { Box, Chip } from '@mui/material'
+import { Box, Chip, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import type { Property } from '../../types/property'
 import PageNavigation from './PageNavigation'
+import MobilePropertyFilters from './MobilePropertyFilters'
 
 interface PropertyFiltersProps {
   properties: Property[]
@@ -25,6 +26,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
   onPageChange,
 }) => {
   const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   // Calculate counts for property types
   const typeCounts = properties.reduce(
@@ -92,6 +94,38 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
   // Check if any filters are active
   const hasActiveFilters = selectedFilters.type !== null || selectedFilters.status !== null
 
+  // Use mobile component on mobile devices
+  if (isMobile) {
+    return (
+      <Box
+        sx={{
+          px: 2,
+          py: 1.5,
+          backgroundColor: 'background.paper',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <MobilePropertyFilters
+          properties={properties}
+          selectedFilters={selectedFilters}
+          onFilterChange={onFilterChange}
+        />
+
+        {/* Mobile Pagination */}
+        {currentPage !== undefined && totalPages !== undefined && onPageChange && (
+          <PageNavigation
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+          />
+        )}
+      </Box>
+    )
+  }
+
+  // Desktop version
   return (
     <Box
       sx={{

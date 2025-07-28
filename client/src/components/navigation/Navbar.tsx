@@ -9,6 +9,7 @@ import Box from '@mui/material/Box'
 import { Link as RouterLink } from 'react-router-dom'
 import MobileMenuDrawer from './MobileMenuDrawer'
 import { useTheme } from '@mui/material/styles'
+import { useMediaQuery } from '@mui/material'
 
 const navLinks = [
   { label: 'Features', to: '/#features' },
@@ -20,6 +21,7 @@ const navLinks = [
 const Navbar: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen)
@@ -39,7 +41,7 @@ const Navbar: React.FC = () => {
         right: 0,
       }}
     >
-      <Toolbar sx={{ minHeight: 64, px: { xs: 1, sm: 3 } }}>
+      <Toolbar sx={{ minHeight: { xs: 56, sm: 64 }, px: { xs: 1, sm: 2, md: 3 } }}>
         {/* Logo/Brand */}
         <Box
           component={RouterLink}
@@ -52,19 +54,20 @@ const Navbar: React.FC = () => {
               component="img"
               src="/assets/logo.png"
               alt="EstateLink logo"
-              sx={{ height: 80, width: 80, mr: 0 }}
+              sx={{ height: { xs: 50, sm: 60, md: 80 }, width: { xs: 50, sm: 60, md: 80 }, mr: 0 }}
             />
           </picture>
           <Typography
             variant="h6"
             sx={{
               fontWeight: 900,
-              letterSpacing: '-1.2px',
+              letterSpacing: { xs: '-0.8px', sm: '-1.2px' },
               color: '#000000',
               textDecoration: 'none',
-              fontSize: { xs: '1.25rem', sm: '1.5rem' },
+              fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
               ml: 0,
               mr: 0,
+              display: { xs: 'none', sm: 'block' }, // Hide on very small screens
             }}
           >
             EstateLink
@@ -91,10 +94,13 @@ const Navbar: React.FC = () => {
                 sx={{
                   color: '#000',
                   fontWeight: 700,
-                  fontSize: '1rem',
+                  fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
                   textTransform: 'none',
                   background: 'none',
                   boxShadow: 'none',
+                  px: { xs: 1, sm: 1.5, md: 2 },
+                  py: { xs: 0.5, sm: 1 },
+                  minWidth: 'auto',
                   transition: 'color 0.25s cubic-bezier(0.4,0,0.2,1)',
                   '&:hover': {
                     color: theme.palette.secondary.main,
@@ -112,9 +118,12 @@ const Navbar: React.FC = () => {
             sx={{
               color: '#000',
               fontWeight: 700,
-              fontSize: '1rem',
+              fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
               textTransform: 'none',
-              ml: 1,
+              ml: { xs: 0.5, sm: 1 },
+              px: { xs: 1, sm: 1.5, md: 2 },
+              py: { xs: 0.5, sm: 1 },
+              minWidth: 'auto',
               background: 'none',
               boxShadow: 'none',
               transition: 'color 0.25s cubic-bezier(0.4,0,0.2,1)',
@@ -133,12 +142,14 @@ const Navbar: React.FC = () => {
             color="secondary"
             sx={{
               fontWeight: 700,
-              fontSize: '1rem',
+              fontSize: { xs: '0.8rem', sm: '0.85rem', md: '1rem' },
               textTransform: 'none',
-              ml: 1,
+              ml: { xs: 0.5, sm: 1 },
               borderRadius: '8px',
-              px: 3.5,
-              py: 1.2,
+              px: { xs: 2, sm: 2.5, md: 3.5 },
+              py: { xs: 0.8, sm: 1, md: 1.2 },
+              minWidth: 'auto',
+              whiteSpace: 'nowrap',
               boxShadow: '0 4px 18px 0 rgba(3,108,163,0.13)',
               color: '#fff',
               background: theme.palette.secondary.main,
@@ -162,14 +173,15 @@ const Navbar: React.FC = () => {
           sx={{
             display: { md: 'none' },
             color: '#000',
-            mr: 1.5,
+            mr: { xs: 0.5, sm: 1.5 },
+            p: { xs: 1, sm: 1.5 },
             transition: 'color 0.22s',
             '&:hover': { color: theme.palette.secondary.main },
           }}
           aria-label="menu"
           onClick={handleDrawerToggle}
         >
-          <MenuIcon />
+          <MenuIcon sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
         </IconButton>
       </Toolbar>
 

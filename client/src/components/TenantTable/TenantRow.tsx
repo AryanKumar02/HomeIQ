@@ -92,8 +92,14 @@ const TenantRow: React.FC<TenantRowProps> = ({ tenant, onView, onEdit, onDelete 
       }}
     >
       {/* Tenant Info Column - Always visible */}
-      <TableCell sx={{ minWidth: 200, width: '30%' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <TableCell
+        sx={{
+          minWidth: isMobile ? 100 : 200,
+          width: isMobile ? '35%' : '30%',
+          px: isMobile ? 1 : 2,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: isMobile ? 1 : 2 }}>
           <Tooltip title={tenant.name} arrow>
             <Avatar
               sx={{
@@ -101,8 +107,8 @@ const TenantRow: React.FC<TenantRowProps> = ({ tenant, onView, onEdit, onDelete 
                 color: 'white',
                 fontWeight: 600,
                 fontSize: '0.9rem',
-                width: 40,
-                height: 40,
+                width: isMobile ? 28 : 40,
+                height: isMobile ? 28 : 40,
                 // Add border for better visual separation
                 border: `2px solid ${theme.palette.background.paper}`,
                 boxShadow: theme.shadows[2],
@@ -122,6 +128,7 @@ const TenantRow: React.FC<TenantRowProps> = ({ tenant, onView, onEdit, onDelete 
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                fontSize: isMobile ? '0.8rem' : '0.875rem',
               }}
             >
               {tenant.name}
@@ -141,11 +148,59 @@ const TenantRow: React.FC<TenantRowProps> = ({ tenant, onView, onEdit, onDelete 
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
+                  fontSize: isMobile ? '0.65rem' : '0.75rem',
                 }}
               >
                 {tenant.email}
               </Typography>
             </Box>
+
+            {/* Mobile-only: Show property and lease info */}
+            {isMobile && (
+              <Box sx={{ mt: 1, pt: 1, borderTop: `1px solid ${theme.palette.divider}` }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                  <PropertyIcon sx={{ fontSize: '0.65rem', color: theme.palette.grey[500] }} />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: theme.palette.grey[600],
+                      fontSize: '0.65rem',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {tenant.property}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <CalendarIcon
+                    sx={{
+                      fontSize: '0.65rem',
+                      color: isOverdue
+                        ? theme.palette.error.main
+                        : isExpiringSoon
+                          ? theme.palette.warning.main
+                          : theme.palette.grey[500],
+                    }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: isOverdue
+                        ? theme.palette.error.main
+                        : isExpiringSoon
+                          ? theme.palette.warning.main
+                          : theme.palette.grey[600],
+                      fontSize: '0.65rem',
+                      fontWeight: isOverdue || isExpiringSoon ? 600 : 400,
+                    }}
+                  >
+                    {formattedLeaseEnd}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
           </Box>
         </Box>
       </TableCell>
@@ -223,37 +278,40 @@ const TenantRow: React.FC<TenantRowProps> = ({ tenant, onView, onEdit, onDelete 
         </TableCell>
       )}
 
-      {/* Rent Column - Hidden on tablet and mobile */}
-      {!isTablet && (
-        <TableCell align="right" sx={{ width: '15%' }}>
+      {/* Rent Column - Show on mobile, hide on tablet */}
+      {(isMobile || !isTablet) && (
+        <TableCell align="right" sx={{ width: isMobile ? '20%' : '15%', px: isMobile ? 2 : 2 }}>
           <Typography
             variant="body2"
             sx={{
               fontWeight: 600,
               color: theme.palette.text.primary,
+              fontSize: isMobile ? '0.8rem' : '0.875rem',
             }}
           >
             {formattedRent}
           </Typography>
-          <Typography
-            variant="caption"
-            sx={{
-              color: theme.palette.grey[600],
-              display: 'block',
-            }}
-          >
-            /month
-          </Typography>
+          {!isMobile && (
+            <Typography
+              variant="caption"
+              sx={{
+                color: theme.palette.grey[600],
+                display: 'block',
+              }}
+            >
+              /month
+            </Typography>
+          )}
         </TableCell>
       )}
 
       {/* Status Column - Always visible */}
-      <TableCell sx={{ width: '15%' }}>
+      <TableCell sx={{ width: isMobile ? '23%' : '15%', px: isMobile ? 3 : 2 }}>
         <StatusBadge status={tenant.status} />
       </TableCell>
 
       {/* Actions Column - Always visible */}
-      <TableCell align="right" sx={{ width: '80px' }}>
+      <TableCell align="right" sx={{ width: isMobile ? '22%' : '80px', px: isMobile ? 3 : 2 }}>
         <ActionsMenu tenantId={tenant.id} onView={onView} onEdit={onEdit} onDelete={onDelete} />
       </TableCell>
     </TableRow>
