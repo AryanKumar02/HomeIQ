@@ -25,7 +25,11 @@ const Tenants: React.FC = () => {
   })
 
   // Client-side search filtering
-  const filters = {} // No additional filters for now
+  const filters: { status: string | null; property: string | null; leaseExpiry: string | null } = {
+    status: null,
+    property: null,
+    leaseExpiry: null,
+  } // No additional filters for now
   const { data: searchResults = [] } = useTenantSearch(
     allTenants,
     searchTerm,
