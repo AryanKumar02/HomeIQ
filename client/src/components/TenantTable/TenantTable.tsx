@@ -157,17 +157,21 @@ const TenantTable: React.FC<TenantTableProps> = ({
   onTenantEdit = () => {},
   onTenantDelete = () => {},
 }) => {
-  // Ensure we have a properly typed tenant array - using explicit type assertion for safety
+  // Type guard function to check if an item is a valid TenantTableData
+  const isValidTenant = (item: unknown): item is TenantTableData => {
+    return (
+      item !== null &&
+      typeof item === 'object' &&
+      'id' in item &&
+      'name' in item &&
+      'email' in item
+    )
+  }
+
+  // Ensure we have a properly typed tenant array - filter out invalid items
   const allTenants: TenantTableData[] = useMemo(() => {
-    const safeTenants: TenantTableData[] = []
-    if (tenants && Array.isArray(tenants)) {
-      tenants.forEach((tenant) => {
-        if (tenant && typeof tenant === 'object' && 'id' in tenant) {
-          safeTenants.push(tenant as TenantTableData)
-        }
-      })
-    }
-    return safeTenants
+    if (!tenants || !Array.isArray(tenants)) return []
+    return tenants.filter(isValidTenant)
   }, [tenants])
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
