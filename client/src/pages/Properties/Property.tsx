@@ -8,10 +8,11 @@ import PropertyFilters from '../../components/properties/PropertyFilters'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import { PropertyCardSkeletonGrid, SkipLink } from '../../components/common'
 import { useProperties, useDeleteProperty } from '../../hooks/useProperties'
+import { usePropertySearch, useSearchState } from '../../hooks/useSearch'
 
 const PropertyDetails: React.FC = () => {
   const navigate = useNavigate()
-  const [searchTerm, setSearchTerm] = useState('')
+  const { searchTerm, setSearchTerm, clearSearch } = useSearchState('', 'properties')
   const [currentPage, setCurrentPage] = useState(1)
   const [filters, setFilters] = useState<{
     type: string | null
@@ -23,17 +24,25 @@ const PropertyDetails: React.FC = () => {
   const propertiesPerPage = 6 // 3 per row × 2 rows
 
   // Use React Query hooks
-  const { data: properties = [], isLoading, error } = useProperties()
+  const { data: allProperties = [], isLoading, error } = useProperties()
   const deletePropertyMutation = useDeleteProperty()
+  
+  // Enhanced search with React Query
+  const { data: searchResults = [], isLoading: isSearching } = usePropertySearch(
+    allProperties,
+    searchTerm,
+    filters
+  )
 
   const handleAddProperty = () => {
     console.log('Add property clicked')
     void navigate('/properties/add')
   }
 
-  const handleSearchProperties = (searchTerm: string) => {
-    console.log('Search properties:', searchTerm)
-    setSearchTerm(searchTerm)
+  const handleSearchProperties = (term: string) => {
+    console.log('Search properties:', term)
+    setSearchTerm(term)
+    setCurrentPage(1) // Reset to first page when searching
   }
 
   const handleViewDetails = (propertyId: string) => {
@@ -47,12 +56,19 @@ const PropertyDetails: React.FC = () => {
   const handleDelete = (propertyId: string) => {
     deletePropertyMutation.mutate(propertyId, {
       onSuccess: () => {
-        // Adjust current page if necessary
-        const remainingProperties = properties.filter((p) => p._id !== propertyId)
-        const newTotalPages = Math.ceil(remainingProperties.length / propertiesPerPage)
+        // Calculate remaining properties after deletion (excluding the deleted one)
+        const remainingCount = filteredProperties.length - 1
+        const newTotalPages = Math.ceil(remainingCount / propertiesPerPage)
+        
+        // If current page becomes empty and there are other pages, go to the last page
         if (currentPage > newTotalPages && newTotalPages > 0) {
           setCurrentPage(newTotalPages)
         }
+        // If we're deleting the last item and on page 1, stay on page 1
+        else if (remainingCount === 0) {
+          setCurrentPage(1)
+        }
+        
         console.log('Property deleted successfully')
       },
       onError: (error) => {
@@ -61,22 +77,14 @@ const PropertyDetails: React.FC = () => {
     })
   }
 
-  // Filter properties based on search term and filters
-  const filteredProperties = properties.filter((property) => {
-    // Search filter
-    const matchesSearch =
-      property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      property.address.street.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      property.address.city.toLowerCase().includes(searchTerm.toLowerCase())
-
-    // Type filter
-    const matchesType = filters.type === null || property.propertyType === filters.type
-
-    // Status filter
-    const matchesStatus = filters.status === null || property.status === filters.status
-
-    return matchesSearch && matchesType && matchesStatus
-  })
+  // Use all properties when no search term and no filters, otherwise use search results
+  const hasActiveFilters = filters.type !== null || filters.status !== null
+  const hasActiveSearchOrFilters = searchTerm.trim() || hasActiveFilters
+  
+  // Handle loading and error states properly
+  const filteredProperties = hasActiveSearchOrFilters 
+    ? (isSearching ? [] : searchResults) // Show empty during search loading, results when done
+    : allProperties // Show all properties when no search/filters
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredProperties.length / propertiesPerPage)
@@ -97,10 +105,10 @@ const PropertyDetails: React.FC = () => {
     setCurrentPage(1) // Reset to first page when filters change
   }
 
-  // Reset page when search or filters change
+  // Reset page when filters change (search is handled in handleSearchProperties)
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm, filters])
+  }, [filters])
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -125,11 +133,13 @@ const PropertyDetails: React.FC = () => {
           title="Properties"
           searchPlaceholder="Search properties..."
           addButtonText="Add Property"
+          searchTerm={searchTerm}
           onAdd={handleAddProperty}
           onSearch={handleSearchProperties}
+          onClearSearch={clearSearch}
         />
         <PropertyFilters
-          properties={properties}
+          properties={allProperties}
           selectedFilters={filters}
           onFilterChange={handleFilterChange}
           currentPage={currentPage}
@@ -141,11 +151,16 @@ const PropertyDetails: React.FC = () => {
       {/* Main layout with sidebar and content */}
       <Box sx={{ display: 'flex', flexGrow: 1, pt: { xs: '120px', md: '120px' } }}>
         <Sidebar />
-        <Box component="main" id="main-content" tabIndex={-1} sx={{ flexGrow: 1, p: 3, mt: 2 }}>
+        <Box component="main" id="main-content" tabIndex={-1} sx={{ 
+          flexGrow: 1, 
+          p: { xs: 1, sm: 1.5, md: 3 }, 
+          px: { xs: 1, sm: 1.5, md: 4 }, // More horizontal padding on desktop
+          mt: 2 
+        }}>
           {/* Properties content */}
 
           {/* Loading State */}
-          {isLoading && <PropertyCardSkeletonGrid count={propertiesPerPage} />}
+          {(isLoading || (hasActiveSearchOrFilters && isSearching)) && <PropertyCardSkeletonGrid count={propertiesPerPage} />}
 
           {/* Error State */}
           {error && (
@@ -199,11 +214,16 @@ const PropertyDetails: React.FC = () => {
                     aria-label="Properties list"
                     tabIndex={-1}
                     sx={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: 3,
+                      display: 'grid',
+                      gridTemplateColumns: { 
+                        xs: '1fr', 
+                        sm: 'repeat(3, 1fr)', 
+                        md: 'repeat(3, 1fr)' 
+                      },
+                      gap: { xs: 1.5, sm: 2, md: 2.5 },
                       mb: 4,
-                      justifyContent: { xs: 'center', sm: 'flex-start' },
+                      justifyItems: 'center',
+                      px: { xs: 0, sm: 2, md: 3, lg: 4, xl: 6 }, // Progressive padding for different screen sizes
                     }}
                   >
                     {currentProperties.map((property) => (

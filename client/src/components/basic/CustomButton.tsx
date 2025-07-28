@@ -5,6 +5,7 @@ interface CustomButtonProps {
   text: string
   onClick?: () => void
   variant?: 'contained' | 'outlined' | 'text'
+  color?: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success'
   backgroundColor?: string
   hoverBackgroundColor?: string
   textColor?: string
@@ -20,6 +21,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   text,
   onClick,
   variant = 'contained',
+  color = 'secondary',
   backgroundColor,
   hoverBackgroundColor,
   textColor,
@@ -52,14 +54,16 @@ const CustomButton: React.FC<CustomButtonProps> = ({
           borderColor: 'transparent',
           hoverBorderColor: 'transparent',
         }
-      default: // contained
+      default: { // contained
+        const paletteColor = theme.palette[color]
         return {
-          backgroundColor: theme.palette.secondary.main,
-          hoverBackgroundColor: theme.palette.secondary.dark,
+          backgroundColor: paletteColor.main,
+          hoverBackgroundColor: paletteColor.dark,
           textColor: 'white',
           borderColor: 'transparent',
           hoverBorderColor: 'transparent',
         }
+      }
     }
   }
 
