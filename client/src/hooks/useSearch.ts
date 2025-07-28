@@ -37,10 +37,15 @@ export const usePropertySearch = (
 ) => {
   const searchFn = (items: Property[], term: string) => {
     return items.filter((property) => {
-      const matchesSearch = 
-        property.title.toLowerCase().includes(term.toLowerCase()) ||
-        property.address.street.toLowerCase().includes(term.toLowerCase()) ||
-        property.address.city.toLowerCase().includes(term.toLowerCase())
+      // Safe access with null/undefined checks
+      const title = property?.title || ''
+      const street = property?.address?.street || ''
+      const city = property?.address?.city || ''
+
+      const matchesSearch =
+        title.toLowerCase().includes(term.toLowerCase()) ||
+        street.toLowerCase().includes(term.toLowerCase()) ||
+        city.toLowerCase().includes(term.toLowerCase())
 
       const matchesType = !filters?.type || property.propertyType === filters.type
       const matchesStatus = !filters?.status || property.status === filters.status
@@ -94,10 +99,10 @@ export const useTenantSearch = (
 // Search state management hook
 export const useSearchState = (initialTerm = '', pageName?: string) => {
   const queryClient = useQueryClient()
-  
+
   // Use page-specific query key to isolate search state per page
   const queryKey = pageName ? ['searchState', pageName] : ['searchState', 'current']
-  
+
   // Use query state for search term persistence
   const searchQuery = useQuery({
     queryKey,
@@ -115,8 +120,8 @@ export const useSearchState = (initialTerm = '', pageName?: string) => {
     // Clear all search result caches more comprehensively
     if (pageName) {
       // Clear all queries that start with ['search', pageName]
-      queryClient.removeQueries({ 
-        queryKey: [searchKeys.all[0]], 
+      queryClient.removeQueries({
+        queryKey: [searchKeys.all[0]],
         predicate: (query) => {
           const key = query.queryKey
           return Array.isArray(key) && key.length >= 2 && key[0] === 'search' && key[1] === pageName
@@ -124,7 +129,7 @@ export const useSearchState = (initialTerm = '', pageName?: string) => {
       })
     } else {
       // Clear all search-related queries
-      queryClient.removeQueries({ 
+      queryClient.removeQueries({
         queryKey: [searchKeys.all[0]],
         predicate: (query) => {
           const key = query.queryKey
