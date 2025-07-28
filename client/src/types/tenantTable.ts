@@ -68,7 +68,9 @@ export interface TenantRowProps {
 }
 
 export interface TenantTableProps {
+  tenants: TenantTableData[]
   searchTerm?: string
+  isLoading?: boolean
   onTenantView?: (id: string) => void
   onTenantEdit?: (id: string) => void
   onTenantDelete?: (id: string) => void

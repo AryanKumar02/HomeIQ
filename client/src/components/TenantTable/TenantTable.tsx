@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { tenantsApi } from '../../api/tenants'
 import {
@@ -15,9 +15,7 @@ import {
   FormControl,
   Select,
   MenuItem,
-  Alert,
   Skeleton,
-  Chip,
   useTheme,
   useMediaQuery,
   type SelectChangeEvent,
@@ -30,8 +28,8 @@ import {
   Label as StatusIcon,
   Settings as ActionsIcon,
 } from '@mui/icons-material'
-import type { TenantTableProps } from '../../types/tenantTable'
-import { useTenantsTable, usePaginationText, tenantTableKeys } from '../../hooks/useTenantsTable'
+import type { TenantTableProps, TenantTableData, PaginationInfo } from '../../types/tenantTable'
+import { usePaginationText, tenantTableKeys } from '../../hooks/useTenantsTable'
 import TenantRow from './TenantRow'
 
 /**
@@ -152,7 +150,9 @@ const EmptyState: React.FC<{ isSearch: boolean; searchTerm?: string }> = ({
  * @returns Complete tenant table with pagination and controls
  */
 const TenantTable: React.FC<TenantTableProps> = ({
+  tenants: allTenants,
   searchTerm = '',
+  isLoading: externalLoading = false,
   onTenantView = () => {},
   onTenantEdit = () => {},
   onTenantDelete = () => {},
@@ -164,18 +164,24 @@ const TenantTable: React.FC<TenantTableProps> = ({
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
 
-  // Memoize filters to prevent unnecessary re-renders
-  const filters = useMemo(
-    () => ({
-      page,
-      limit: pageSize,
-      search: searchTerm,
-    }),
-    [page, pageSize, searchTerm]
-  )
+  // Client-side pagination
+  const safeAllTenants: TenantTableData[] = (allTenants || []) as TenantTableData[]
+  const totalPages: number = Math.ceil(safeAllTenants.length / pageSize)
+  const startIndex: number = (page - 1) * pageSize
+  const tenants: TenantTableData[] = safeAllTenants.slice(startIndex, startIndex + pageSize)
 
-  const { tenants, pagination, isLoading, error, refetch, isEmpty, isEmptySearch } =
-    useTenantsTable(filters)
+  // Loading state - use external loading state with type safety
+  const isLoading: boolean = Boolean(externalLoading)
+  const isEmpty = safeAllTenants.length === 0
+  const isEmptySearch = isEmpty && !!searchTerm
+
+  // Create pagination info for display
+  const pagination: PaginationInfo = {
+    page,
+    limit: pageSize,
+    total: safeAllTenants.length,
+    totalPages,
+  }
 
   const paginationText = usePaginationText(pagination)
 
@@ -222,21 +228,6 @@ const TenantTable: React.FC<TenantTableProps> = ({
     } catch (error: unknown) {
       console.error('Error deleting tenant:', error)
     }
-  }
-
-  // Error state
-  if (error && !isLoading) {
-    return (
-      <Alert
-        severity="error"
-        action={
-          <Chip label="Retry" onClick={() => void refetch()} size="small" variant="outlined" />
-        }
-        sx={{ mx: 2 }}
-      >
-        Failed to load tenants. Please try again.
-      </Alert>
-    )
   }
 
   return (

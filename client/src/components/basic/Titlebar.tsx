@@ -13,23 +13,29 @@ import AddIcon from '@mui/icons-material/Add'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
 import SearchBar from './SearchBar'
+import CustomButton from './CustomButton'
 
 interface TitlebarProps {
   onAdd?: () => void
   onSearch?: (term: string) => void
+  onClearSearch?: () => void
   title?: string
   searchPlaceholder?: string
   addButtonText?: string
   showSearch?: boolean
+  searchTerm?: string
   children?: React.ReactNode // For custom content instead of search
 }
 
 const Titlebar: React.FC<TitlebarProps> = ({
   onAdd,
   onSearch,
+  onClearSearch,
   title = 'Properties',
   searchPlaceholder = 'Search properties...',
+  addButtonText = 'Add Property',
   showSearch = true,
+  searchTerm = '',
   children,
 }) => {
   const theme = useTheme()
@@ -84,50 +90,87 @@ const Titlebar: React.FC<TitlebarProps> = ({
 
           {/* Mobile Search Icon */}
           {showSearch && isMobile && (
-            <IconButton
-              onClick={() => setMobileSearchOpen(true)}
-              sx={{
-                p: 0,
-                backgroundColor: 'transparent',
-                border: 'none',
-                ml: 2, // Add left padding from burger menu
-                mt: 0.5, // Bring it down slightly
-                '&:hover': {
-                  backgroundColor: 'transparent',
-                  color: 'rgba(0, 0, 0, 0.8)',
-                },
-              }}
-            >
-              <SearchIcon sx={{ fontSize: '1.25rem', color: 'rgba(0, 0, 0, 0.6)' }} />
-            </IconButton>
+            <Box sx={{ position: 'relative' }}>
+              <IconButton
+                onClick={() => setMobileSearchOpen(true)}
+                sx={{
+                  p: 0,
+                  backgroundColor: searchTerm ? theme.palette.secondary.main : 'transparent',
+                  border: 'none',
+                  ml: 2, // Add left padding from burger menu
+                  mt: 0.5, // Bring it down slightly
+                  borderRadius: 1,
+                  px: searchTerm ? 1 : 0,
+                  '&:hover': {
+                    backgroundColor: searchTerm ? theme.palette.secondary.dark : 'rgba(0, 0, 0, 0.04)',
+                    color: 'rgba(0, 0, 0, 0.8)',
+                  },
+                }}
+              >
+                <SearchIcon sx={{ 
+                  fontSize: '1.25rem', 
+                  color: searchTerm ? 'white' : 'rgba(0, 0, 0, 0.6)' 
+                }} />
+              </IconButton>
+              {/* Active search indicator */}
+              {searchTerm && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    width: 8,
+                    height: 8,
+                    backgroundColor: theme.palette.error.main,
+                    borderRadius: '50%',
+                  }}
+                />
+              )}
+            </Box>
           )}
 
           {children}
 
           {!children && onAdd && (
-            <IconButton
-              onClick={onAdd}
-              sx={{
-                backgroundColor: theme.palette.secondary.main,
-                color: 'white',
-                width: 'auto',
-                height: 'auto',
-                p: 1,
-                borderRadius: '50%',
-                boxShadow: '0 2px 8px 0 rgba(61, 130, 247, 0.25)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                '&:hover': {
-                  backgroundColor: theme.palette.secondary.dark,
-                  transform: 'scale(1.05)',
-                  boxShadow: '0 4px 12px 0 rgba(61, 130, 247, 0.35)',
-                },
-                '&:active': {
-                  transform: 'scale(0.95)',
-                },
-              }}
-            >
-              <AddIcon sx={{ fontSize: '1.25rem' }} />
-            </IconButton>
+            <>
+              {/* Desktop Add Button */}
+              {!isMobile && (
+                <CustomButton
+                  text={addButtonText}
+                  variant="contained"
+                  onClick={onAdd}
+                  startIcon={<AddIcon />}
+                  size="medium"
+                />
+              )}
+
+              {/* Mobile Add Button (+ Icon) */}
+              {isMobile && (
+                <IconButton
+                  onClick={onAdd}
+                  sx={{
+                    backgroundColor: theme.palette.secondary.main,
+                    color: 'white',
+                    width: 'auto',
+                    height: 'auto',
+                    p: 1,
+                    borderRadius: '50%',
+                    boxShadow: '0 2px 8px 0 rgba(61, 130, 247, 0.25)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': {
+                      backgroundColor: theme.palette.secondary.dark,
+                      transform: 'scale(1.05)',
+                      boxShadow: '0 4px 12px 0 rgba(61, 130, 247, 0.35)',
+                    },
+                    '&:active': {
+                      transform: 'scale(0.95)',
+                    },
+                  }}
+                >
+                  <AddIcon sx={{ fontSize: '1.25rem' }} />
+                </IconButton>
+              )}
+            </>
           )}
         </Box>
       </Box>
@@ -164,9 +207,19 @@ const Titlebar: React.FC<TitlebarProps> = ({
         <DialogContent sx={{ pt: 0, pb: 3 }}>
           <SearchBar
             placeholder={searchPlaceholder}
+            value={searchTerm}
             onSearch={(term) => {
               if (onSearch) onSearch(term)
+              // Update results in real-time as user types
+            }}
+            onSubmit={(term) => {
+              if (onSearch) onSearch(term)
               setMobileSearchOpen(false)
+              // Close dialog only when Enter is pressed
+            }}
+            onClear={() => {
+              if (onClearSearch) onClearSearch()
+              // Clear search and show all results
             }}
             width={{ xs: '100%', sm: '100%', md: '100%' }}
           />

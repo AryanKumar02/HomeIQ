@@ -228,10 +228,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           outlineOffset: '2px',
         },
         cursor: 'pointer',
-        width: { xs: '360px', sm: '295px', md: '315px' },
-        minWidth: { xs: '360px', sm: '295px', md: '315px' },
-        maxWidth: { xs: '360px', sm: '295px', md: '315px' },
-        minHeight: { xs: '400px', sm: '335px', md: '355px' },
+        width: { xs: '360px', sm: '28vw', md: '26vw', lg: '24vw', xl: '22vw' },
+        minWidth: { xs: '360px', sm: '280px', md: '300px' },
+        maxWidth: { xs: '360px', sm: '400px', md: '450px', lg: '500px' },
+        minHeight: { xs: '400px', sm: '32vw', md: '30vw', lg: '28vw', xl: '26vw' },
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
@@ -249,7 +249,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       <Box
         sx={{
           position: 'relative',
-          height: { xs: '200px', sm: '167px', md: '177px' },
+          height: { xs: '200px', sm: '16vw', md: '15vw', lg: '14vw', xl: '13vw' },
           flex: '0 0 auto',
         }}
       >
