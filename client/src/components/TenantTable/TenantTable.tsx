@@ -164,8 +164,10 @@ const TenantTable: React.FC<TenantTableProps> = ({
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
 
-  // Client-side pagination
-  const safeAllTenants: TenantTableData[] = (allTenants || []) as TenantTableData[]
+  // Client-side pagination - ensure we have a safe array with proper typing
+  const safeAllTenants: TenantTableData[] = Array.isArray(allTenants) 
+    ? (allTenants as TenantTableData[])
+    : []
   const totalPages: number = Math.ceil(safeAllTenants.length / pageSize)
   const startIndex: number = (page - 1) * pageSize
   const tenants: TenantTableData[] = safeAllTenants.slice(startIndex, startIndex + pageSize)
