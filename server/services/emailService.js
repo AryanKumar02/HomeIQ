@@ -1,14 +1,20 @@
-import { Resend } from 'resend';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
 import logger from '../utils/logger.js';
 
-let resend;
+let sesClient;
 
-const getResendClient = () => {
-  if (!resend) {
-    resend = new Resend(process.env.RESEND_API_KEY);
+const getSESClient = () => {
+  if (!sesClient) {
+    sesClient = new SESClient({
+      region: process.env.AWS_REGION || 'eu-north-1',
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
   }
-  return resend;
+  return sesClient;
 };
 
 export const sendPasswordResetEmail = async (email, resetToken) => {
@@ -21,11 +27,19 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
   const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
   try {
-    const { data, error } = await getResendClient().emails.send({
-      from: 'EstateLink <onboarding@resend.dev>',
-      to: email,
-      subject: 'Password Reset Request - EstateLink',
-      html: `
+    const command = new SendEmailCommand({
+      Source: 'EstateLink <noreply@estatelink.live>',
+      Destination: {
+        ToAddresses: [email],
+      },
+      Message: {
+        Subject: {
+          Data: 'Password Reset Request - EstateLink',
+          Charset: 'UTF-8',
+        },
+        Body: {
+          Html: {
+            Data: `
         <!DOCTYPE html>
         <html>
           <head>
@@ -53,7 +67,7 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
               }
               .header { 
-                background: linear-gradient(135deg, #036CA3 0%, #0284C7 100%);
+                background: linear-gradient(135deg, #3d82f7 0%, #0284C7 100%);
                 color: white; 
                 padding: 40px 30px;
                 text-align: center;
@@ -169,16 +183,15 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
             </div>
           </body>
         </html>
-      `,
+            `,
+            Charset: 'UTF-8',
+          },
+        },
+      },
     });
 
-    if (error) {
-      logger.error('Resend API error details:', error);
-      throw new Error(
-        `Failed to send password reset email: ${error.message || JSON.stringify(error)}`,
-      );
-    }
-
+    const data = await getSESClient().send(command);
+    logger.info(`Password reset email sent successfully to ${email}`);
     return data;
   } catch (error) {
     logger.error('Email service error:', error);
@@ -198,11 +211,19 @@ export const sendVerificationEmail = async (email, verificationToken) => {
   const verifyURL = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
 
   try {
-    const { data, error } = await getResendClient().emails.send({
-      from: 'EstateLink <onboarding@resend.dev>',
-      to: email,
-      subject: 'Verify Your Email - EstateLink',
-      html: `
+    const command = new SendEmailCommand({
+      Source: 'EstateLink <noreply@estatelink.live>',
+      Destination: {
+        ToAddresses: [email],
+      },
+      Message: {
+        Subject: {
+          Data: 'Verify Your Email - EstateLink',
+          Charset: 'UTF-8',
+        },
+        Body: {
+          Html: {
+            Data: `
         <!DOCTYPE html>
         <html>
           <head>
@@ -382,16 +403,15 @@ export const sendVerificationEmail = async (email, verificationToken) => {
             </div>
           </body>
         </html>
-      `,
+            `,
+            Charset: 'UTF-8',
+          },
+        },
+      },
     });
 
-    if (error) {
-      logger.error('Resend API error details:', error);
-      throw new Error(
-        `Failed to send verification email: ${error.message || JSON.stringify(error)}`,
-      );
-    }
-
+    const data = await getSESClient().send(command);
+    logger.info(`Verification email sent successfully to ${email}`);
     return data;
   } catch (error) {
     logger.error('Email service error:', error);
