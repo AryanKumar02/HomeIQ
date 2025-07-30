@@ -19,6 +19,7 @@
   "description": "",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.842.0",
+    "@aws-sdk/client-ses": "^3.855.0",
     "axios": "^1.10.0",
     "bcrypt": "^5.1.1",
     "compression": "^1.8.1",

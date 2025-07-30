@@ -42,12 +42,14 @@ describe('Tenant Validators', () => {
 
     // Connect to the in-memory database
     await mongoose.connect(mongoUri);
-  });
+  }, 30000);
 
   afterAll(async () => {
     // Clean up
     await mongoose.disconnect();
-    await mongoServer.stop();
+    if (mongoServer) {
+      await mongoServer.stop();
+    }
   });
 
   beforeEach(async () => {
