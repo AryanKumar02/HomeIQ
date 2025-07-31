@@ -80,11 +80,11 @@ const EmptyState: React.FC<{ isSearch: boolean; searchTerm?: string }> = ({
         py: 8,
         px: 3,
         background: `radial-gradient(ellipse at center,
-          ${theme.palette.primary.main}08 0%,
+          ${theme.palette.secondary.main}08 0%,
           ${theme.palette.secondary.main}04 50%,
           transparent 100%)`,
         borderRadius: 3,
-        border: `2px dashed ${theme.palette.primary.main}30`,
+        border: `2px dashed ${theme.palette.secondary.main}30`,
         mx: 2,
         mb: 2,
         position: 'relative',
@@ -98,7 +98,7 @@ const EmptyState: React.FC<{ isSearch: boolean; searchTerm?: string }> = ({
           height: '200%',
           background: `conic-gradient(from 0deg,
             transparent 0deg,
-            ${theme.palette.primary.main}08 90deg,
+            ${theme.palette.secondary.main}08 90deg,
             transparent 180deg)`,
           animation: 'rotate 20s linear infinite',
           opacity: 0.3,
@@ -113,7 +113,7 @@ const EmptyState: React.FC<{ isSearch: boolean; searchTerm?: string }> = ({
         sx={{
           fontSize: 64,
           background: `linear-gradient(135deg,
-            ${theme.palette.primary.main} 0%,
+            ${theme.palette.secondary.main} 0%,
             ${theme.palette.secondary.main} 100%)`,
           backgroundClip: 'text',
           WebkitBackgroundClip: 'text',
@@ -277,10 +277,10 @@ const TenantTable: React.FC<TenantTableProps> = ({
             <TableRow
               sx={{
                 background: `linear-gradient(135deg,
-                  ${theme.palette.primary.main}08 0%,
+                  ${theme.palette.secondary.main}08 0%,
                   ${theme.palette.secondary.main}06 50%,
-                  ${theme.palette.primary.main}04 100%)`,
-                borderBottom: `2px solid ${theme.palette.primary.main}20`,
+                  ${theme.palette.secondary.main}04 100%)`,
+                borderBottom: `2px solid ${theme.palette.secondary.main}20`,
                 position: 'relative',
                 '&::after': {
                   content: '""',
@@ -291,9 +291,9 @@ const TenantTable: React.FC<TenantTableProps> = ({
                   height: '1px',
                   background: `linear-gradient(90deg,
                     transparent 0%,
-                    ${theme.palette.primary.main}40 20%,
+                    ${theme.palette.secondary.main}40 20%,
                     ${theme.palette.secondary.main}60 50%,
-                    ${theme.palette.primary.main}40 80%,
+                    ${theme.palette.secondary.main}40 80%,
                     transparent 100%)`,
                 },
               }}
@@ -303,7 +303,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
                   <PersonIcon
                     fontSize="small"
                     sx={{
-                      color: theme.palette.primary.main,
+                      color: theme.palette.secondary.main,
                       filter: 'drop-shadow(0 1px 2px rgba(3, 108, 163, 0.2))',
                     }}
                   />
@@ -514,15 +514,15 @@ const TenantTable: React.FC<TenantTableProps> = ({
                     backdropFilter: 'blur(4px)',
                     '&:hover': {
                       background: `linear-gradient(135deg,
-                        ${theme.palette.primary.main}08 0%,
+                        ${theme.palette.secondary.main}08 0%,
                         ${theme.palette.secondary.main}06 100%)`,
-                      border: `1px solid ${theme.palette.primary.main}20`,
+                      border: `1px solid ${theme.palette.secondary.main}20`,
                       transform: 'translateY(-1px)',
                       boxShadow: `0 2px 8px rgba(3, 108, 163, 0.15)`,
                     },
                     '&.Mui-selected': {
                       background: `linear-gradient(135deg,
-                        ${theme.palette.primary.main} 0%,
+                        ${theme.palette.secondary.main} 0%,
                         ${theme.palette.secondary.main} 100%)`,
                       color: 'white',
                       fontWeight: 600,
@@ -568,7 +568,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
                 '& .MuiOutlinedInput-root': {
                   background: `linear-gradient(135deg,
                     ${theme.palette.background.paper} 0%,
-                    ${theme.palette.primary.main}04 100%)`,
+                    ${theme.palette.secondary.main}04 100%)`,
                   borderRadius: 2,
                   fontWeight: 500,
                   backdropFilter: 'blur(4px)',
@@ -579,18 +579,18 @@ const TenantTable: React.FC<TenantTableProps> = ({
                   },
                   '&:hover': {
                     background: `linear-gradient(135deg,
-                      ${theme.palette.primary.main}06 0%,
+                      ${theme.palette.secondary.main}06 0%,
                       ${theme.palette.secondary.main}04 100%)`,
-                    border: `1px solid ${theme.palette.primary.main}30`,
+                    border: `1px solid ${theme.palette.secondary.main}30`,
                     transform: 'translateY(-1px)',
                     boxShadow: `0 2px 12px rgba(3, 108, 163, 0.12)`,
                   },
                   '&.Mui-focused': {
                     background: `linear-gradient(135deg,
-                      ${theme.palette.primary.main}08 0%,
+                      ${theme.palette.secondary.main}08 0%,
                       ${theme.palette.secondary.main}06 100%)`,
-                    border: `1px solid ${theme.palette.primary.main}50`,
-                    boxShadow: `0 0 0 3px ${theme.palette.primary.main}15`,
+                    border: `1px solid ${theme.palette.secondary.main}50`,
+                    boxShadow: `0 0 0 3px ${theme.palette.secondary.main}15`,
                     transform: 'translateY(-1px)',
                   },
                 },

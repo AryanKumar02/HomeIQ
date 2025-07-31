@@ -120,7 +120,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       case 'available':
         return { color: theme.palette.success.main, label: 'Available' }
       case 'occupied':
-        return { color: theme.palette.primary.main, label: 'Occupied' }
+        return { color: theme.palette.secondary.main, label: 'Occupied' }
       case 'maintenance':
         return { color: theme.palette.warning.main, label: 'Maintenance' }
       case 'off-market':
@@ -344,7 +344,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
               position: 'absolute',
               top: 8,
               right: 8,
-              backgroundColor: theme.palette.primary.main,
+              backgroundColor: theme.palette.secondary.main,
               color: 'white',
               fontWeight: 600,
               fontSize: '0.7rem',
@@ -495,9 +495,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
                               }
                             case 'occupied':
                               return {
-                                color: theme.palette.primary.main,
+                                color: theme.palette.secondary.main,
                                 label: 'Occupied',
-                                bgColor: theme.palette.primary.light,
+                                bgColor: theme.palette.secondary.light,
                               }
                             case 'maintenance':
                               return {

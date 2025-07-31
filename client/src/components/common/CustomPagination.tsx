@@ -93,7 +93,7 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
 
   const activeButtonStyles = {
     ...buttonStyles,
-    backgroundColor: theme.palette.primary.main,
+    backgroundColor: theme.palette.secondary.main,
     color: 'white',
     fontWeight: 700,
     '&:hover': {

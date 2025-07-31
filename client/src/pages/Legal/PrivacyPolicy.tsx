@@ -150,7 +150,7 @@ const PrivacyPolicy: React.FC = () => {
           mx: 'auto',
           '& h1': {
             fontSize: { xs: '2.1rem', md: '2.7rem' },
-            color: 'primary.main',
+            color: 'secondary.main',
             fontWeight: 900,
             mb: 2,
             letterSpacing: -1.2,
@@ -158,7 +158,7 @@ const PrivacyPolicy: React.FC = () => {
           },
           '& h2': {
             fontSize: { xs: '1.35rem', md: '1.7rem' },
-            color: 'primary.main',
+            color: 'secondary.main',
             fontWeight: 700,
             mt: 4,
             mb: 2,
@@ -166,7 +166,7 @@ const PrivacyPolicy: React.FC = () => {
           },
           '& h3': {
             fontSize: { xs: '1.1rem', md: '1.2rem' },
-            color: 'primary.main',
+            color: 'secondary.main',
             fontWeight: 700,
             mt: 3,
             mb: 1.5,
@@ -177,7 +177,7 @@ const PrivacyPolicy: React.FC = () => {
           '& strong': { fontWeight: 700 },
           '& em': { fontStyle: 'italic' },
           '& a': {
-            color: 'primary.main',
+            color: 'secondary.main',
             fontWeight: 600,
             textDecoration: 'underline',
             transition: 'color 0.2s',
@@ -185,7 +185,7 @@ const PrivacyPolicy: React.FC = () => {
           },
           '& blockquote': {
             fontStyle: 'italic',
-            color: 'primary.main',
+            color: 'secondary.main',
             background: 'linear-gradient(90deg, #e3f1fa 0%, #f5faff 100%)',
             borderLeft: '4px solid #036CA3',
             pl: 2,
@@ -193,7 +193,7 @@ const PrivacyPolicy: React.FC = () => {
             py: 1,
             borderRadius: 2,
           },
-          '& hr': { my: 3, borderColor: 'primary.main', opacity: 0.12 },
+          '& hr': { my: 3, borderColor: 'secondary.main', opacity: 0.12 },
         }}
       >
         <ReactMarkdown>{privacyContent}</ReactMarkdown>

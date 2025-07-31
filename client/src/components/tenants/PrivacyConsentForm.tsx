@@ -82,9 +82,9 @@ const PrivacyConsentForm: React.FC<PrivacyConsentFormProps> = ({
                   checked={formData.allowBackgroundCheck || false}
                   onChange={(e) => onInputChange('privacy.allowBackgroundCheck', e.target.checked)}
                   sx={{
-                    color: 'primary.main',
+                    color: 'secondary.main',
                     '&.Mui-checked': {
-                      color: 'primary.main',
+                      color: 'secondary.main',
                     },
                   }}
                 />
@@ -112,9 +112,9 @@ const PrivacyConsentForm: React.FC<PrivacyConsentFormProps> = ({
                   checked={formData.allowCreditCheck || false}
                   onChange={(e) => onInputChange('privacy.allowCreditCheck', e.target.checked)}
                   sx={{
-                    color: 'primary.main',
+                    color: 'secondary.main',
                     '&.Mui-checked': {
-                      color: 'primary.main',
+                      color: 'secondary.main',
                     },
                   }}
                 />
@@ -156,7 +156,7 @@ const PrivacyConsentForm: React.FC<PrivacyConsentFormProps> = ({
                   }}
                   required
                   sx={{
-                    color: 'primary.main',
+                    color: 'secondary.main',
                     '&.Mui-checked': {
                       color: 'success.main',
                     },
