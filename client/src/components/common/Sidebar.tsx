@@ -424,7 +424,7 @@ const Sidebar: React.FC = () => {
               <Avatar
                 src={user?.avatar}
                 sx={{
-                  bgcolor: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                  bgcolor: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.main} 100%)`,
                   width: isMobile ? 36 : 44,
                   height: isMobile ? 36 : 44,
                   mr: isMobile ? 1.5 : 2,
@@ -528,7 +528,7 @@ const Sidebar: React.FC = () => {
             transition: 'color 0.2s ease',
             '&:hover': {
               backgroundColor: 'transparent',
-              color: theme.palette.primary.main,
+              color: theme.palette.secondary.main,
             },
             '&:active': {
               transform: 'none',

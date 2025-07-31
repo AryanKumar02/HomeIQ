@@ -87,7 +87,7 @@ const PetsInfoForm: React.FC<PetsInfoFormProps> = ({
         <IconButton
           onClick={onAddPet}
           sx={{
-            backgroundColor: 'primary.main',
+            backgroundColor: 'secondary.main',
             color: 'white',
             '&:hover': {
               backgroundColor: 'primary.dark',

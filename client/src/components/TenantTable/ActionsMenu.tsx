@@ -93,12 +93,12 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ tenantId, onView, onEdit, onD
             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': {
               backgroundColor: theme.palette.action.hover,
-              color: theme.palette.primary.main,
+              color: theme.palette.secondary.main,
               transform: 'translateY(-1px)',
               boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
             },
             '&:focus': {
-              outline: `2px solid ${theme.palette.primary.main}`,
+              outline: `2px solid ${theme.palette.secondary.main}`,
               outlineOffset: 2,
             },
           }}
@@ -154,7 +154,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ tenantId, onView, onEdit, onD
           aria-label={`View details for tenant ${tenantId}`}
         >
           <ListItemIcon>
-            <ViewIcon fontSize="small" sx={{ color: theme.palette.primary.main }} />
+            <ViewIcon fontSize="small" sx={{ color: theme.palette.secondary.main }} />
           </ListItemIcon>
           <ListItemText>View Details</ListItemText>
         </MenuItem>

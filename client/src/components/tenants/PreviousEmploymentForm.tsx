@@ -62,7 +62,7 @@ const PreviousEmploymentForm: React.FC<PreviousEmploymentFormProps> = ({
         <IconButton
           onClick={onAddEmployment}
           sx={{
-            backgroundColor: 'primary.main',
+            backgroundColor: 'secondary.main',
             color: 'white',
             '&:hover': {
               backgroundColor: 'primary.dark',

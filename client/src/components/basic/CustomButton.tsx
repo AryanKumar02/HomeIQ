@@ -50,7 +50,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
         return {
           backgroundColor: 'transparent',
           hoverBackgroundColor: 'rgba(0, 0, 0, 0.04)',
-          textColor: theme.palette.primary.main,
+          textColor: theme.palette.secondary.main,
           borderColor: 'transparent',
           hoverBorderColor: 'transparent',
         }

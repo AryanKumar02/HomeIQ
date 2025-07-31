@@ -62,8 +62,8 @@ const PreviousAddressForm: React.FC<PreviousAddressFormProps> = ({
           startIcon={<AddIcon />}
           onClick={onAddAddress}
           sx={{
-            borderColor: 'primary.main',
-            color: 'primary.main',
+            borderColor: 'secondary.main',
+            color: 'secondary.main',
             '&:hover': {
               borderColor: 'primary.dark',
               backgroundColor: 'primary.50',

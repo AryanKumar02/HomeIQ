@@ -159,14 +159,14 @@ const ReferenceRequirementsInfo: React.FC = () => {
       sx={{
         p: 3,
         mb: 4,
-        background: `linear-gradient(135deg, ${theme.palette.primary.main}08 0%, ${theme.palette.secondary.main}05 100%)`,
-        border: `1px solid ${theme.palette.primary.main}20`,
+        background: `linear-gradient(135deg, ${theme.palette.secondary.main}08 0%, ${theme.palette.secondary.main}05 100%)`,
+        border: `1px solid ${theme.palette.secondary.main}20`,
       }}
     >
       <Typography
         variant="h6"
         gutterBottom
-        sx={{ color: theme.palette.primary.main, fontWeight: 600 }}
+        sx={{ color: theme.palette.secondary.main, fontWeight: 600 }}
       >
         Reference Requirements
       </Typography>

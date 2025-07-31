@@ -66,7 +66,7 @@ const VehiclesInfoForm: React.FC<VehiclesInfoFormProps> = ({
         <IconButton
           onClick={onAddVehicle}
           sx={{
-            backgroundColor: 'primary.main',
+            backgroundColor: 'secondary.main',
             color: 'white',
             '&:hover': {
               backgroundColor: 'primary.dark',

@@ -41,7 +41,7 @@ const SkipLink: React.FC<SkipLinkProps> = ({ href, children }) => {
         variant="contained"
         size="small"
         sx={{
-          backgroundColor: 'primary.main',
+          backgroundColor: 'secondary.main',
           color: 'white',
           fontWeight: 600,
           textTransform: 'none',

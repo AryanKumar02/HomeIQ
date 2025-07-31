@@ -69,17 +69,17 @@ const TenantRow: React.FC<TenantRowProps> = ({ tenant, onView, onEdit, onDelete 
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         '&:hover': {
           background: `linear-gradient(135deg,
-            ${theme.palette.primary.main}08 0%,
+            ${theme.palette.secondary.main}08 0%,
             ${theme.palette.secondary.main}04 50%,
-            ${theme.palette.primary.main}06 100%)`,
+            ${theme.palette.secondary.main}06 100%)`,
           transform: 'translateY(-1px)',
           boxShadow: `0 4px 12px rgba(3, 108, 163, 0.12),
                       0 2px 8px rgba(61, 130, 247, 0.08)`,
-          borderLeft: `3px solid ${theme.palette.primary.main}`,
+          borderLeft: `3px solid ${theme.palette.secondary.main}`,
         },
         '&:focus': {
           backgroundColor: theme.palette.action.focus,
-          outline: `2px solid ${theme.palette.primary.main}`,
+          outline: `2px solid ${theme.palette.secondary.main}`,
           outlineOffset: '2px',
         },
         // Add visual emphasis for urgent statuses
