@@ -10,6 +10,7 @@ import { deleteAllPropertyImages, getUserStorageStats } from '../utils/multiUser
 import { processMultipleImages, getProcessingOptions } from '../utils/imageProcessor.js';
 import { uploadImageVariants } from '../utils/s3Upload.js';
 import { cacheWrapper, CACHE_KEYS, CACHE_TTL, invalidatePropertyCache } from '../utils/cache.js';
+import { emitAnalyticsUpdate } from '../services/realTimeAnalytics.js';
 
 // Get all properties for the authenticated user
 export const getMyProperties = catchAsync(async (req, res) => {
@@ -87,6 +88,15 @@ export const createProperty = catchAsync(async (req, res, next) => {
 
   // Invalidate user's property cache
   await invalidatePropertyCache(req.user.id, property._id);
+
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:property-created');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after property creation:', emitError);
+  }
 
   logger.info(`Created new property ${property._id} for user ${req.user.id}`);
 
@@ -249,6 +259,15 @@ export const updateProperty = catchAsync(async (req, res, next) => {
   // Invalidate property cache
   await invalidatePropertyCache(req.user.id, property._id);
 
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:property-updated');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after property update:', emitError);
+  }
+
   logger.info(`Updated property ${property._id} for user ${req.user.id}`);
 
   res.status(200).json({
@@ -281,6 +300,15 @@ export const deleteProperty = catchAsync(async (req, res, next) => {
 
   // Invalidate property cache
   await invalidatePropertyCache(req.user.id, property._id);
+
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:property-deleted');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after property deletion:', emitError);
+  }
 
   logger.info(`Permanently deleted property ${property._id} for user ${req.user.id}`);
 

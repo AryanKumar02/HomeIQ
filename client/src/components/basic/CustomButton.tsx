@@ -54,7 +54,8 @@ const CustomButton: React.FC<CustomButtonProps> = ({
           borderColor: 'transparent',
           hoverBorderColor: 'transparent',
         }
-      default: { // contained
+      default: {
+        // contained
         const paletteColor = theme.palette[color]
         return {
           backgroundColor: paletteColor.main,

@@ -2,6 +2,8 @@ import Tenant from '../models/Tenant.js';
 import Property from '../models/Property.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
+import { emitAnalyticsUpdate } from '../services/realTimeAnalytics.js';
+import logger from '../utils/logger.js';
 
 // Get all tenants for the authenticated user
 export const getTenants = catchAsync(async (req, res, next) => {
@@ -135,6 +137,15 @@ export const createTenant = catchAsync(async (req, res, next) => {
   // Populate the created tenant for response
   await tenant.populate('createdBy', 'firstName lastName email');
 
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:tenant-created');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after tenant creation:', emitError);
+  }
+
   res.status(201).json({
     status: 'success',
     data: {
@@ -245,6 +256,15 @@ export const updateTenant = catchAsync(async (req, res, next) => {
   await tenant.populate('leases.property', 'title address propertyType');
   await tenant.populate('createdBy', 'firstName lastName email');
 
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:tenant-updated');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after tenant update:', emitError);
+  }
+
   res.status(200).json({
     status: 'success',
     data: {
@@ -277,6 +297,15 @@ export const deleteTenant = catchAsync(async (req, res, next) => {
   // Soft delete
   tenant.isActive = false;
   await tenant.save();
+
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:tenant-deleted');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after tenant deletion:', emitError);
+  }
 
   res.status(204).json({
     status: 'success',
@@ -368,6 +397,15 @@ export const assignTenantToProperty = catchAsync(async (req, res, next) => {
     'personalInfo.firstName personalInfo.lastName contactInfo.email',
   );
 
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:lease-assigned');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after tenant assignment:', emitError);
+  }
+
   res.status(200).json({
     status: 'success',
     data: {
@@ -442,6 +480,15 @@ export const unassignTenantFromProperty = catchAsync(async (req, res, next) => {
   }
 
   await property.save();
+
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:lease-terminated');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after tenant unassignment:', emitError);
+  }
 
   res.status(200).json({
     status: 'success',
@@ -518,6 +565,15 @@ export const addLease = catchAsync(async (req, res, next) => {
   // Populate and return updated tenant
   await tenant.populate('leases.property', 'title address propertyType');
 
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:lease-added');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after adding lease:', emitError);
+  }
+
   res.status(200).json({
     status: 'success',
     data: {
@@ -571,6 +627,15 @@ export const updateLeaseStatus = catchAsync(async (req, res, next) => {
   }
 
   await tenant.populate('leases.property', 'title address propertyType');
+
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:lease-status-updated');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after lease status update:', emitError);
+  }
 
   res.status(200).json({
     status: 'success',

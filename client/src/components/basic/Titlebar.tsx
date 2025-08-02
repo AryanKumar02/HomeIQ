@@ -102,15 +102,19 @@ const Titlebar: React.FC<TitlebarProps> = ({
                   borderRadius: 1,
                   px: searchTerm ? 1 : 0,
                   '&:hover': {
-                    backgroundColor: searchTerm ? theme.palette.secondary.dark : 'rgba(0, 0, 0, 0.04)',
+                    backgroundColor: searchTerm
+                      ? theme.palette.secondary.dark
+                      : 'rgba(0, 0, 0, 0.04)',
                     color: 'rgba(0, 0, 0, 0.8)',
                   },
                 }}
               >
-                <SearchIcon sx={{ 
-                  fontSize: '1.25rem', 
-                  color: searchTerm ? 'white' : 'rgba(0, 0, 0, 0.6)' 
-                }} />
+                <SearchIcon
+                  sx={{
+                    fontSize: '1.25rem',
+                    color: searchTerm ? 'white' : 'rgba(0, 0, 0, 0.6)',
+                  }}
+                />
               </IconButton>
               {/* Active search indicator */}
               {searchTerm && (

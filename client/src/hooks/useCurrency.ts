@@ -107,23 +107,43 @@ export const useCurrency = () => {
   }, [])
 
   const formatPrice = (amount: number) => {
-    const formatter = new Intl.NumberFormat(navigator.language, {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-      currencyDisplay: 'symbol',
-    })
+    // For amounts less than 1000, show full number
+    if (Math.abs(amount) < 1000) {
+      const formatter = new Intl.NumberFormat(navigator.language, {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+        currencyDisplay: 'symbol',
+      })
 
-    // Get the formatted number without the currency symbol
-    const parts = formatter.formatToParts(amount)
-    const numericPart = parts
-      .filter((part) => part.type !== 'currency')
-      .map((part) => part.value)
-      .join('')
+      // Get the formatted number without the currency symbol
+      const parts = formatter.formatToParts(amount)
+      const numericPart = parts
+        .filter((part) => part.type !== 'currency')
+        .map((part) => part.value)
+        .join('')
 
-    // Always put the currency symbol first
-    return `${CURRENCY_CONFIG[currency].symbol}${numericPart}`
+      // Always put the currency symbol first
+      return `${CURRENCY_CONFIG[currency].symbol}${numericPart}`
+    }
+
+    // For amounts 1000 and above, use compact notation
+    const formatCompactNumber = (num: number) => {
+      if (Math.abs(num) >= 1000000000) {
+        return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B'
+      }
+      if (Math.abs(num) >= 1000000) {
+        return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
+      }
+      if (Math.abs(num) >= 1000) {
+        return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
+      }
+      return num.toString()
+    }
+
+    const compactNumber = formatCompactNumber(amount)
+    return `${CURRENCY_CONFIG[currency].symbol}${compactNumber}`
   }
 
   return { currency, formatPrice }

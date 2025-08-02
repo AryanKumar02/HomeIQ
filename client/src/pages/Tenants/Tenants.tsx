@@ -18,7 +18,11 @@ const Tenants: React.FC = () => {
   }
 
   // Get all tenants for client-side filtering
-  const { tenants: allTenants = [], isLoading, error } = useTenantsTable({
+  const {
+    tenants: allTenants = [],
+    isLoading,
+    error,
+  } = useTenantsTable({
     page: 1,
     limit: 1000, // Get all tenants for client-side filtering
     search: '',
@@ -30,15 +34,11 @@ const Tenants: React.FC = () => {
     property: null,
     leaseExpiry: null,
   } // No additional filters for now
-  const { data: searchResults = [] } = useTenantSearch(
-    allTenants,
-    searchTerm,
-    filters
-  )
+  const { data: searchResults = [] } = useTenantSearch(allTenants, searchTerm, filters)
 
   // Use all tenants when no search term and no filters, otherwise use search results
-  const hasActiveFilters = Object.values(filters).some(value => value !== null)
-  const filteredTenants = (searchTerm.trim() || hasActiveFilters) ? searchResults : allTenants
+  const hasActiveFilters = Object.values(filters).some((value) => value !== null)
+  const filteredTenants = searchTerm.trim() || hasActiveFilters ? searchResults : allTenants
 
   const handleSearchTenants = (term: string) => {
     console.log('Search tenants:', term)
@@ -106,9 +106,7 @@ const Tenants: React.FC = () => {
           {/* Error State */}
           {error && (
             <Alert severity="error" sx={{ mb: 3 }}>
-              {error instanceof Error
-                ? error.message
-                : 'Failed to load tenants. Please try again.'}
+              {error instanceof Error ? error.message : 'Failed to load tenants. Please try again.'}
             </Alert>
           )}
 

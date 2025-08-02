@@ -26,7 +26,7 @@ const PropertyDetails: React.FC = () => {
   // Use React Query hooks
   const { data: allProperties = [], isLoading, error } = useProperties()
   const deletePropertyMutation = useDeleteProperty()
-  
+
   // Enhanced search with React Query
   const { data: searchResults = [], isLoading: isSearching } = usePropertySearch(
     allProperties,
@@ -59,7 +59,7 @@ const PropertyDetails: React.FC = () => {
         // Calculate remaining properties after deletion (excluding the deleted one)
         const remainingCount = filteredProperties.length - 1
         const newTotalPages = Math.ceil(remainingCount / propertiesPerPage)
-        
+
         // If current page becomes empty and there are other pages, go to the last page
         if (currentPage > newTotalPages && newTotalPages > 0) {
           setCurrentPage(newTotalPages)
@@ -68,7 +68,7 @@ const PropertyDetails: React.FC = () => {
         else if (remainingCount === 0) {
           setCurrentPage(1)
         }
-        
+
         console.log('Property deleted successfully')
       },
       onError: (error) => {
@@ -80,10 +80,12 @@ const PropertyDetails: React.FC = () => {
   // Use all properties when no search term and no filters, otherwise use search results
   const hasActiveFilters = filters.type !== null || filters.status !== null
   const hasActiveSearchOrFilters = searchTerm.trim() || hasActiveFilters
-  
+
   // Handle loading and error states properly
-  const filteredProperties = hasActiveSearchOrFilters 
-    ? (isSearching ? [] : searchResults) // Show empty during search loading, results when done
+  const filteredProperties = hasActiveSearchOrFilters
+    ? isSearching
+      ? []
+      : searchResults // Show empty during search loading, results when done
     : allProperties // Show all properties when no search/filters
 
   // Calculate pagination
@@ -151,16 +153,23 @@ const PropertyDetails: React.FC = () => {
       {/* Main layout with sidebar and content */}
       <Box sx={{ display: 'flex', flexGrow: 1, pt: { xs: '120px', md: '120px' } }}>
         <Sidebar />
-        <Box component="main" id="main-content" tabIndex={-1} sx={{ 
-          flexGrow: 1, 
-          p: { xs: 1, sm: 1.5, md: 3 }, 
-          px: { xs: 1, sm: 1.5, md: 4 }, // More horizontal padding on desktop
-          mt: 2 
-        }}>
+        <Box
+          component="main"
+          id="main-content"
+          tabIndex={-1}
+          sx={{
+            flexGrow: 1,
+            p: { xs: 1, sm: 1.5, md: 3 },
+            px: { xs: 1, sm: 1.5, md: 4 }, // More horizontal padding on desktop
+            mt: 2,
+          }}
+        >
           {/* Properties content */}
 
           {/* Loading State */}
-          {(isLoading || (hasActiveSearchOrFilters && isSearching)) && <PropertyCardSkeletonGrid count={propertiesPerPage} />}
+          {(isLoading || (hasActiveSearchOrFilters && isSearching)) && (
+            <PropertyCardSkeletonGrid count={propertiesPerPage} />
+          )}
 
           {/* Error State */}
           {error && (
@@ -215,10 +224,10 @@ const PropertyDetails: React.FC = () => {
                     tabIndex={-1}
                     sx={{
                       display: 'grid',
-                      gridTemplateColumns: { 
-                        xs: '1fr', 
-                        sm: 'repeat(3, 1fr)', 
-                        md: 'repeat(3, 1fr)' 
+                      gridTemplateColumns: {
+                        xs: '1fr',
+                        sm: 'repeat(3, 1fr)',
+                        md: 'repeat(3, 1fr)',
                       },
                       gap: { xs: 1.5, sm: 2, md: 2.5 },
                       mb: 4,

@@ -26,6 +26,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard/Dashboard'))
 const EditProperty = lazy(() => import('./pages/Properties/CreateProperty.tsx'))
 const Tenants = lazy(() => import('./pages/Tenants/Tenants.tsx'))
 const CreateTenant = lazy(() => import('./pages/Tenants/CreateTenant.tsx'))
+const AnalyticsPage = lazy(() => import('./pages/Analytics/Analytics.tsx'))
 const ProtectedRoute = lazy(() => import('./components/common/ProtectedRoute.tsx'))
 
 // Lazy load dev tools only in development
@@ -52,7 +53,6 @@ const PageLoadingFallback = () => (
 )
 
 // Temporary placeholder components - replace with actual pages
-const AnalyticsPage = () => <div>Analytics Page</div>
 const MaintenancePage = () => <div>Maintenance Page</div>
 const SettingsPage = () => <div>Settings Page</div>
 
