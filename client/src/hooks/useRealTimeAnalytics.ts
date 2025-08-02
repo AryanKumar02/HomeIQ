@@ -75,7 +75,7 @@ export const useRealTimeAnalytics = (options: UseRealTimeAnalyticsOptions = {}) 
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [connectionError, setConnectionError] = useState<string | null>(null)
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const reconnectTimeoutRef = useRef<number | null>(null)
 
   const connect = () => {
     if (!user || !token || socketRef.current?.connected) {
