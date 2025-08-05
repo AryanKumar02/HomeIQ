@@ -118,7 +118,7 @@ export const useRealTimeAnalytics = (options: UseRealTimeAnalyticsOptions = {}) 
         }
 
         // Client disconnection or network issues, attempt reconnect
-        reconnectTimeoutRef.current = setTimeout(() => {
+        reconnectTimeoutRef.current = window.setTimeout(() => {
           if (!socketRef.current?.connected) {
             connect()
           }
@@ -241,7 +241,7 @@ export const useRealTimeAnalytics = (options: UseRealTimeAnalyticsOptions = {}) 
 
     // Clear reconnect timeout
     if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current)
+      window.clearTimeout(reconnectTimeoutRef.current)
       reconnectTimeoutRef.current = null
     }
 

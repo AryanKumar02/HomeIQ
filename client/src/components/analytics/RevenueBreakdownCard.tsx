@@ -87,7 +87,12 @@ const RevenueBreakdownCard: React.FC = () => {
 
   // View state management
   const [currentView, setCurrentView] = useState<
-    'breakdown' | 'mortgage-pie' | 'taxes-bar' | 'insurance-donut' | 'maintenance-bar'
+    | 'breakdown'
+    | 'mortgage-pie'
+    | 'taxes-bar'
+    | 'insurance-donut'
+    | 'maintenance-bar'
+    | 'utilities-area'
   >('breakdown')
 
   // React Query for properties data
@@ -174,10 +179,18 @@ const RevenueBreakdownCard: React.FC = () => {
       .slice(0, 6)
   }, [properties, propertyColorMap])
 
-  // Debug logging
-  console.log('RevenueBreakdownCard - isConnected:', isConnected)
-  console.log('RevenueBreakdownCard - analytics:', analytics)
-  console.log('RevenueBreakdownCard - expenses breakdown:', analytics?.expenses?.breakdown)
+  const propertyUtilities = React.useMemo(() => {
+    return properties
+      .map((property: Property) => ({
+        id: property._id || '',
+        name: property.address?.street || `Property ${property._id?.slice(-4) || ''}`,
+        utilities: Number(property.financials?.utilities) || 0,
+        color: String(propertyColorMap.get(property._id || '') ?? '#f97316'),
+      }))
+      .filter((p) => p.utilities > 0)
+      .sort((a, b) => b.utilities - a.utilities)
+      .slice(0, 6)
+  }, [properties, propertyColorMap])
 
   const totalRevenue = Number(analytics?.monthlyRevenue ?? 0)
   const totalExpenses = Number(analytics?.monthlyExpenses ?? 0)
@@ -240,7 +253,8 @@ const RevenueBreakdownCard: React.FC = () => {
       amount: expenses.utilities,
       icon: <FlashOnOutlined className="expense-icon" style={{ color: '#f97316' }} />,
       color: '#f97316',
-      clickable: false,
+      clickable: true,
+      onClick: () => setCurrentView('utilities-area'),
     },
   ]
 
@@ -864,6 +878,182 @@ const RevenueBreakdownCard: React.FC = () => {
     )
   }
 
+  // Bar chart component for utilities breakdown with trend indicators
+  const UtilitiesBarChart = () => {
+    if (propertyUtilities.length === 0) {
+      return (
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            {isLoadingProperties ? 'Loading utilities data...' : 'No utilities data available'}
+          </Typography>
+        </Box>
+      )
+    }
+
+    const maxUtilities = Math.max(...propertyUtilities.map((p) => p.utilities))
+    const totalUtilities = propertyUtilities.reduce((sum, p) => sum + p.utilities, 0)
+    const avgUtilities = totalUtilities / propertyUtilities.length
+
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 0.8 }}>
+        {/* Ultra-thin summary bar */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            p: 0.4,
+            backgroundColor: 'rgba(249, 115, 22, 0.05)',
+            borderRadius: 1,
+            minHeight: '20px',
+          }}
+        >
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.6rem' }}>
+            Total:{' '}
+            <span style={{ color: '#f97316', fontWeight: 700 }}>{formatPrice(totalUtilities)}</span>
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.6rem' }}>
+            Avg:{' '}
+            <span style={{ color: '#f97316', fontWeight: 700 }}>{formatPrice(avgUtilities)}</span>
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.6rem' }}>
+            Count:{' '}
+            <span style={{ color: '#f97316', fontWeight: 700 }}>{propertyUtilities.length}</span>
+          </Typography>
+        </Box>
+
+        {propertyUtilities.map((property) => {
+          const percentage = (property.utilities / totalUtilities) * 100
+          const barWidth = (property.utilities / maxUtilities) * 100
+          const isAboveAverage = property.utilities > avgUtilities
+
+          return (
+            <Box key={property.id} sx={{ display: 'flex', flexDirection: 'column', gap: 0.2 }}>
+              {/* Compact property row */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                  <Box
+                    sx={{
+                      width: 9,
+                      height: 9,
+                      borderRadius: '50%',
+                      backgroundColor: property.color,
+                      mr: 0.5,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontSize: '0.68rem',
+                      color: 'text.primary',
+                      fontWeight: 500,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      flex: 1,
+                      mr: 0.5,
+                    }}
+                  >
+                    {property.name}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontSize: '0.61rem',
+                      fontWeight: 600,
+                      color: isAboveAverage ? '#ef4444' : '#22c55e',
+                    }}
+                  >
+                    {formatPrice(property.utilities)}
+                  </Typography>
+                  <Box sx={{ width: '1px', height: '10px', backgroundColor: 'rgba(0,0,0,0.2)' }} />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontSize: '0.56rem',
+                      color: 'text.secondary',
+                      fontWeight: 600,
+                      minWidth: '30px',
+                    }}
+                  >
+                    {percentage.toFixed(1)}%
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Rounded modern bar */}
+              <Box
+                sx={{
+                  height: 12,
+                  backgroundColor: `${property.color}08`,
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  position: 'relative',
+                  boxShadow: `inset 0 1px 2px rgba(0,0,0,0.05)`,
+                  border: `1px solid ${property.color}20`,
+                }}
+              >
+                <Box
+                  sx={{
+                    height: '100%',
+                    width: `${barWidth}%`,
+                    background: `linear-gradient(135deg, ${property.color} 0%, ${property.color}dd 100%)`,
+                    borderRadius: 2,
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    position: 'relative',
+                    boxShadow: `0 1px 3px ${property.color}40`,
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: '40%',
+                      background:
+                        'linear-gradient(180deg, rgba(255,255,255,0.3) 0%, transparent 100%)',
+                      borderRadius: '2px 2px 0 0',
+                    },
+                  }}
+                />
+                {/* Modern average indicator */}
+                {avgUtilities > 0 && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: `${(avgUtilities / maxUtilities) * 100}%`,
+                      top: -2,
+                      bottom: -2,
+                      width: '2px',
+                      backgroundColor: '#64748b',
+                      borderRadius: 1,
+                      zIndex: 2,
+                      boxShadow: '0 0 4px rgba(100,116,139,0.5)',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: -3,
+                        left: -2,
+                        width: 6,
+                        height: 6,
+                        backgroundColor: '#64748b',
+                        borderRadius: '50%',
+                        border: '2px solid white',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                      },
+                    }}
+                  />
+                )}
+              </Box>
+            </Box>
+          )
+        })}
+      </Box>
+    )
+  }
+
   return (
     <StyledCard>
       <CardContent sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -885,12 +1075,15 @@ const RevenueBreakdownCard: React.FC = () => {
                   ? 'Property Tax Breakdown'
                   : currentView === 'insurance-donut'
                     ? 'Property Insurance Breakdown'
-                    : 'Property Maintenance Breakdown'}
+                    : currentView === 'maintenance-bar'
+                      ? 'Property Maintenance Breakdown'
+                      : 'Utilities Breakdown by Property'}
           </Typography>
           {(currentView === 'mortgage-pie' ||
             currentView === 'taxes-bar' ||
             currentView === 'insurance-donut' ||
-            currentView === 'maintenance-bar') && (
+            currentView === 'maintenance-bar' ||
+            currentView === 'utilities-area') && (
             <IconButton
               size="small"
               onClick={() => setCurrentView('breakdown')}
@@ -1135,10 +1328,15 @@ const RevenueBreakdownCard: React.FC = () => {
           <Box sx={{ flex: 1 }}>
             <InsuranceDonutChart />
           </Box>
-        ) : (
+        ) : currentView === 'maintenance-bar' ? (
           /* Maintenance Bar Chart View */
           <Box sx={{ flex: 1 }}>
             <MaintenanceBarChart />
+          </Box>
+        ) : (
+          /* Utilities Bar Chart View */
+          <Box sx={{ flex: 1 }}>
+            <UtilitiesBarChart />
           </Box>
         )}
 

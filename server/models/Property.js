@@ -423,6 +423,88 @@ propertySchema.pre('save', function (next) {
   next();
 });
 
+// Clear occupancy data when property becomes unoccupied (fresh slate)
+propertySchema.pre('save', function (next) {
+  // Handle property-level occupancy (single-unit properties)
+  if (this.isModified('occupancy.isOccupied') && !this.occupancy.isOccupied) {
+    // Property was occupied, now becoming available - clear occupancy data
+    this.occupancy.tenant = null;
+    this.occupancy.leaseStart = null;
+    this.occupancy.leaseEnd = null;
+    this.occupancy.leaseType = null;
+    this.occupancy.rentDueDate = 1; // Reset to default
+
+    // Also clear property-level monthly rent to prevent ghost revenue
+    if (this.financials && this.financials.monthlyRent) {
+      this.financials.monthlyRent = null;
+    }
+  }
+
+  // Handle unit-level occupancy (multi-unit properties)
+  if (this.units && this.units.length > 0) {
+    this.units.forEach(unit => {
+      // Check if this unit's occupancy status changed to unoccupied
+      if (
+        !unit.isNew &&
+        unit.isModified &&
+        unit.isModified('occupancy.isOccupied') &&
+        !unit.occupancy.isOccupied
+      ) {
+        // Unit was occupied, now becoming available - clear occupancy data
+        unit.occupancy.tenant = null;
+        unit.occupancy.leaseStart = null;
+        unit.occupancy.leaseEnd = null;
+        unit.occupancy.leaseType = null;
+        unit.occupancy.rentDueDate = 1; // Reset to default
+
+        // Also clear unit-level monthly rent to prevent ghost revenue
+        if (unit.monthlyRent) {
+          unit.monthlyRent = null;
+        }
+      }
+    });
+  }
+
+  next();
+});
+
+// Method to manually clean occupancy data for unoccupied properties (utility method)
+propertySchema.methods.cleanUnoccupiedData = function () {
+  let cleaned = false;
+
+  // Clean property-level occupancy if unoccupied
+  if (!this.occupancy.isOccupied) {
+    this.occupancy.tenant = null;
+    this.occupancy.leaseStart = null;
+    this.occupancy.leaseEnd = null;
+    this.occupancy.leaseType = null;
+    this.occupancy.rentDueDate = 1;
+    if (this.financials && this.financials.monthlyRent) {
+      this.financials.monthlyRent = null;
+      cleaned = true;
+    }
+  }
+
+  // Clean unit-level occupancy if unoccupied
+  if (this.units && this.units.length > 0) {
+    this.units.forEach(unit => {
+      if (!unit.occupancy.isOccupied) {
+        unit.occupancy.tenant = null;
+        unit.occupancy.leaseStart = null;
+        unit.occupancy.leaseEnd = null;
+        unit.occupancy.leaseType = null;
+        unit.occupancy.rentDueDate = 1;
+        if (unit.monthlyRent) {
+          unit.monthlyRent = null;
+          cleaned = true;
+        }
+      }
+    });
+  }
+
+  return cleaned;
+};
+
 // Virtual for full address
 propertySchema.virtual('fullAddress').get(function () {
   return `${this.address.street}, ${this.address.city}, ${this.address.state} ${this.address.zipCode}`;

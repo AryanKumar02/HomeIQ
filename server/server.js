@@ -28,12 +28,14 @@ import { connectDB } from './utils/db.js';
 import { startScheduledTasks, stopScheduledTasks } from './utils/scheduledTasks.js';
 import { emitAnalyticsToSocket } from './services/realTimeAnalytics.js';
 import { ensureCurrentMonthSnapshot } from './services/analyticsService.js';
+import { addModelValidationHooks } from './middleware/tenantConsistencyMiddleware.js';
 import redisClient from './config/redis.js';
 
 // Load environment variables
 dotenv.config();
 
 process.on('uncaughtException', err => {
+  logger.error('UNCAUGHT EXCEPTION! Shutting down...', err);
   process.exit(1);
 });
 
@@ -247,6 +249,9 @@ const startServer = async () => {
   try {
     await connectDB(MONGO_URI);
     await redisClient.connect();
+
+    // Add model validation hooks for data consistency
+    addModelValidationHooks();
 
     // Start scheduled tasks (only in production/non-test environments)
     if (process.env.NODE_ENV !== 'test') {

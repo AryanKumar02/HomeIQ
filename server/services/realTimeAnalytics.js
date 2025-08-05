@@ -1,5 +1,3 @@
-import Property from '../models/Property.js';
-import Tenant from '../models/Tenant.js';
 import logger from '../utils/logger.js';
 
 import { calculateAnalyticsFromProperties } from './analyticsService.js';

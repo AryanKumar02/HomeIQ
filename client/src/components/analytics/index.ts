@@ -16,3 +16,5 @@ export { default as MonthlyRevenueMetricCard } from './MonthlyRevenueMetricCard'
 // Large analytics components
 export { default as RevenueBreakdownCard } from './RevenueBreakdownCard'
 export { default as CashFlowTrendsCard } from './CashFlowTrendsCard'
+export { default as LeaseExpirationsCard } from './LeaseExpirationsCard'
+export { default as TopPropertiesCard } from './TopPropertiesCard'

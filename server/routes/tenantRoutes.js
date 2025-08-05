@@ -21,9 +21,14 @@ import {
   bulkUpdateTenants,
   assignTenantToProperty,
   unassignTenantFromProperty,
+  forceUnassignTenant,
   reevaluateQualifications,
 } from '../controllers/tenantController.js';
 import { protect } from '../middleware/authMiddleware.js';
+import {
+  validateTenantConsistency,
+  validatePostOperationConsistency,
+} from '../middleware/tenantConsistencyMiddleware.js';
 import {
   validateCreateTenant,
   validateUpdateTenant,
@@ -43,6 +48,10 @@ const router = express.Router();
 // Protect all tenant routes
 router.use(protect);
 
+// Add consistency validation middleware
+router.use(validateTenantConsistency);
+router.use(validatePostOperationConsistency);
+
 // Basic CRUD routes
 router.route('/').get(validateTenantSearch, getTenants).post(validateCreateTenant, createTenant);
 
@@ -58,6 +67,7 @@ router.route('/reevaluate-qualifications').post(reevaluateQualifications);
 // Property assignment routes
 router.route('/assign-to-property').post(assignTenantToProperty);
 router.route('/unassign-from-property').post(unassignTenantFromProperty);
+router.route('/:id/force-unassign').post(forceUnassignTenant);
 
 router
   .route('/:id')

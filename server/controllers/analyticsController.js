@@ -1,7 +1,6 @@
 import { validationResult } from 'express-validator';
 
 import MonthlyAnalytics from '../models/MonthlyAnalytics.js';
-import Property from '../models/Property.js';
 import {
   ensureCurrentMonthSnapshot,
   calculateAnalyticsFromProperties,

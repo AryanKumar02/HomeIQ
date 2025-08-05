@@ -45,7 +45,6 @@ afterAll(async () => {
 describe('Analytics API Endpoints', () => {
   let authToken;
   let userId;
-  let testProperty;
 
   beforeAll(async () => {
     // Create and verify test user
@@ -67,7 +66,7 @@ describe('Analytics API Endpoints', () => {
     authToken = loginResponse.body.token;
 
     // Create test property with financial data
-    testProperty = await Property.create({
+    await Property.create({
       owner: userId,
       title: 'Test Property',
       description: 'Analytics test property',

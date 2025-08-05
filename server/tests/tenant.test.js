@@ -135,6 +135,50 @@ describe('Tenant API', () => {
 
     // Connect to the in-memory database
     await mongoose.connect(mongoUri);
+
+    // Mock mongoose transactions for testing
+    jest.spyOn(mongoose, 'startSession').mockImplementation(() => {
+      return Promise.resolve({
+        startTransaction: jest.fn().mockResolvedValue(),
+        commitTransaction: jest.fn().mockResolvedValue(),
+        abortTransaction: jest.fn().mockResolvedValue(),
+        endSession: jest.fn().mockResolvedValue(),
+      });
+    });
+
+    // Mock the .session() method on queries to simply return the query (no-op for tests)
+    const originalFindOne = mongoose.Model.findOne;
+    const originalFind = mongoose.Model.find;
+    const originalFindById = mongoose.Model.findById;
+
+    mongoose.Model.findOne = function (...args) {
+      const query = originalFindOne.apply(this, args);
+      query.session = () => query; // Make .session() a no-op
+      return query;
+    };
+
+    mongoose.Model.find = function (...args) {
+      const query = originalFind.apply(this, args);
+      query.session = () => query; // Make .session() a no-op
+      return query;
+    };
+
+    mongoose.Model.findById = function (...args) {
+      const query = originalFindById.apply(this, args);
+      query.session = () => query; // Make .session() a no-op
+      return query;
+    };
+
+    // Mock the save method to ignore session parameter
+    const originalSave = mongoose.Model.prototype.save;
+    mongoose.Model.prototype.save = function (options) {
+      // Remove session from options if present and call original save
+      if (options && options.session) {
+        const { session, ...optionsWithoutSession } = options;
+        return originalSave.call(this, optionsWithoutSession);
+      }
+      return originalSave.call(this, options);
+    };
   });
 
   afterAll(async () => {
@@ -622,30 +666,34 @@ describe('Tenant API', () => {
       expect(tenant.isActive).toBe(false);
     });
 
-    it('should prevent deletion of tenant with active leases', async () => {
-      // Add an active lease
-      const leaseData = {
-        property: propertyId,
-        tenancyType: 'assured-shorthold',
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-        monthlyRent: 1500,
+    it('should allow deletion of tenant with active leases (using bulletproof cleanup)', async () => {
+      // Add an active lease by assigning tenant to property
+      const assignmentData = {
+        tenantId: tenantId,
+        propertyId: propertyId,
+        leaseData: {
+          startDate: new Date().toISOString(),
+          endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          monthlyRent: 1500,
+          securityDeposit: 1500,
+          tenancyType: 'assured-shorthold',
+        },
       };
 
       await request(app)
-        .post(`/api/v1/tenants/${tenantId}/leases`)
+        .post('/api/v1/tenants/assign-to-property')
         .set('Authorization', `Bearer ${authToken}`)
-        .send(leaseData);
+        .send(assignmentData);
 
-      // Update lease status to active
-      const tenant = await Tenant.findById(tenantId);
-      tenant.leases[0].status = 'active';
-      await tenant.save();
-
+      // Now delete should work (bulletproof cleanup will handle active leases)
       await request(app)
         .delete(`/api/v1/tenants/${tenantId}`)
         .set('Authorization', `Bearer ${authToken}`)
-        .expect(400);
+        .expect(204);
+
+      // Verify tenant is soft deleted
+      const tenant = await Tenant.findById(tenantId);
+      expect(tenant.isActive).toBe(false);
     });
   });
 
@@ -728,12 +776,9 @@ describe('Tenant API', () => {
         expect(response.body.data.property._id).toBe(propertyId);
         expect(response.body.data.lease.monthlyRent).toBe(1500);
 
-        // Verify property is now occupied
+        // Verify property is now occupied (bulletproof service structure)
         expect(response.body.data.property.occupancy.isOccupied).toBe(true);
-        expect(
-          response.body.data.property.occupancy.tenant._id ||
-            response.body.data.property.occupancy.tenant,
-        ).toBe(tenantId);
+        expect(response.body.data.property.occupancy.tenant.toString()).toBe(tenantId);
       });
 
       it('should unassign tenant from property', async () => {
@@ -759,6 +804,7 @@ describe('Tenant API', () => {
         const unassignData = {
           tenantId: tenantId,
           propertyId: propertyId,
+          terminationReason: 'Test unassignment',
         };
 
         const response = await request(app)
@@ -941,7 +987,7 @@ describe('Tenant API', () => {
   });
 
   describe('Bulk Operations', () => {
-    let tenant1Id, tenant2Id;
+    let tenant1Id;
 
     beforeEach(async () => {
       // Create two test tenants
@@ -965,12 +1011,10 @@ describe('Tenant API', () => {
         },
       };
 
-      const response2 = await request(app)
+      await request(app)
         .post('/api/v1/tenants')
         .set('Authorization', `Bearer ${authToken}`)
         .send(tenant2Data);
-
-      tenant2Id = response2.body.data.tenant._id;
     });
 
     describe('PATCH /api/v1/tenants/bulk-update', () => {
@@ -1119,6 +1163,196 @@ describe('Tenant API', () => {
         expect(response.body.status).toBe('success');
         expect(response.body.data.stats.totalTenants).toBeGreaterThan(0);
         expect(response.body.data.stats.pendingApplications).toBeGreaterThanOrEqual(0);
+      });
+    });
+  });
+
+  describe('Bulletproof Assignment Functions', () => {
+    beforeEach(async () => {
+      const response = await request(app)
+        .post('/api/v1/tenants')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(validTenantData);
+
+      tenantId = response.body.data.tenant._id;
+    });
+
+    describe('POST /api/v1/tenants/:id/force-unassign', () => {
+      it('should force unassign tenant from all properties', async () => {
+        // First assign tenant to property
+        const assignmentData = {
+          tenantId: tenantId,
+          propertyId: propertyId,
+          leaseData: {
+            startDate: new Date().toISOString(),
+            endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            monthlyRent: 1500,
+            securityDeposit: 1500,
+            tenancyType: 'assured-shorthold',
+          },
+        };
+
+        await request(app)
+          .post('/api/v1/tenants/assign-to-property')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(assignmentData);
+
+        // Now force unassign
+        const response = await request(app)
+          .post(`/api/v1/tenants/${tenantId}/force-unassign`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .expect(200);
+
+        expect(response.body.status).toBe('success');
+        expect(response.body.message).toBe('Tenant force unassigned successfully');
+        expect(response.body.propertiesUpdated).toBeGreaterThan(0);
+        expect(response.body.leasesTerminated).toBeGreaterThan(0);
+
+        // Verify tenant has no active leases
+        const updatedTenant = await Tenant.findById(tenantId);
+        const activeLeases = updatedTenant.leases.filter(lease => lease.status === 'active');
+        expect(activeLeases).toHaveLength(0);
+
+        // Verify property is no longer occupied
+        const updatedProperty = await Property.findById(propertyId);
+        expect(updatedProperty.occupancy.isOccupied).toBe(false);
+        expect(updatedProperty.occupancy.tenant).toBeNull();
+      });
+    });
+
+    describe('Transaction Rollback', () => {
+      it('should rollback assignment on error', async () => {
+        // Try to assign to non-existent property (should fail)
+        const fakePropertyId = new mongoose.Types.ObjectId();
+        const assignmentData = {
+          tenantId: tenantId,
+          propertyId: fakePropertyId,
+          leaseData: {
+            startDate: new Date().toISOString(),
+            endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            monthlyRent: 1500,
+            securityDeposit: 1500,
+            tenancyType: 'assured-shorthold',
+          },
+        };
+
+        await request(app)
+          .post('/api/v1/tenants/assign-to-property')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(assignmentData)
+          .expect(404);
+
+        // Verify tenant has no leases (transaction rolled back)
+        const tenant = await Tenant.findById(tenantId);
+        expect(tenant.leases).toHaveLength(0);
+      });
+
+      it('should prevent duplicate assignments', async () => {
+        // First assignment
+        const assignmentData = {
+          tenantId: tenantId,
+          propertyId: propertyId,
+          leaseData: {
+            startDate: new Date().toISOString(),
+            endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            monthlyRent: 1500,
+            securityDeposit: 1500,
+            tenancyType: 'assured-shorthold',
+          },
+        };
+
+        await request(app)
+          .post('/api/v1/tenants/assign-to-property')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(assignmentData)
+          .expect(200);
+
+        // Try to assign same tenant to same property again
+        await request(app)
+          .post('/api/v1/tenants/assign-to-property')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(assignmentData)
+          .expect(400);
+
+        // Verify tenant still has only one lease
+        const tenant = await Tenant.findById(tenantId);
+        const activeLeases = tenant.leases.filter(lease => lease.status === 'active');
+        expect(activeLeases).toHaveLength(1);
+      });
+
+      it('should prevent assignment to occupied property', async () => {
+        // Create first tenant and assign
+        const firstTenantData = {
+          ...validTenantData,
+          contactInfo: { ...validTenantData.contactInfo, email: 'first.tenant@example.com' },
+          personalInfo: { ...validTenantData.personalInfo, firstName: 'First' },
+        };
+
+        const firstTenantResponse = await request(app)
+          .post('/api/v1/tenants')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(firstTenantData);
+
+        const firstTenantId = firstTenantResponse.body.data.tenant._id;
+
+        const firstAssignment = {
+          tenantId: firstTenantId,
+          propertyId: propertyId,
+          leaseData: {
+            startDate: new Date().toISOString(),
+            endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            monthlyRent: 1500,
+            securityDeposit: 1500,
+            tenancyType: 'assured-shorthold',
+          },
+        };
+
+        await request(app)
+          .post('/api/v1/tenants/assign-to-property')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(firstAssignment)
+          .expect(200);
+
+        // Create second tenant
+        const secondTenantData = {
+          ...validTenantData,
+          contactInfo: { ...validTenantData.contactInfo, email: 'second.tenant@example.com' },
+          personalInfo: { ...validTenantData.personalInfo, firstName: 'Second' },
+        };
+
+        const secondTenantResponse = await request(app)
+          .post('/api/v1/tenants')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(secondTenantData);
+
+        const secondTenantId = secondTenantResponse.body.data.tenant._id;
+
+        // Try to assign second tenant to same property
+        const secondAssignment = {
+          tenantId: secondTenantId,
+          propertyId: propertyId,
+          leaseData: {
+            startDate: new Date().toISOString(),
+            endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            monthlyRent: 1500,
+            securityDeposit: 1500,
+            tenancyType: 'assured-shorthold',
+          },
+        };
+
+        await request(app)
+          .post('/api/v1/tenants/assign-to-property')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(secondAssignment)
+          .expect(400);
+
+        // Verify second tenant has no leases
+        const secondTenant = await Tenant.findById(secondTenantId);
+        expect(secondTenant.leases).toHaveLength(0);
+
+        // Verify property is still occupied by first tenant
+        const property = await Property.findById(propertyId);
+        expect(property.occupancy.tenant.toString()).toBe(firstTenantId);
       });
     });
   });

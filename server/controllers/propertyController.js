@@ -903,7 +903,18 @@ export const addUnit = catchAsync(async (req, res, next) => {
   }
 
   // Add the new unit
-  property.units.push(req.body);
+  const newUnitData = {
+    unitNumber: req.body.unitNumber,
+    bedrooms: req.body.bedrooms,
+    bathrooms: req.body.bathrooms,
+    squareFootage: req.body.squareFootage,
+    monthlyRent: req.body.monthlyRent,
+    securityDeposit: req.body.securityDeposit,
+    status: req.body.status,
+    features: req.body.features,
+  };
+
+  property.units.push(newUnitData);
   await property.save();
 
   const newUnit = property.units[property.units.length - 1];

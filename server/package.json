@@ -9,6 +9,7 @@
     "dev": "NODE_ENV=development nodemon server.js",
     "dev:prod": "NODE_ENV=production nodemon server.js",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:ci": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand --forceExit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write ."
