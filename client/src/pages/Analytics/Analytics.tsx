@@ -14,13 +14,6 @@ import {
 } from '../../components/analytics'
 
 const Analytics: React.FC = () => {
-  const handleAddAnalyticsItem = () => {
-    console.log('Add analytics item clicked')
-  }
-
-  const handleSearchAnalytics = (searchTerm: string) => {
-    console.log('Analytics search:', searchTerm)
-  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
