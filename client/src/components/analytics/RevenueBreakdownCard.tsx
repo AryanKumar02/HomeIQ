@@ -9,6 +9,7 @@ import {
   BuildOutlined,
   FlashOnOutlined,
   ArrowBackOutlined,
+  AnalyticsOutlined,
 } from '@mui/icons-material'
 import useRealTimeAnalytics from '../../hooks/useRealTimeAnalytics'
 import { useCurrency } from '../../hooks/useCurrency'
@@ -1059,26 +1060,29 @@ const RevenueBreakdownCard: React.FC = () => {
       <CardContent sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
         {/* Header with back button */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-          <Typography
-            variant="h6"
-            sx={{
-              color: 'text.primary',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-            }}
-          >
-            {currentView === 'breakdown'
-              ? 'Revenue vs Expenses Breakdown'
-              : currentView === 'mortgage-pie'
-                ? 'Mortgage Breakdown by Property'
-                : currentView === 'taxes-bar'
-                  ? 'Property Tax Breakdown'
-                  : currentView === 'insurance-donut'
-                    ? 'Property Insurance Breakdown'
-                    : currentView === 'maintenance-bar'
-                      ? 'Property Maintenance Breakdown'
-                      : 'Utilities Breakdown by Property'}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <AnalyticsOutlined sx={{ fontSize: 16, color: '#3d82f7', mr: 1 }} />
+            <Typography
+              variant="h6"
+              sx={{
+                color: 'text.primary',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+              }}
+            >
+              {currentView === 'breakdown'
+                ? 'Revenue vs Expenses Breakdown'
+                : currentView === 'mortgage-pie'
+                  ? 'Mortgage Breakdown by Property'
+                  : currentView === 'taxes-bar'
+                    ? 'Property Tax Breakdown'
+                    : currentView === 'insurance-donut'
+                      ? 'Property Insurance Breakdown'
+                      : currentView === 'maintenance-bar'
+                        ? 'Property Maintenance Breakdown'
+                        : 'Utilities Breakdown by Property'}
+            </Typography>
+          </Box>
           {(currentView === 'mortgage-pie' ||
             currentView === 'taxes-bar' ||
             currentView === 'insurance-donut' ||

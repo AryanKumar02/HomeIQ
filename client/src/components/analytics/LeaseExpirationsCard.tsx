@@ -194,13 +194,13 @@ const LeaseExpirationsCard: React.FC = () => {
       <CardContent sx={{ p: 2, pb: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <CalendarTodayOutlined sx={{ color: 'text.secondary', fontSize: '1rem', mr: 0.5 }} />
+          <CalendarTodayOutlined sx={{ fontSize: 16, color: 'secondary.main', mr: 1 }} />
           <Typography
             variant="h6"
             sx={{
               color: 'text.primary',
-              fontWeight: 600,
-              fontSize: '0.9rem',
+              fontWeight: 700,
+              fontSize: '0.85rem',
             }}
           >
             Lease Expirations

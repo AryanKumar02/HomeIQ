@@ -1,21 +1,54 @@
 import React from 'react'
 import { HomeOutlined } from '@mui/icons-material'
 import MetricCard from './MetricCard'
-import useRealTimeAnalytics from '../../hooks/useRealTimeAnalytics'
+import { useCurrentAnalyticsData, useAnalyticsComparison } from '../../contexts/AnalyticsProvider'
 
 const TotalPropertiesMetricCard: React.FC = () => {
-  const { analytics, isConnected, connectionError } = useRealTimeAnalytics()
+  // Use shared analytics context instead of individual hooks
+  const { data: currentAnalytics, isLoading, error } = useCurrentAnalyticsData()
+  const { comparison } = useAnalyticsComparison()
 
-  const totalProperties = Number(analytics?.totalProperties ?? 0)
+  const totalProperties = currentAnalytics?.portfolio?.totalProperties ?? 0
+  const changeThisMonth = comparison?.revenue?.change ?? 0
 
   // Debug logging
-  console.log('TotalPropertiesMetricCard - Analytics:', analytics)
-  console.log('TotalPropertiesMetricCard - isConnected:', isConnected)
-  console.log('TotalPropertiesMetricCard - connectionError:', connectionError)
-  console.log('TotalPropertiesMetricCard - totalProperties:', totalProperties)
+  console.log('TotalPropertiesMetricCard - Current Analytics:', currentAnalytics)
+  console.log('TotalPropertiesMetricCard - Loading:', isLoading)
+  console.log('TotalPropertiesMetricCard - Error:', error)
+  console.log('TotalPropertiesMetricCard - Total Properties:', totalProperties)
 
-  // For now, show +0 this month since we're just starting
-  const changeThisMonth = 0
+  // Show loading state or error if needed
+  if (isLoading) {
+    return (
+      <MetricCard
+        title="Total Properties"
+        value="..."
+        icon={<HomeOutlined />}
+        color="blue"
+        trend={{
+          value: 0,
+          label: 'loading...',
+          isPositive: true,
+        }}
+      />
+    )
+  }
+
+  if (error) {
+    return (
+      <MetricCard
+        title="Total Properties"
+        value="--"
+        icon={<HomeOutlined />}
+        color="red"
+        trend={{
+          value: 0,
+          label: 'error',
+          isPositive: false,
+        }}
+      />
+    )
+  }
 
   return (
     <MetricCard

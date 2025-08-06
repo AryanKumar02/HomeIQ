@@ -209,34 +209,20 @@ const TopPropertiesCard: React.FC = () => {
     <StyledCard>
       <CardContent sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
         {/* Header matching your app's style */}
-        <Box
-          sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}
-        >
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <HomeOutlined sx={{ fontSize: 16, color: '#3d82f7', mr: 1 }} />
           <Typography
-            variant="body2"
+            variant="h6"
             sx={{
-              color: 'text.secondary',
-              fontWeight: 500,
-              fontSize: '0.8rem',
+              color: 'text.primary',
+              fontWeight: 700,
+              fontSize: '0.85rem',
               textTransform: 'none',
               lineHeight: 1.3,
             }}
           >
             Top Properties
           </Typography>
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#3b82f6',
-            }}
-          >
-            <HomeOutlined sx={{ fontSize: 16, color: '#ffffff' }} />
-          </Box>
         </Box>
 
         {/* Main content area */}

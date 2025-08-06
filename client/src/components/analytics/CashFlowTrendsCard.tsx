@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Box, Typography, Card, CardContent } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { TrendingUpOutlined, TrendingDownOutlined } from '@mui/icons-material'
+import { TrendingUpOutlined, TrendingDownOutlined, ShowChartOutlined } from '@mui/icons-material'
 import useRealTimeAnalytics from '../../hooks/useRealTimeAnalytics'
 import { useCurrency } from '../../hooks/useCurrency'
 
@@ -181,16 +181,19 @@ const CashFlowTrendsCard: React.FC = () => {
         <Box
           sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}
         >
-          <Typography
-            variant="h6"
-            sx={{
-              color: 'text.primary',
-              fontWeight: 600,
-              fontSize: '0.9rem',
-            }}
-          >
-            Cash Flow Trends
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <ShowChartOutlined sx={{ fontSize: 16, color: '#3d82f7', mr: 1 }} />
+            <Typography
+              variant="h6"
+              sx={{
+                color: 'text.primary',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+              }}
+            >
+              Cash Flow Trends
+            </Typography>
+          </Box>
           {isPositiveTrend ? (
             <TrendingUpOutlined sx={{ color: 'secondary.main', fontSize: '1.2rem' }} />
           ) : (
