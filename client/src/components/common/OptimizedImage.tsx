@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import { Box, Skeleton, CardMedia } from '@mui/material'
+import { Box, Skeleton } from '@mui/material'
 
 /**
  * Props for the OptimizedImage component
@@ -194,15 +194,14 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
       {/* Actual image */}
       {isInView && (
-        <CardMedia
-          ref={imgRef}
+        <Box
+          // Render a native img to allow typed loading/decoding attributes
           component="img"
-          image={imageUrl}
+          ref={imgRef}
+          src={imageUrl}
           alt={alt}
-          // Hint browser to decode off-thread and lazily load
-          // These props are forwarded to the underlying img element by MUI
-          // Cast to any to pass through without TS complaining on CardMedia typing
-          {...({ decoding: 'async', loading: 'lazy' } as any)}
+          loading="lazy"
+          decoding="async"
           onLoad={handleLoad}
           onError={handleError}
           sx={{
