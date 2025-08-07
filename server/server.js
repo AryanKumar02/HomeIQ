@@ -11,6 +11,7 @@ import cookieParser from 'cookie-parser';
 import jwt from 'jsonwebtoken';
 import swaggerUi from 'swagger-ui-express';
 import mongoSanitize from 'express-mongo-sanitize';
+import mongoose from 'mongoose';
 
 import { generalLimiter } from './middleware/rateLimitMiddleware.js';
 import { csrfProtection } from './middleware/csrfMiddleware.js';
@@ -45,6 +46,9 @@ const app = express();
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
+
+// Hide framework details
+app.disable('x-powered-by');
 
 // Middleware
 const allowedOrigins = [
@@ -156,14 +160,26 @@ const MONGO_URI =
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: '*',
+    // Mirror HTTP CORS behavior for websockets
+    origin: (origin, callback) => {
+      if (!origin) {
+        return callback(null, true);
+      }
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    },
     methods: ['GET', 'POST'],
   },
 });
 
 io.use(async (socket, next) => {
   try {
-    const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+    const token = socket.handshake.auth?.token;
     if (!token) {
       return next(new Error('Authentication error: No token provided'));
     }
@@ -284,7 +300,17 @@ const gracefulShutdown = signal => {
   // Close server
   server.close(() => {
     logger.info('HTTP server closed');
-    process.exit(0);
+    // Close DB and Redis after HTTP server is closed
+    Promise.allSettled([
+      // Close MongoDB connection if open
+      mongoose.connection && mongoose.connection.readyState !== 0
+        ? mongoose.connection.close()
+        : Promise.resolve(),
+      // Close Redis client if connected
+      redisClient && redisClient.isOpen ? redisClient.quit() : Promise.resolve(),
+    ]).finally(() => {
+      process.exit(0);
+    });
   });
 
   // Force close server after timeout

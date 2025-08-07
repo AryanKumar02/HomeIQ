@@ -80,8 +80,7 @@ export const usePropertyApi = () => {
         setError('Failed to load property data')
         return null
       }
-    } catch (err) {
-      console.error('Error loading property:', err)
+    } catch {
       setError('Failed to load property data')
       return null
     } finally {
@@ -93,44 +92,39 @@ export const usePropertyApi = () => {
   const uploadLocalImages = async (propertyId: string, localImages: Property['images']) => {
     if (localImages.length === 0) return
 
-    try {
-      // Create a single FormData with all images and captions
-      const formDataObj = new FormData()
-      const captions: string[] = []
+    // Create a single FormData with all images and captions
+    const formDataObj = new FormData()
+    const captions: string[] = []
 
-      // Process all images
-      await Promise.all(
-        localImages.map(async (image, index) => {
-          // Fetch the blob data
-          const response = await fetch(image.url)
-          const blob = await response.blob()
+    // Process all images
+    await Promise.all(
+      localImages.map(async (image, index) => {
+        // Fetch the blob data
+        const response = await fetch(image.url)
+        const blob = await response.blob()
 
-          // Get the correct file extension from MIME type
-          const extension = getFileExtensionFromMimeType(blob.type)
-          const fileName = `image-${index}${extension}`
+        // Get the correct file extension from MIME type
+        const extension = getFileExtensionFromMimeType(blob.type)
+        const fileName = `image-${index}${extension}`
 
-          // Create a File object from the blob
-          const file = new File([blob], fileName, { type: blob.type })
+        // Create a File object from the blob
+        const file = new File([blob], fileName, { type: blob.type })
 
-          // Append to FormData
-          formDataObj.append('images', file)
+        // Append to FormData
+        formDataObj.append('images', file)
 
-          // Add caption to array (server expects array of captions)
-          captions.push(image.caption || '')
-        })
-      )
-
-      // Append all captions as individual form fields
-      captions.forEach((caption) => {
-        formDataObj.append('captions', caption)
+        // Add caption to array (server expects array of captions)
+        captions.push(image.caption || '')
       })
+    )
 
-      // Upload all images in a single request to S3
-      await addPropertyImages(propertyId, formDataObj)
-    } catch (err) {
-      console.error('Failed to upload images:', err)
-      throw err
-    }
+    // Append all captions as individual form fields
+    captions.forEach((caption) => {
+      formDataObj.append('captions', caption)
+    })
+
+    // Upload all images in a single request to S3
+    await addPropertyImages(propertyId, formDataObj)
   }
 
   // Save property (create or update)
@@ -282,8 +276,7 @@ export const usePropertyApi = () => {
           try {
             await uploadLocalImages(propertyData._id, localImages)
             setSuccess('Property created and images uploaded successfully!')
-          } catch (err) {
-            console.error('Error uploading images after property creation:', err)
+          } catch {
             setError('Property created but failed to upload some images')
           }
         }
@@ -305,7 +298,6 @@ export const usePropertyApi = () => {
         return { success: false }
       }
     } catch (err: unknown) {
-      console.error('Error saving property:', err)
 
       // Handle server validation errors
       if (err && typeof err === 'object' && 'response' in err) {
@@ -369,7 +361,6 @@ export const usePropertyApi = () => {
         setError('Failed to upload image')
       }
     } catch (err: unknown) {
-      console.error('Error uploading image:', err)
       setError(getErrorMessage(err, 'Failed to upload image'))
     }
   }
@@ -418,7 +409,6 @@ export const usePropertyApi = () => {
         setError('Failed to remove image')
       }
     } catch (err: unknown) {
-      console.error('Error removing image:', err)
       setError(getErrorMessage(err, 'Failed to remove image'))
     }
   }
@@ -463,7 +453,6 @@ export const usePropertyApi = () => {
         setError('Failed to set primary image')
       }
     } catch (err: unknown) {
-      console.error('Error setting primary image:', err)
       setError(getErrorMessage(err, 'Failed to set primary image'))
     }
   }

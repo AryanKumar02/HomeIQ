@@ -199,6 +199,10 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
           component="img"
           image={imageUrl}
           alt={alt}
+          // Hint browser to decode off-thread and lazily load
+          // These props are forwarded to the underlying img element by MUI
+          // Cast to any to pass through without TS complaining on CardMedia typing
+          {...({ decoding: 'async', loading: 'lazy' } as any)}
           onLoad={handleLoad}
           onError={handleError}
           sx={{

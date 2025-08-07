@@ -15,14 +15,12 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
     onSuccess: async (data) => {
-      console.log('🔐 Login API success, data:', data)
 
       // Handle login data based on what's provided
       if (data.token && data.user) {
         // Direct login with both token and user data
         const store = useAuthStore.getState()
         store.login(data.user, data.token)
-        console.log('🔐 Store updated with user and token')
       } else if (data.token) {
         // If we have a token but no user data, fetch user data
         try {
@@ -31,15 +29,15 @@ export const useLogin = () => {
 
           // Fetch user data with the token
           const userResponse = await authApi.getCurrentUser()
-          console.log('🔐 Fetched user data:', userResponse)
+
 
           if (userResponse.user) {
             const store = useAuthStore.getState()
             store.login(userResponse.user, data.token)
-            console.log('🔐 Store updated with user and token')
+
           }
         } catch (userError) {
-          console.error('Failed to fetch user data after login:', userError)
+
           // Clear the temporarily stored token
           localStorage.removeItem('authToken')
           const store = useAuthStore.getState()
@@ -51,8 +49,7 @@ export const useLogin = () => {
       // Clear React Query cache for fresh start
       queryClient.clear()
     },
-    onError: (error) => {
-      console.error('Login failed:', error)
+    onError: () => {
       const store = useAuthStore.getState()
       store.clearAuth()
     },
@@ -73,8 +70,7 @@ export const useLogout = () => {
       // Clear all queries
       queryClient.clear()
     },
-    onError: async (error) => {
-      console.error('Logout failed:', error)
+    onError: async () => {
       // Even if logout API fails, clear local data
       const store = useAuthStore.getState()
       await store.logout()
@@ -87,12 +83,6 @@ export const useLogout = () => {
 export const useSignup = () => {
   return useMutation({
     mutationFn: (data: SignupRequest) => authApi.signup(data),
-    onSuccess: (data) => {
-      console.log('Signup successful:', data)
-    },
-    onError: (error) => {
-      console.error('Signup failed:', error)
-    },
   })
 }
 
@@ -101,16 +91,11 @@ export const useVerifyEmail = () => {
   return useMutation({
     mutationFn: (token: string) => authApi.verifyEmail(token),
     onSuccess: (data) => {
-      console.log('Email verification successful:', data)
-
       // If verification returns auth data, update Zustand store
       if (data.token && data.user) {
         const store = useAuthStore.getState()
         store.login(data.user, data.token)
       }
-    },
-    onError: (error) => {
-      console.error('Email verification failed:', error)
     },
   })
 }
@@ -119,11 +104,11 @@ export const useVerifyEmail = () => {
 export const useForgotPassword = () => {
   return useMutation({
     mutationFn: (data: ForgotPasswordRequest) => authApi.forgotPassword(data),
-    onSuccess: (data) => {
-      console.log('Password reset email sent:', data)
+    onSuccess: () => {
+      // Password reset email sent
     },
-    onError: (error) => {
-      console.error('Forgot password failed:', error)
+    onError: () => {
+      // Handle forgot password error
     },
   })
 }
@@ -133,11 +118,11 @@ export const useResetPassword = () => {
   return useMutation({
     mutationFn: ({ token, password }: { token: string; password: string }) =>
       authApi.resetPassword(token, { password }),
-    onSuccess: (data) => {
-      console.log('Password reset successful:', data)
+    onSuccess: () => {
+      // Password reset successful
     },
-    onError: (error) => {
-      console.error('Password reset failed:', error)
+    onError: () => {
+      // Handle password reset error
     },
   })
 }
@@ -146,11 +131,11 @@ export const useResetPassword = () => {
 export const useResendVerification = () => {
   return useMutation({
     mutationFn: (data: ResendVerificationRequest) => authApi.resendVerification(data),
-    onSuccess: (data) => {
-      console.log('Verification email resent:', data)
+    onSuccess: () => {
+      // Verification email resent
     },
-    onError: (error) => {
-      console.error('Resend verification failed:', error)
+    onError: () => {
+      // Handle resend verification error
     },
   })
 }
@@ -163,16 +148,11 @@ export const useAuthWithActions = () => {
 
   // Enhanced login function
   const login = async (email: string, password: string, rememberMe = false): Promise<void> => {
-    try {
-      await loginMutation.mutateAsync({
-        email,
-        password,
-        rememberMe,
-      })
-    } catch (error) {
-      console.error('Login error:', error)
-      throw error
-    }
+    await loginMutation.mutateAsync({
+      email,
+      password,
+      rememberMe,
+    })
   }
 
   // Enhanced logout function

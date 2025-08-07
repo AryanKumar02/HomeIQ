@@ -95,17 +95,19 @@ const ReferencingStatusForm: React.FC<ReferencingStatusFormProps> = ({
       // Prepare the update data
       const updateData: Partial<ReferencingData> = {}
 
-      // Only include fields that have values or have changed
+      // Always include outcome to satisfy server validator
+      updateData.outcome = formData.outcome
+
+      // Include other fields only if changed or meaningful
       if (formData.status !== tenant.referencing?.status) updateData.status = formData.status
       if (formData.provider && formData.provider !== tenant.referencing?.provider)
         updateData.provider = formData.provider
       if (formData.reference && formData.reference !== tenant.referencing?.reference)
         updateData.reference = formData.reference
-      if (formData.outcome !== tenant.referencing?.outcome) updateData.outcome = formData.outcome
       if (formData.conditions !== tenant.referencing?.conditions)
         updateData.conditions = formData.conditions
       if (formData.notes !== tenant.referencing?.notes) updateData.notes = formData.notes
-      if (formData.completedDate !== tenant.referencing?.completedDate)
+      if (formData.completedDate && formData.completedDate !== tenant.referencing?.completedDate)
         updateData.completedDate = formData.completedDate
 
       // Call the API to update referencing status

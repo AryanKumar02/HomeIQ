@@ -1080,19 +1080,17 @@ describe('Tenant Validators', () => {
         .expect(200);
     });
 
-    it('should reject missing outcome', async () => {
+    it('should allow partial update without outcome', async () => {
       const referencingData = {
         provider: 'HomeLet',
         reference: 'HL123456',
       };
 
-      const response = await request(app)
+      await request(app)
         .patch(`/api/v1/tenants/${tenantId}/referencing`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(referencingData)
-        .expect(400);
-
-      expect(response.body.message).toContain('outcome is required');
+        .expect(200);
     });
 
     it('should reject invalid outcome', async () => {

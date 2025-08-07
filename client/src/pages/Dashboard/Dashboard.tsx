@@ -6,13 +6,9 @@ import InDevelopment from '../../components/common/InDevelopment'
 
 const Dashboard: React.FC = () => {
   const handleAddDashboardItem = () => {
-    console.log('Add dashboard item clicked')
-    // Add your dashboard item creation logic here
   }
 
-  const handleSearchDashboard = (searchTerm: string) => {
-    console.log('Dashboard search:', searchTerm)
-    // Add your dashboard search logic here
+  const handleSearchDashboard = () => {
   }
 
   return (

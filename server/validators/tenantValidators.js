@@ -384,11 +384,21 @@ export const validateUpdateTenant = [
 
   body('employment.current.status')
     .optional()
-    .isIn(['employed', 'self-employed', 'unemployed', 'student', 'retired', 'other'])
-    .withMessage(
-      'Employment status must be employed, self-employed, unemployed, student, retired, or other',
-    ),
+    .isIn([
+      'employed-full-time',
+      'employed-part-time',
+      'self-employed',
+      'unemployed',
+      'student',
+      'retired',
+      'on-benefits',
+      'contractor',
+      'apprentice',
+      'other',
+    ])
+    .withMessage('Invalid employment status'),
 
+  // Backward-compat: support legacy flat monthly income if provided
   body('employment.current.income.monthly')
     .optional()
     .isNumeric()
@@ -749,9 +759,9 @@ export const validateAffordabilityAssessment = [
 export const validateReferencingOutcome = [
   tenantIdValidation,
 
+  // Allow partial updates: outcome is optional on PATCH
   body('outcome')
-    .notEmpty()
-    .withMessage('Referencing outcome is required')
+    .optional()
     .isIn(['pass', 'pass-with-conditions', 'fail', 'pending'])
     .withMessage('Invalid referencing outcome'),
 

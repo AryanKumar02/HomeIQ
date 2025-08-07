@@ -14,7 +14,7 @@ import {
 import gsap from 'gsap'
 import { useSignup } from '../../hooks/useAuth'
 import { Link as RouterLink } from 'react-router-dom'
-import { useFormGsapAnimation } from '../animation/useFormGsapAnimation'
+import { useFormGsapAnimation } from '../../animation/useFormGsapAnimation'
 import CheckIcon from '@mui/icons-material/Check'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'

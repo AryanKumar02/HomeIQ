@@ -24,6 +24,7 @@ import MenuIcon from '@mui/icons-material/Menu'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { useTheme } from '@mui/material/styles'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { prefetchByPath } from '../../utils/prefetchRoutes'
 import { useAuthUser } from '../../stores/authStoreNew'
 import { useLogout } from '../../hooks/useAuthSimple'
 
@@ -350,7 +351,10 @@ const Sidebar: React.FC = () => {
                 selected={selectedIndex === index}
                 tabIndex={selectedIndex === index ? 0 : -1}
                 onClick={() => handleListItemClick(index)}
-                onMouseEnter={() => handleMenuItemHover(index, true)}
+                onMouseEnter={() => {
+                  handleMenuItemHover(index, true)
+                  prefetchByPath(menuItems[index].path)
+                }}
                 onMouseLeave={() => handleMenuItemHover(index, false)}
                 onMouseDown={() => {
                   // Reset on click to prevent stuck states
