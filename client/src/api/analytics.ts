@@ -124,9 +124,7 @@ export const analyticsApi = {
   // Get current analytics (real-time calculation)
   getCurrent: async (): Promise<MonthlyAnalytics> => {
     try {
-      console.log('GET CURRENT ANALYTICS API CALL:', '/analytics/current')
       const response = await apiClient.get<AnalyticsResponse>('/analytics/current')
-      console.log('GET CURRENT ANALYTICS API RESPONSE:', response)
 
       const analytics = response.data.data.analytics
       if (!analytics) {
@@ -146,9 +144,7 @@ export const analyticsApi = {
     comparison?: AnalyticsComparison
   }> => {
     try {
-      console.log('GET ANALYTICS WITH COMPARISON API CALL:', '/analytics/comparison')
       const response = await apiClient.get<AnalyticsResponse>('/analytics/comparison')
-      console.log('GET ANALYTICS WITH COMPARISON API RESPONSE:', response)
 
       return {
         current: response.data.data.current!,
@@ -164,7 +160,6 @@ export const analyticsApi = {
   // Get historical analytics (last N months)
   getHistorical: async (months: number = 6): Promise<MonthlyAnalytics[]> => {
     try {
-      console.log('GET HISTORICAL ANALYTICS API CALL:', `/analytics/historical?months=${months}`)
       const response = await apiClient.get<AnalyticsHistoricalResponse>(
         `/analytics/historical?months=${months}`
       )
@@ -185,9 +180,8 @@ export const analyticsApi = {
     comparison?: AnalyticsComparison
   }> => {
     try {
-      console.log('GET MONTHLY ANALYTICS API CALL:', `/analytics/${year}/${month}`)
       const response = await apiClient.get<AnalyticsResponse>(`/analytics/${year}/${month}`)
-      console.log('GET MONTHLY ANALYTICS API RESPONSE:', response)
+
 
       return {
         analytics: response.data.data.analytics!,
@@ -209,9 +203,7 @@ export const analyticsApi = {
     comparison?: AnalyticsComparison
   }> => {
     try {
-      console.log('CREATE MONTHLY SNAPSHOT API CALL:', '/analytics/snapshot', params)
       const response = await apiClient.post<AnalyticsResponse>('/analytics/snapshot', params || {})
-      console.log('CREATE MONTHLY SNAPSHOT API RESPONSE:', response)
 
       return {
         analytics: response.data.data.analytics!,

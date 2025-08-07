@@ -2,11 +2,11 @@ import rateLimit from 'express-rate-limit';
 
 import logger from '../utils/logger.js';
 
-// If in test environment, disable rate limiting
-const isTest = process.env.NODE_ENV === 'test';
+// If in test or development environment, disable rate limiting
+const isDisabled = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development';
 
 // General rate limiter for API routes
-export const generalLimiter = isTest
+export const generalLimiter = isDisabled
   ? (req, res, next) => next()
   : rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes
@@ -25,7 +25,7 @@ export const generalLimiter = isTest
     });
 
 // Strict rate limiter for data modification routes (POST, PUT, DELETE)
-export const strictLimiter = isTest
+export const strictLimiter = isDisabled
   ? (req, res, next) => next()
   : rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes
@@ -46,7 +46,7 @@ export const strictLimiter = isTest
     });
 
 // Upload rate limiter for file uploads
-export const uploadLimiter = isTest
+export const uploadLimiter = isDisabled
   ? (req, res, next) => next()
   : rateLimit({
       windowMs: 60 * 60 * 1000, // 1 hour
@@ -65,7 +65,7 @@ export const uploadLimiter = isTest
     });
 
 // Search rate limiter for search operations
-export const searchLimiter = isTest
+export const searchLimiter = isDisabled
   ? (req, res, next) => next()
   : rateLimit({
       windowMs: 1 * 60 * 1000, // 1 minute
@@ -83,8 +83,27 @@ export const searchLimiter = isTest
       },
     });
 
+// Auth rate limiter for login/registration operations
+export const authLimiter = isDisabled
+  ? (req, res, next) => next()
+  : rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 50, // 50 auth attempts per 15 minutes
+      message: {
+        error: 'Too many authentication attempts from this IP, please try again later.',
+      },
+      standardHeaders: true,
+      legacyHeaders: false,
+      handler: (req, res) => {
+        logger.warn(`Auth rate limit exceeded for IP: ${req.ip}, Path: ${req.path}`);
+        res.status(429).json({
+          error: 'Too many authentication attempts from this IP, please try again later.',
+        });
+      },
+    });
+
 // Legacy sensitive limiter for backward compatibility
-const sensitiveLimiter = isTest
+const sensitiveLimiter = isDisabled
   ? (req, res, next) => next()
   : rateLimit({
       windowMs: 10 * 60 * 1000, // 10 minutes

@@ -44,7 +44,6 @@ export const propertiesApi = {
   // Create new property
   create: async (data: Omit<Property, '_id'>): Promise<Property> => {
     try {
-      console.log('Creating property with data:', JSON.stringify(data, null, 2))
       const response = await apiClient.post<PropertyResponse>('/property', data)
       const property = response.data.property || response.data.data?.property
       if (!property) {
@@ -71,7 +70,6 @@ export const propertiesApi = {
         cleanedData.occupancy.tenant = undefined
       }
 
-      console.log('Updating property with data:', JSON.stringify(cleanedData, null, 2))
       const response = await apiClient.put<PropertyResponse>(`/property/${id}`, cleanedData)
       const property = response.data.property || response.data.data?.property
       if (!property) {
