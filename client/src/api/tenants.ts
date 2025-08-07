@@ -296,7 +296,6 @@ export const tenantsApi = {
     try {
       // Use server's maximum allowed limit (100) to get as many tenants as possible
       const url = '/tenants?limit=100'
-      console.log('GET ALL TENANTS API CALL:', url)
       const response = await apiClient.get<{
         status: string
         results: number
@@ -310,7 +309,7 @@ export const tenantsApi = {
           tenants: Tenant[]
         }
       }>(url)
-      console.log('GET ALL TENANTS API RESPONSE:', response)
+
 
       const { tenants } = response.data.data
       const { pagination } = response.data

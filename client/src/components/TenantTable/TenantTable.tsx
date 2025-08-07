@@ -160,11 +160,7 @@ const TenantTable: React.FC<TenantTableProps> = ({
   // Type guard function to check if an item is a valid TenantTableData
   const isValidTenant = (item: unknown): item is TenantTableData => {
     return (
-      item !== null &&
-      typeof item === 'object' &&
-      'id' in item &&
-      'name' in item &&
-      'email' in item
+      item !== null && typeof item === 'object' && 'id' in item && 'name' in item && 'email' in item
     )
   }
 

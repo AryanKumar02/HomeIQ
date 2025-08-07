@@ -4,7 +4,7 @@ import * as authController from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import validate from '../middleware/validateMiddleware.js';
 import * as validators from '../validators/authValidators.js';
-import sensitiveLimiter from '../middleware/rateLimitMiddleware.js';
+import { authLimiter } from '../middleware/rateLimitMiddleware.js';
 
 const router = express.Router();
 
@@ -44,7 +44,7 @@ const router = express.Router();
  */
 router.post(
   '/register',
-  sensitiveLimiter,
+  authLimiter,
   validators.registerValidator,
   validate,
   authController.register,
@@ -81,7 +81,7 @@ router.post(
  *       401:
  *         description: Invalid credentials
  */
-router.post('/login', sensitiveLimiter, validators.loginValidator, validate, authController.login);
+router.post('/login', authLimiter, validators.loginValidator, validate, authController.login);
 
 /**
  * @swagger
@@ -132,7 +132,7 @@ router.get('/verify-email/:token', authController.verifyEmail);
  */
 router.post(
   '/resend-verification',
-  sensitiveLimiter,
+  authLimiter,
   validators.forgotPasswordValidator,
   validate,
   authController.resendVerification,
@@ -165,7 +165,7 @@ router.post(
  */
 router.post(
   '/forgot-password',
-  sensitiveLimiter,
+  authLimiter,
   validators.forgotPasswordValidator,
   validate,
   authController.forgotPassword,
@@ -205,7 +205,7 @@ router.post(
  */
 router.post(
   '/reset-password/:token',
-  sensitiveLimiter,
+  authLimiter,
   validators.resetPasswordValidator,
   validate,
   authController.resetPassword,
@@ -263,7 +263,7 @@ router.get('/me', protect, authController.getMe);
  */
 router.post(
   '/update-password',
-  sensitiveLimiter,
+  authLimiter,
   protect,
   validators.updatePasswordValidator,
   validate,
@@ -285,6 +285,6 @@ router.post(
  *       401:
  *         description: Unauthorized
  */
-router.post('/logout', sensitiveLimiter, authController.logout);
+router.post('/logout', authLimiter, authController.logout);
 
 export default router;

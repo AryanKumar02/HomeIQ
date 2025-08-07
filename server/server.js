@@ -17,6 +17,7 @@ import { csrfProtection } from './middleware/csrfMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 import propertyRoutes from './routes/propertyRoutes.js';
 import tenantRoutes from './routes/tenantRoutes.js';
+import analyticsRoutes from './routes/analytics.js';
 import healthRoutes from './routes/healthRoutes.js';
 import logger from './utils/logger.js';
 import AppError from './utils/appError.js';
@@ -25,23 +26,19 @@ import User from './models/User.js';
 import swaggerSpec from './utils/swagger.js';
 import { connectDB } from './utils/db.js';
 import { startScheduledTasks, stopScheduledTasks } from './utils/scheduledTasks.js';
+import { emitAnalyticsToSocket } from './services/realTimeAnalytics.js';
+import { ensureCurrentMonthSnapshot } from './services/analyticsService.js';
+import { addModelValidationHooks } from './middleware/tenantConsistencyMiddleware.js';
 import redisClient from './config/redis.js';
 
 // Load environment variables
 dotenv.config();
 
-console.log('Starting server...');
-console.log('Environment variables loaded:');
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('PORT:', process.env.PORT);
-console.log('MONGO_URI exists:', !!process.env.MONGO_URI);
-
 process.on('uncaughtException', err => {
-  console.error('Uncaught Exception:', err);
+  logger.error('UNCAUGHT EXCEPTION! Shutting down...', err);
   process.exit(1);
 });
 
-console.log('Creating Express app...');
 const app = express();
 
 // Trust proxy for Render deployment
@@ -49,9 +46,6 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-console.log('Express app created successfully');
-
-console.log('Setting up middleware...');
 // Middleware
 const allowedOrigins = [
   'http://localhost:5173', // Development
@@ -61,33 +55,23 @@ const allowedOrigins = [
   'https://estate-link-six.vercel.app', // Your Vercel frontend
 ].filter(Boolean); // Remove undefined values
 
-console.log('FRONTEND_URL env var:', process.env.FRONTEND_URL);
-console.log('Allowed origins:', allowedOrigins);
-
 app.use(
   cors({
     origin: (origin, callback) => {
-      console.log('CORS check - Origin:', origin);
-      console.log('CORS check - Allowed origins:', allowedOrigins);
-
       // Allow requests with no origin (mobile apps, postman, etc)
       if (!origin) {
-        console.log('CORS: Allowing request with no origin');
         return callback(null, true);
       }
 
       if (allowedOrigins.includes(origin)) {
-        console.log('CORS: Allowing origin:', origin);
         return callback(null, true);
       }
 
       // In development, allow any localhost origin
       if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
-        console.log('CORS: Allowing localhost origin in development:', origin);
         return callback(null, true);
       }
 
-      console.log('CORS: Rejecting origin:', origin);
       callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
@@ -154,6 +138,7 @@ app.use('/api/v1/health', healthRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/property', propertyRoutes);
 app.use('/api/v1/tenants', tenantRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // 404 handler
@@ -165,7 +150,8 @@ app.use((req, res, next) => {
 app.use(globalErrorHandler);
 
 const PORT = process.env.PORT || 3001;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/sellthis';
+const MONGO_URI =
+  process.env.DATABASE_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/sellthis';
 
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
@@ -196,8 +182,59 @@ io.use(async (socket, next) => {
 io.on('connection', socket => {
   logger.info(`WebSocket connected: ${socket.id} (user: ${socket.user?.email || 'unknown'})`);
 
+  // Join user-specific room for targeted updates
+  socket.join(`user:${socket.user._id}`);
+
+  // Handle ping/pong for connection health
   socket.on('ping', () => {
     socket.emit('pong');
+  });
+
+  // Handle analytics subscription
+  socket.on('analytics:subscribe', async () => {
+    try {
+      // Ensure current month snapshot exists (for future month-over-month comparisons)
+      try {
+        await ensureCurrentMonthSnapshot(socket.user._id);
+      } catch (snapshotError) {
+        logger.warn('Failed to auto-create snapshot during subscription:', snapshotError);
+      }
+
+      // Send initial analytics data
+      await emitAnalyticsToSocket(socket, 'analytics:initial');
+      logger.info(`Analytics subscription started for user ${socket.user._id}`);
+    } catch (error) {
+      logger.error('Error handling analytics subscription:', error);
+      socket.emit('analytics:error', {
+        message: 'Failed to subscribe to analytics updates',
+        timestamp: new Date(),
+      });
+    }
+  });
+
+  // Handle analytics unsubscribe
+  socket.on('analytics:unsubscribe', () => {
+    logger.info(`Analytics unsubscribed for user ${socket.user._id}`);
+  });
+
+  // Handle real-time analytics refresh request
+  socket.on('analytics:refresh', async () => {
+    try {
+      // Ensure current month snapshot exists (for future month-over-month comparisons)
+      try {
+        await ensureCurrentMonthSnapshot(socket.user._id);
+      } catch (snapshotError) {
+        logger.warn('Failed to auto-create snapshot during refresh:', snapshotError);
+      }
+
+      await emitAnalyticsToSocket(socket, 'analytics:refreshed');
+    } catch (error) {
+      logger.error('Error refreshing analytics:', error);
+      socket.emit('analytics:error', {
+        message: 'Failed to refresh analytics',
+        timestamp: new Date(),
+      });
+    }
   });
 
   socket.on('disconnect', () => {
@@ -205,30 +242,26 @@ io.on('connection', socket => {
   });
 });
 
+// Make io available globally for use in other parts of the app
+global.io = io;
+
 const startServer = async () => {
   try {
-    console.log('Connecting to MongoDB...');
     await connectDB(MONGO_URI);
-    console.log('MongoDB connected successfully');
-
-    console.log('Connecting to Redis...');
     await redisClient.connect();
-    console.log('Redis connected successfully');
+
+    // Add model validation hooks for data consistency
+    addModelValidationHooks();
 
     // Start scheduled tasks (only in production/non-test environments)
     if (process.env.NODE_ENV !== 'test') {
-      console.log('Starting scheduled tasks...');
       startScheduledTasks();
-      console.log('Scheduled tasks started');
     }
 
-    console.log(`Starting server on port ${PORT}...`);
     server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
       logger.info(`Server running on port ${PORT}`);
     });
   } catch (err) {
-    console.error('Server startup error:', err);
     logger.error('Server startup error:', err);
     if (process.env.NODE_ENV !== 'test') {
       process.exit(1);
@@ -238,10 +271,7 @@ const startServer = async () => {
 };
 
 if (process.env.NODE_ENV !== 'test') {
-  console.log('Starting server initialization...');
   startServer();
-} else {
-  console.log('Test mode detected, skipping server start');
 }
 
 // Graceful shutdown
@@ -265,7 +295,6 @@ const gracefulShutdown = signal => {
 };
 
 process.on('unhandledRejection', err => {
-  console.error('UNHANDLED REJECTION! Shutting down...', err);
   logger.error('UNHANDLED REJECTION! Shutting down...', err);
   gracefulShutdown('UNHANDLED_REJECTION');
 });

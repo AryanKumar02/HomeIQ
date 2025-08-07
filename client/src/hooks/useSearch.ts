@@ -5,8 +5,10 @@ import type { TenantTableData } from '../types/tenantTable'
 // Search query keys
 export const searchKeys = {
   all: ['search'] as const,
-  properties: (term: string, filters?: unknown) => [...searchKeys.all, 'properties', term, filters] as const,
-  tenants: (term: string, filters?: unknown) => [...searchKeys.all, 'tenants', term, filters] as const,
+  properties: (term: string, filters?: unknown) =>
+    [...searchKeys.all, 'properties', term, filters] as const,
+  tenants: (term: string, filters?: unknown) =>
+    [...searchKeys.all, 'tenants', term, filters] as const,
 }
 
 // Generic search hook for client-side filtering
@@ -125,7 +127,7 @@ export const useSearchState = (initialTerm = '', pageName?: string) => {
         predicate: (query) => {
           const key = query.queryKey
           return Array.isArray(key) && key.length >= 2 && key[0] === 'search' && key[1] === pageName
-        }
+        },
       })
     } else {
       // Clear all search-related queries
@@ -134,7 +136,7 @@ export const useSearchState = (initialTerm = '', pageName?: string) => {
         predicate: (query) => {
           const key = query.queryKey
           return Array.isArray(key) && key[0] === 'search'
-        }
+        },
       })
     }
   }

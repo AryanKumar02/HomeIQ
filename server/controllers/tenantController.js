@@ -2,6 +2,13 @@ import Tenant from '../models/Tenant.js';
 import Property from '../models/Property.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
+import { emitAnalyticsUpdate } from '../services/realTimeAnalytics.js';
+import logger from '../utils/logger.js';
+import {
+  assignTenantToProperty as bulletproofAssignTenant,
+  unassignTenantFromProperty as bulletproofUnassignTenant,
+  forceUnassignTenant as bulletproofForceUnassign,
+} from '../services/tenantAssignmentService.js';
 
 // Get all tenants for the authenticated user
 export const getTenants = catchAsync(async (req, res, next) => {
@@ -135,6 +142,15 @@ export const createTenant = catchAsync(async (req, res, next) => {
   // Populate the created tenant for response
   await tenant.populate('createdBy', 'firstName lastName email');
 
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:tenant-created');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after tenant creation:', emitError);
+  }
+
   res.status(201).json({
     status: 'success',
     data: {
@@ -225,6 +241,7 @@ export const updateTenant = catchAsync(async (req, res, next) => {
   }
 
   // Update other top-level fields
+  /* eslint-disable no-unused-vars */
   const {
     personalInfo,
     contactInfo,
@@ -237,6 +254,7 @@ export const updateTenant = catchAsync(async (req, res, next) => {
     references,
     ...otherFields
   } = req.body;
+  /* eslint-enable no-unused-vars */
   Object.assign(tenant, otherFields);
 
   await tenant.save();
@@ -244,6 +262,15 @@ export const updateTenant = catchAsync(async (req, res, next) => {
   // Populate for response
   await tenant.populate('leases.property', 'title address propertyType');
   await tenant.populate('createdBy', 'firstName lastName email');
+
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:tenant-updated');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after tenant update:', emitError);
+  }
 
   res.status(200).json({
     status: 'success',
@@ -253,7 +280,7 @@ export const updateTenant = catchAsync(async (req, res, next) => {
   });
 });
 
-// Delete a tenant (soft delete)
+// Delete a tenant (soft delete with bulletproof cleanup)
 export const deleteTenant = catchAsync(async (req, res, next) => {
   const tenant = await Tenant.findOne({
     _id: req.params.id,
@@ -269,14 +296,33 @@ export const deleteTenant = catchAsync(async (req, res, next) => {
   const hasActiveLeases = tenant.leases.some(lease => lease.status === 'active');
 
   if (hasActiveLeases) {
-    return next(
-      new AppError('Cannot delete tenant with active leases. Please terminate leases first.', 400),
-    );
+    try {
+      // Force unassign tenant from all properties before deletion
+      await bulletproofForceUnassign(req.params.id, req.user.id);
+      logger.info(`Force unassigned tenant ${req.params.id} before deletion`);
+    } catch (unassignError) {
+      logger.error('Failed to force unassign tenant before deletion:', unassignError);
+      return next(
+        new AppError(
+          'Cannot delete tenant with active leases. Please terminate leases first.',
+          400,
+        ),
+      );
+    }
   }
 
   // Soft delete
   tenant.isActive = false;
   await tenant.save();
+
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:tenant-deleted');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after tenant deletion:', emitError);
+  }
 
   res.status(204).json({
     status: 'success',
@@ -284,173 +330,54 @@ export const deleteTenant = catchAsync(async (req, res, next) => {
   });
 });
 
-// Assign tenant to property (simplified endpoint)
+// Assign tenant to property (bulletproof version)
 export const assignTenantToProperty = catchAsync(async (req, res, next) => {
   const { tenantId, propertyId, unitId, leaseData } = req.body;
 
-  const tenant = await Tenant.findOne({
-    _id: tenantId,
-    createdBy: req.user.id,
-    isActive: true,
-  });
+  try {
+    const result = await bulletproofAssignTenant({
+      tenantId,
+      propertyId,
+      unitId,
+      leaseData,
+      userId: req.user.id,
+    });
 
-  if (!tenant) {
-    return next(new AppError('Tenant not found', 404));
+    res.status(200).json(result);
+  } catch (error) {
+    return next(error);
   }
-
-  const property = await Property.findOne({
-    _id: propertyId,
-    owner: req.user.id,
-  });
-
-  if (!property) {
-    return next(new AppError('Property not found', 404));
-  }
-
-  // Validate that multi-unit properties require a unit ID
-  if (property.propertyType === 'apartment' || property.propertyType === 'duplex') {
-    if (!unitId) {
-      return next(
-        new AppError('Unit ID is required for multi-unit properties (apartments/duplexes)', 400),
-      );
-    }
-  }
-
-  // Check availability
-  if (unitId) {
-    const unit = property.units.id(unitId);
-    if (!unit || (unit.occupancy.isOccupied && unit.occupancy.tenant)) {
-      return next(new AppError('Unit not found or already occupied', 400));
-    }
-  } else if (property.occupancy.isOccupied && property.occupancy.tenant) {
-    return next(new AppError('Property is already occupied', 400));
-  }
-
-  // Create lease data with defaults
-  const lease = {
-    property: propertyId,
-    unit: unitId,
-    startDate: leaseData?.startDate || new Date(),
-    endDate: leaseData?.endDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year default
-    monthlyRent: leaseData?.monthlyRent || property.financials?.monthlyRent || 0,
-    securityDeposit: leaseData?.securityDeposit || property.financials?.securityDeposit || 0,
-    tenancyType: leaseData?.tenancyType || 'assured-shorthold',
-    status: 'active',
-    ...leaseData,
-  };
-
-  // Add lease to tenant
-  tenant.leases.push(lease);
-  await tenant.save();
-
-  // Update property occupancy
-  if (unitId) {
-    const unit = property.units.id(unitId);
-    unit.occupancy.isOccupied = true;
-    unit.occupancy.tenant = tenant._id;
-    unit.occupancy.leaseStart = lease.startDate;
-    unit.occupancy.leaseEnd = lease.endDate;
-    unit.status = 'occupied';
-  } else {
-    property.occupancy.isOccupied = true;
-    property.occupancy.tenant = tenant._id;
-    property.occupancy.leaseStart = lease.startDate;
-    property.occupancy.leaseEnd = lease.endDate;
-    property.status = 'occupied';
-  }
-
-  await property.save();
-
-  // Populate and return updated data
-  await tenant.populate('leases.property', 'title address propertyType');
-  await property.populate(
-    'occupancy.tenant',
-    'personalInfo.firstName personalInfo.lastName contactInfo.email',
-  );
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tenant,
-      property,
-      lease: tenant.leases[tenant.leases.length - 1], // Return the newly created lease
-    },
-  });
 });
 
-// Unassign tenant from property
+// Unassign tenant from property (bulletproof version)
 export const unassignTenantFromProperty = catchAsync(async (req, res, next) => {
-  const { tenantId, propertyId, unitId } = req.body;
+  const { tenantId, propertyId, unitId, terminationReason } = req.body;
 
-  const tenant = await Tenant.findOne({
-    _id: tenantId,
-    createdBy: req.user.id,
-    isActive: true,
-  });
+  try {
+    const result = await bulletproofUnassignTenant({
+      tenantId,
+      propertyId,
+      unitId,
+      userId: req.user.id,
+      terminationReason,
+    });
 
-  if (!tenant) {
-    return next(new AppError('Tenant not found', 404));
+    res.status(200).json(result);
+  } catch (error) {
+    return next(error);
   }
+});
 
-  const property = await Property.findOne({
-    _id: propertyId,
-    owner: req.user.id,
-  });
+// Force unassign tenant (emergency cleanup)
+export const forceUnassignTenant = catchAsync(async (req, res, next) => {
+  const tenantId = req.params.id;
 
-  if (!property) {
-    return next(new AppError('Property not found', 404));
+  try {
+    const result = await bulletproofForceUnassign(tenantId, req.user.id);
+    res.status(200).json(result);
+  } catch (error) {
+    return next(error);
   }
-
-  // Validate that multi-unit properties require a unit ID
-  if (property.propertyType === 'apartment' || property.propertyType === 'duplex') {
-    if (!unitId) {
-      return next(
-        new AppError('Unit ID is required for multi-unit properties (apartments/duplexes)', 400),
-      );
-    }
-  }
-
-  // Find and terminate the lease
-  const lease = tenant.leases.find(
-    l =>
-      l.property.toString() === propertyId &&
-      l.status === 'active' &&
-      (!unitId || l.unit === unitId),
-  );
-
-  if (!lease) {
-    return next(new AppError('Active lease not found', 404));
-  }
-
-  // Update lease status
-  lease.status = 'terminated';
-  lease.terminationDate = new Date();
-  await tenant.save();
-
-  // Update property occupancy
-  if (unitId) {
-    const unit = property.units.id(unitId);
-    if (unit) {
-      unit.occupancy.isOccupied = false;
-      unit.occupancy.tenant = null;
-      unit.status = 'available';
-    }
-  } else {
-    property.occupancy.isOccupied = false;
-    property.occupancy.tenant = null;
-    property.status = 'available';
-  }
-
-  await property.save();
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      message: 'Tenant unassigned successfully',
-      tenant,
-      property,
-    },
-  });
 });
 
 // Add a lease to a tenant
@@ -518,6 +445,15 @@ export const addLease = catchAsync(async (req, res, next) => {
   // Populate and return updated tenant
   await tenant.populate('leases.property', 'title address propertyType');
 
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:lease-added');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after adding lease:', emitError);
+  }
+
   res.status(200).json({
     status: 'success',
     data: {
@@ -571,6 +507,15 @@ export const updateLeaseStatus = catchAsync(async (req, res, next) => {
   }
 
   await tenant.populate('leases.property', 'title address propertyType');
+
+  // Emit real-time analytics update
+  try {
+    if (global.io) {
+      await emitAnalyticsUpdate(global.io, req.user.id, 'analytics:lease-status-updated');
+    }
+  } catch (emitError) {
+    logger.warn('Failed to emit analytics update after lease status update:', emitError);
+  }
 
   res.status(200).json({
     status: 'success',
