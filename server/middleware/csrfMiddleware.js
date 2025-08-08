@@ -33,15 +33,18 @@ export const csrfProtection = (req, res, next) => {
     'https://estatelink.live', // Your custom domain frontend
   ].filter(Boolean);
 
-  console.log('CSRF check - Origin:', origin);
-  console.log('CSRF check - Referer:', referer);
-  console.log('CSRF check - Allowed origins:', allowedOrigins);
+  if (process.env.NODE_ENV !== 'production') {
+    logger.debug?.(`CSRF check - Origin: ${origin || 'none'}`);
+    logger.debug?.(`CSRF check - Referer: ${referer || 'none'}`);
+  }
 
   const hasValidOrigin = origin && allowedOrigins.includes(origin);
   const hasValidReferer = referer && allowedOrigins.some(allowed => referer.startsWith(allowed));
 
-  console.log('CSRF check - Valid origin:', hasValidOrigin);
-  console.log('CSRF check - Valid referer:', hasValidReferer);
+  if (process.env.NODE_ENV !== 'production') {
+    logger.debug?.(`CSRF check - Valid origin: ${hasValidOrigin}`);
+    logger.debug?.(`CSRF check - Valid referer: ${hasValidReferer}`);
+  }
 
   // For API requests with cookies, require valid origin
   if (req.cookies && Object.keys(req.cookies).length > 0) {

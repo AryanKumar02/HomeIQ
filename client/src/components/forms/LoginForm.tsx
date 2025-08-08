@@ -16,7 +16,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import { useAuthWithActions } from '../../hooks/useAuthSimple'
 import gsap from 'gsap'
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
-import { useFormGsapAnimation } from '../animation/useFormGsapAnimation'
+import { useFormGsapAnimation } from '../../animation/useFormGsapAnimation'
 import { useTheme } from '@mui/material/styles'
 
 const LoginForm: React.FC = () => {

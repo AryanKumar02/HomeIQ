@@ -91,7 +91,7 @@ export const useRealTimeAnalytics = (options: UseRealTimeAnalyticsOptions = {}) 
         auth: {
           token: token,
         },
-        transports: ['websocket', 'polling'],
+        transports: import.meta.env.PROD ? ['websocket'] : ['websocket', 'polling'],
         timeout: 20000,
         forceNew: true,
       })
@@ -99,7 +99,6 @@ export const useRealTimeAnalytics = (options: UseRealTimeAnalyticsOptions = {}) 
       const socket = socketRef.current
 
       socket.on('connect', () => {
-        console.log('WebSocket connected for analytics')
         setIsConnected(true)
         setConnectionError(null)
 
@@ -108,7 +107,6 @@ export const useRealTimeAnalytics = (options: UseRealTimeAnalyticsOptions = {}) 
       })
 
       socket.on('disconnect', (reason) => {
-        console.log('WebSocket disconnected:', reason)
         setIsConnected(false)
 
         // Auto-reconnect on unexpected disconnection
@@ -126,7 +124,6 @@ export const useRealTimeAnalytics = (options: UseRealTimeAnalyticsOptions = {}) 
       })
 
       socket.on('connect_error', (error) => {
-        console.error('WebSocket connection error:', error)
         setConnectionError(error.message)
         setIsConnected(false)
         onError?.(error)
@@ -134,21 +131,18 @@ export const useRealTimeAnalytics = (options: UseRealTimeAnalyticsOptions = {}) 
 
       // Analytics event handlers
       socket.on('analytics:initial', (event: AnalyticsEvent) => {
-        console.log('Received initial analytics:', event)
         setAnalytics(event.analytics)
         setLastUpdate(new Date(event.timestamp))
         onAnalyticsUpdate?.(event.analytics)
       })
 
       socket.on('analytics:updated', (event: AnalyticsEvent) => {
-        console.log('Received analytics update:', event)
         setAnalytics(event.analytics)
         setLastUpdate(new Date(event.timestamp))
         onAnalyticsUpdate?.(event.analytics)
       })
 
       socket.on('analytics:refreshed', (event: AnalyticsEvent) => {
-        console.log('Received analytics refresh:', event)
         setAnalytics(event.analytics)
         setLastUpdate(new Date(event.timestamp))
         onAnalyticsUpdate?.(event.analytics)
@@ -156,88 +150,75 @@ export const useRealTimeAnalytics = (options: UseRealTimeAnalyticsOptions = {}) 
 
       // Specific analytics events
       socket.on('analytics:property-created', (event: AnalyticsEvent) => {
-        console.log('Property created - analytics updated:', event)
         setAnalytics(event.analytics)
         setLastUpdate(new Date(event.timestamp))
         onAnalyticsUpdate?.(event.analytics)
       })
 
       socket.on('analytics:property-updated', (event: AnalyticsEvent) => {
-        console.log('Property updated - analytics updated:', event)
         setAnalytics(event.analytics)
         setLastUpdate(new Date(event.timestamp))
         onAnalyticsUpdate?.(event.analytics)
       })
 
       socket.on('analytics:property-deleted', (event: AnalyticsEvent) => {
-        console.log('Property deleted - analytics updated:', event)
         setAnalytics(event.analytics)
         setLastUpdate(new Date(event.timestamp))
         onAnalyticsUpdate?.(event.analytics)
       })
 
       socket.on('analytics:tenant-created', (event: AnalyticsEvent) => {
-        console.log('Tenant created - analytics updated:', event)
         setAnalytics(event.analytics)
         setLastUpdate(new Date(event.timestamp))
         onAnalyticsUpdate?.(event.analytics)
       })
 
       socket.on('analytics:tenant-updated', (event: AnalyticsEvent) => {
-        console.log('Tenant updated - analytics updated:', event)
         setAnalytics(event.analytics)
         setLastUpdate(new Date(event.timestamp))
         onAnalyticsUpdate?.(event.analytics)
       })
 
       socket.on('analytics:tenant-deleted', (event: AnalyticsEvent) => {
-        console.log('Tenant deleted - analytics updated:', event)
         setAnalytics(event.analytics)
         setLastUpdate(new Date(event.timestamp))
         onAnalyticsUpdate?.(event.analytics)
       })
 
       socket.on('analytics:lease-assigned', (event: AnalyticsEvent) => {
-        console.log('Lease assigned - analytics updated:', event)
         setAnalytics(event.analytics)
         setLastUpdate(new Date(event.timestamp))
         onAnalyticsUpdate?.(event.analytics)
       })
 
       socket.on('analytics:lease-terminated', (event: AnalyticsEvent) => {
-        console.log('Lease terminated - analytics updated:', event)
         setAnalytics(event.analytics)
         setLastUpdate(new Date(event.timestamp))
         onAnalyticsUpdate?.(event.analytics)
       })
 
       socket.on('analytics:lease-added', (event: AnalyticsEvent) => {
-        console.log('Lease added - analytics updated:', event)
         setAnalytics(event.analytics)
         setLastUpdate(new Date(event.timestamp))
         onAnalyticsUpdate?.(event.analytics)
       })
 
       socket.on('analytics:lease-status-updated', (event: AnalyticsEvent) => {
-        console.log('Lease status updated - analytics updated:', event)
         setAnalytics(event.analytics)
         setLastUpdate(new Date(event.timestamp))
         onAnalyticsUpdate?.(event.analytics)
       })
 
       socket.on('analytics:error', (error) => {
-        console.error('Analytics error:', error)
         onError?.(error)
       })
     } catch (error) {
-      console.error('Failed to create WebSocket connection:', error)
       setConnectionError(error instanceof Error ? error.message : 'Unknown connection error')
       onError?.(error)
     }
   }
 
   const disconnect = () => {
-    console.log('Disconnecting WebSocket...')
 
     // Clear reconnect timeout
     if (reconnectTimeoutRef.current) {

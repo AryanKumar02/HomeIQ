@@ -73,9 +73,6 @@ export const useCreateTenant = () => {
       // Add the new tenant to the cache
       queryClient.setQueryData(tenantKeys.detail(newTenant._id!), newTenant)
     },
-    onError: (error) => {
-      console.error('Create tenant mutation error:', error)
-    },
   })
 }
 
@@ -92,9 +89,6 @@ export const useUpdateTenant = () => {
       // Invalidate the tenants list to ensure consistency
       void queryClient.invalidateQueries({ queryKey: tenantKeys.lists() })
     },
-    onError: (error) => {
-      console.error('Update tenant mutation error:', error)
-    },
   })
 }
 
@@ -109,9 +103,6 @@ export const useDeleteTenant = () => {
 
       // Invalidate the tenants list
       void queryClient.invalidateQueries({ queryKey: tenantKeys.lists() })
-    },
-    onError: (error) => {
-      console.error('Delete tenant mutation error:', error)
     },
   })
 }
@@ -128,9 +119,6 @@ export const useUpdateTenantStatus = () => {
 
       // Invalidate the tenants list to ensure consistency
       void queryClient.invalidateQueries({ queryKey: tenantKeys.lists() })
-    },
-    onError: (error) => {
-      console.error('Update tenant status mutation error:', error)
     },
   })
 }
@@ -152,9 +140,6 @@ export const useUpdateTenantApplicationStatus = () => {
 
       // Invalidate the tenants list to ensure consistency
       void queryClient.invalidateQueries({ queryKey: tenantKeys.lists() })
-    },
-    onError: (error) => {
-      console.error('Update tenant application status mutation error:', error)
     },
   })
 }

@@ -35,12 +35,10 @@ const PropertyDetails: React.FC = () => {
   )
 
   const handleAddProperty = () => {
-    console.log('Add property clicked')
     void navigate('/properties/add')
   }
 
   const handleSearchProperties = (term: string) => {
-    console.log('Search properties:', term)
     setSearchTerm(term)
     setCurrentPage(1) // Reset to first page when searching
   }
@@ -69,10 +67,10 @@ const PropertyDetails: React.FC = () => {
           setCurrentPage(1)
         }
 
-        console.log('Property deleted successfully')
+        // Property deleted successfully
       },
-      onError: (error) => {
-        console.error('Error deleting property:', error)
+      onError: () => {
+        // Handle delete error
       },
     })
   }

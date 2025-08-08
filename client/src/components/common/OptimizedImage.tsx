@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import { Box, Skeleton, CardMedia } from '@mui/material'
+import { Box, Skeleton } from '@mui/material'
 
 /**
  * Props for the OptimizedImage component
@@ -194,11 +194,14 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
       {/* Actual image */}
       {isInView && (
-        <CardMedia
-          ref={imgRef}
+        <Box
+          // Render a native img to allow typed loading/decoding attributes
           component="img"
-          image={imageUrl}
+          ref={imgRef}
+          src={imageUrl}
           alt={alt}
+          loading="lazy"
+          decoding="async"
           onLoad={handleLoad}
           onError={handleError}
           sx={{

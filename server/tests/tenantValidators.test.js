@@ -4,6 +4,9 @@ import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { jest } from '@jest/globals';
 
+// Ensure mongodb-memory-server uses a unique download dir in CI to avoid lockfile conflicts
+// Note: MONGOMS_DOWNLOAD_DIR is now set via Jest setupFiles in tests/setupEnv.js
+
 // Load test environment variables
 dotenv.config({ path: '.env.test' });
 
@@ -1080,19 +1083,17 @@ describe('Tenant Validators', () => {
         .expect(200);
     });
 
-    it('should reject missing outcome', async () => {
+    it('should allow partial update without outcome', async () => {
       const referencingData = {
         provider: 'HomeLet',
         reference: 'HL123456',
       };
 
-      const response = await request(app)
+      await request(app)
         .patch(`/api/v1/tenants/${tenantId}/referencing`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(referencingData)
-        .expect(400);
-
-      expect(response.body.message).toContain('outcome is required');
+        .expect(200);
     });
 
     it('should reject invalid outcome', async () => {

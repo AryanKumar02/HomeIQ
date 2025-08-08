@@ -401,12 +401,20 @@ const CreateTenant: React.FC = () => {
     if (isEditMode && tenantData) {
       console.log('Loading tenant data for editing:', tenantData)
 
+      const toDateOnly = (value?: string): string => {
+        if (!value) return ''
+        // Already a date-only string
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value
+        const d = new Date(value)
+        return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0]
+      }
+
       // Convert tenant data to form format
       const convertedData: TenantFormData = {
         personalInfo: {
           firstName: tenantData.personalInfo?.firstName || '',
           lastName: tenantData.personalInfo?.lastName || '',
-          dateOfBirth: tenantData.personalInfo?.dateOfBirth || '',
+          dateOfBirth: toDateOnly(tenantData.personalInfo?.dateOfBirth) || '',
           title: tenantData.personalInfo?.title || '',
           middleName: tenantData.personalInfo?.middleName || '',
           preferredName: tenantData.personalInfo?.preferredName || '',
@@ -417,11 +425,13 @@ const CreateTenant: React.FC = () => {
           immigrationStatus: tenantData.personalInfo?.immigrationStatus || 'british-citizen',
           rightToRent: {
             verified: tenantData.personalInfo?.rightToRent?.verified || false,
-            verificationDate: tenantData.personalInfo?.rightToRent?.verificationDate || '',
+            verificationDate: toDateOnly(tenantData.personalInfo?.rightToRent?.verificationDate) || '',
             documentType: tenantData.personalInfo?.rightToRent?.documentType || '',
-            documentExpiryDate: tenantData.personalInfo?.rightToRent?.documentExpiryDate || '',
+            documentExpiryDate: toDateOnly(
+              tenantData.personalInfo?.rightToRent?.documentExpiryDate,
+            ) || '',
             recheckRequired: tenantData.personalInfo?.rightToRent?.recheckRequired || false,
-            recheckDate: tenantData.personalInfo?.rightToRent?.recheckDate || '',
+            recheckDate: toDateOnly(tenantData.personalInfo?.rightToRent?.recheckDate) || '',
             notes: tenantData.personalInfo?.rightToRent?.notes || '',
           },
         },
@@ -454,9 +464,69 @@ const CreateTenant: React.FC = () => {
             postcode: '',
             country: 'United Kingdom',
           },
-          previous: tenantData.addresses?.previous || [],
+          previous:
+            tenantData.addresses?.previous?.map(addr => ({
+              ...addr,
+              startDate: toDateOnly(addr.startDate) || '',
+              endDate: toDateOnly(addr.endDate) || '',
+            })) || [],
         },
-        employment: tenantData.employment || {
+        employment: tenantData.employment
+          ? {
+              ...tenantData.employment,
+              current: {
+                ...tenantData.employment.current,
+                employer: tenantData.employment.current?.employer
+                  ? {
+                      ...tenantData.employment.current.employer,
+                      startDate: toDateOnly(tenantData.employment.current.employer.startDate) || '',
+                    }
+                  : {
+                      name: '',
+                      position: '',
+                      contractType: 'permanent',
+                      startDate: '',
+                      address: {
+                        addressLine1: '',
+                        addressLine2: '',
+                        city: '',
+                        county: '',
+                        postcode: '',
+                        country: 'United Kingdom',
+                      },
+                      phone: '',
+                      hrContactName: '',
+                      hrContactPhone: '',
+                      hrContactEmail: '',
+                    },
+                income: tenantData.employment.current?.income
+                  ? {
+                      ...tenantData.employment.current.income,
+                      verificationDate: toDateOnly(
+                        tenantData.employment.current.income.verificationDate,
+                      ) || '',
+                      probationPeriod: tenantData.employment.current.income.probationPeriod
+                        ? {
+                            ...tenantData.employment.current.income.probationPeriod,
+                            endDate: toDateOnly(
+                              tenantData.employment.current.income.probationPeriod.endDate,
+                            ) || '',
+                          }
+                        : { inProbation: false, endDate: '' },
+                    }
+                  : {
+                      gross: { monthly: 0, annual: 0 },
+                      net: { monthly: 0, annual: 0 },
+                      currency: 'GBP',
+                      payFrequency: 'monthly',
+                      verified: false,
+                      verificationDate: '',
+                      verificationMethod: '',
+                      probationPeriod: { inProbation: false, endDate: '' },
+                    },
+              },
+            }
+          : {
           current: {
             status: 'employed-full-time',
             employer: {
@@ -491,7 +561,17 @@ const CreateTenant: React.FC = () => {
           },
           previous: [],
         },
-        financialInfo: tenantData.financialInfo || {
+        financialInfo: tenantData.financialInfo
+          ? {
+              ...tenantData.financialInfo,
+              bankAccount: {
+                ...tenantData.financialInfo.bankAccount,
+                verificationDate: toDateOnly(
+                  tenantData.financialInfo.bankAccount?.verificationDate,
+                ) || '',
+              },
+            }
+          : {
           bankAccount: {
             bankName: '',
             accountType: 'current',
@@ -519,7 +599,10 @@ const CreateTenant: React.FC = () => {
         },
         pets: tenantData.pets || [],
         vehicles: tenantData.vehicles || [],
-        privacy: tenantData.privacy || {
+        privacy: (tenantData.privacy && {
+          ...tenantData.privacy,
+          consentDate: toDateOnly(tenantData.privacy.consentDate) || '',
+        }) || {
           profileVisibility: 'landlords-only',
           allowBackgroundCheck: true,
           allowCreditCheck: true,
@@ -534,6 +617,7 @@ const CreateTenant: React.FC = () => {
   }, [isEditMode, tenantData])
 
   const handleInputChange = (field: string, value: unknown) => {
+    const today = new Date().toISOString().split('T')[0]
     if (field.includes('.')) {
       const parts = field.split('.')
 
@@ -668,6 +752,46 @@ const CreateTenant: React.FC = () => {
         ...prev,
         [field]: value,
       }))
+    }
+
+    // Contextual helpers: auto-set verification dates when toggled to true
+    if (field === 'employment.current.income.verified') {
+      setFormData((prev) => {
+        const verified = Boolean(value)
+        const currentDate = prev.employment.current.income.verificationDate
+        return {
+          ...prev,
+          employment: {
+            ...prev.employment,
+            current: {
+              ...prev.employment.current,
+              income: {
+                ...prev.employment.current.income,
+                verified,
+                verificationDate: verified && !currentDate ? today : verified ? currentDate : '',
+              },
+            },
+          },
+        }
+      })
+    }
+
+    if (field === 'financialInfo.bankAccount.verified') {
+      setFormData((prev) => {
+        const verified = Boolean(value)
+        const currentDate = prev.financialInfo.bankAccount.verificationDate
+        return {
+          ...prev,
+          financialInfo: {
+            ...prev.financialInfo,
+            bankAccount: {
+              ...prev.financialInfo.bankAccount,
+              verified,
+              verificationDate: verified && !currentDate ? today : verified ? currentDate : '',
+            },
+          },
+        }
+      })
     }
   }
 
@@ -982,8 +1106,64 @@ const CreateTenant: React.FC = () => {
   }
 
   const handleSave = () => {
+    // Prepare normalized data with contextual defaults for required verification dates
+    const today = new Date().toISOString().split('T')[0]
+    const normalizedFormData: TenantFormData = {
+      ...formData,
+      employment: {
+        ...formData.employment,
+        current: {
+          ...formData.employment.current,
+          income: {
+            ...formData.employment.current.income,
+            verificationDate:
+              formData.employment.current.income.verified &&
+              !formData.employment.current.income.verificationDate
+                ? today
+                : formData.employment.current.income.verificationDate || '',
+          },
+        },
+      },
+      financialInfo: {
+        ...formData.financialInfo,
+        bankAccount: {
+          ...formData.financialInfo.bankAccount,
+          verificationDate:
+            formData.financialInfo.bankAccount.verified &&
+            !formData.financialInfo.bankAccount.verificationDate
+              ? today
+              : formData.financialInfo.bankAccount.verificationDate || '',
+        },
+      },
+    }
+
+    // Filter out empty string dates to avoid server-side Date cast errors
+    const employmentPayload: TenantFormData['employment'] = {
+      ...normalizedFormData.employment,
+      current: {
+        ...normalizedFormData.employment.current,
+        income: { ...normalizedFormData.employment.current.income },
+      },
+    }
+    if (!employmentPayload.current.income.verificationDate) {
+      // Remove field without creating an unused variable
+      const restIncome = { ...employmentPayload.current.income }
+      delete (restIncome as Record<string, unknown>).verificationDate
+      employmentPayload.current.income = restIncome
+    }
+
+    const financialInfoPayload: TenantFormData['financialInfo'] = {
+      ...normalizedFormData.financialInfo,
+      bankAccount: { ...normalizedFormData.financialInfo.bankAccount },
+    }
+    if (!financialInfoPayload.bankAccount.verificationDate) {
+      const restBank = { ...financialInfoPayload.bankAccount }
+      delete (restBank as Record<string, unknown>).verificationDate
+      financialInfoPayload.bankAccount = restBank
+    }
+
     // Validate data first
-    const validationErrors = validateTenantData(formData)
+    const validationErrors = validateTenantData(normalizedFormData)
     if (validationErrors.length > 0) {
       console.error('Validation errors:', validationErrors)
       return
@@ -992,88 +1172,88 @@ const CreateTenant: React.FC = () => {
     // Convert form data to API format - build clean object with only non-empty values
     const tenantPayload: Omit<Tenant, '_id' | 'tenantId' | 'createdAt' | 'updatedAt'> = {
       personalInfo: {
-        firstName: formData.personalInfo.firstName,
-        lastName: formData.personalInfo.lastName,
-        dateOfBirth: formData.personalInfo.dateOfBirth,
+        firstName: normalizedFormData.personalInfo.firstName,
+        lastName: normalizedFormData.personalInfo.lastName,
+        dateOfBirth: normalizedFormData.personalInfo.dateOfBirth,
         rightToRent: {
-          verified: formData.personalInfo.rightToRent.verified,
-          ...(formData.personalInfo.rightToRent.verificationDate && {
-            verificationDate: formData.personalInfo.rightToRent.verificationDate,
+          verified: normalizedFormData.personalInfo.rightToRent.verified,
+          ...(normalizedFormData.personalInfo.rightToRent.verificationDate && {
+            verificationDate: normalizedFormData.personalInfo.rightToRent.verificationDate,
           }),
-          ...(formData.personalInfo.rightToRent.documentType && {
-            documentType: formData.personalInfo.rightToRent.documentType,
+          ...(normalizedFormData.personalInfo.rightToRent.documentType && {
+            documentType: normalizedFormData.personalInfo.rightToRent.documentType,
           }),
-          ...(formData.personalInfo.rightToRent.documentExpiryDate && {
-            documentExpiryDate: formData.personalInfo.rightToRent.documentExpiryDate,
+          ...(normalizedFormData.personalInfo.rightToRent.documentExpiryDate && {
+            documentExpiryDate: normalizedFormData.personalInfo.rightToRent.documentExpiryDate,
           }),
-          ...(formData.personalInfo.rightToRent.recheckRequired !== undefined && {
-            recheckRequired: formData.personalInfo.rightToRent.recheckRequired,
+          ...(normalizedFormData.personalInfo.rightToRent.recheckRequired !== undefined && {
+            recheckRequired: normalizedFormData.personalInfo.rightToRent.recheckRequired,
           }),
-          ...(formData.personalInfo.rightToRent.recheckDate && {
-            recheckDate: formData.personalInfo.rightToRent.recheckDate,
+          ...(normalizedFormData.personalInfo.rightToRent.recheckDate && {
+            recheckDate: normalizedFormData.personalInfo.rightToRent.recheckDate,
           }),
-          ...(formData.personalInfo.rightToRent.notes && {
-            notes: formData.personalInfo.rightToRent.notes,
+          ...(normalizedFormData.personalInfo.rightToRent.notes && {
+            notes: normalizedFormData.personalInfo.rightToRent.notes,
           }),
         },
         // Only include optional fields if they have values
-        ...(formData.personalInfo.title?.trim() && {
-          title: formData.personalInfo.title,
+        ...(normalizedFormData.personalInfo.title?.trim() && {
+          title: normalizedFormData.personalInfo.title,
         }),
-        ...(formData.personalInfo.middleName?.trim() && {
-          middleName: formData.personalInfo.middleName,
+        ...(normalizedFormData.personalInfo.middleName?.trim() && {
+          middleName: normalizedFormData.personalInfo.middleName,
         }),
-        ...(formData.personalInfo.preferredName?.trim() && {
-          preferredName: formData.personalInfo.preferredName,
+        ...(normalizedFormData.personalInfo.preferredName?.trim() && {
+          preferredName: normalizedFormData.personalInfo.preferredName,
         }),
-        ...(formData.personalInfo.nationalInsuranceNumber?.trim() && {
-          nationalInsuranceNumber: formData.personalInfo.nationalInsuranceNumber,
+        ...(normalizedFormData.personalInfo.nationalInsuranceNumber?.trim() && {
+          nationalInsuranceNumber: normalizedFormData.personalInfo.nationalInsuranceNumber,
         }),
-        ...(formData.personalInfo.passportNumber?.trim() && {
-          passportNumber: formData.personalInfo.passportNumber,
+        ...(normalizedFormData.personalInfo.passportNumber?.trim() && {
+          passportNumber: normalizedFormData.personalInfo.passportNumber,
         }),
-        ...(formData.personalInfo.drivingLicenceNumber?.trim() && {
-          drivingLicenceNumber: formData.personalInfo.drivingLicenceNumber,
+        ...(normalizedFormData.personalInfo.drivingLicenceNumber?.trim() && {
+          drivingLicenceNumber: normalizedFormData.personalInfo.drivingLicenceNumber,
         }),
-        ...(formData.personalInfo.nationality?.trim() && {
-          nationality: formData.personalInfo.nationality,
+        ...(normalizedFormData.personalInfo.nationality?.trim() && {
+          nationality: normalizedFormData.personalInfo.nationality,
         }),
-        ...(formData.personalInfo.immigrationStatus?.trim() && {
-          immigrationStatus: formData.personalInfo.immigrationStatus,
+        ...(normalizedFormData.personalInfo.immigrationStatus?.trim() && {
+          immigrationStatus: normalizedFormData.personalInfo.immigrationStatus,
         }),
       },
-      ...(formData.contactInfo && {
+      ...(normalizedFormData.contactInfo && {
         contactInfo: {
-          email: formData.contactInfo.email,
+          email: normalizedFormData.contactInfo.email,
           phone: {
-            primary: formData.contactInfo.phone.primary,
+            primary: normalizedFormData.contactInfo.phone.primary,
             // Only include secondary phone if it has a number
-            ...(formData.contactInfo.phone.secondary?.number?.trim() && {
-              secondary: formData.contactInfo.phone.secondary,
+            ...(normalizedFormData.contactInfo.phone.secondary?.number?.trim() && {
+              secondary: normalizedFormData.contactInfo.phone.secondary,
             }),
           },
           emergencyContact: {
-            name: formData.contactInfo.emergencyContact.name,
-            relationship: formData.contactInfo.emergencyContact.relationship,
-            phone: formData.contactInfo.emergencyContact.phone,
+            name: normalizedFormData.contactInfo.emergencyContact.name,
+            relationship: normalizedFormData.contactInfo.emergencyContact.relationship,
+            phone: normalizedFormData.contactInfo.emergencyContact.phone,
             // Only include optional emergency contact fields if they have values
-            ...(formData.contactInfo.emergencyContact.email?.trim() && {
-              email: formData.contactInfo.emergencyContact.email,
+            ...(normalizedFormData.contactInfo.emergencyContact.email?.trim() && {
+              email: normalizedFormData.contactInfo.emergencyContact.email,
             }),
-            ...(formData.contactInfo.emergencyContact.address?.trim() && {
-              address: formData.contactInfo.emergencyContact.address,
+            ...(normalizedFormData.contactInfo.emergencyContact.address?.trim() && {
+              address: normalizedFormData.contactInfo.emergencyContact.address,
             }),
           },
         },
       }),
-      ...(formData.addresses && { addresses: formData.addresses }),
-      ...(formData.employment && { employment: formData.employment }),
-      ...(formData.financialInfo && { financialInfo: formData.financialInfo }),
-      ...(formData.pets && formData.pets.length > 0 && { pets: formData.pets }),
-      ...(formData.vehicles && formData.vehicles.length > 0 && { vehicles: formData.vehicles }),
-      ...(formData.references &&
-        formData.references.length > 0 && { references: formData.references }),
-      ...(formData.privacy && { privacy: formData.privacy }),
+      ...(normalizedFormData.addresses && { addresses: normalizedFormData.addresses }),
+      ...(normalizedFormData.employment && { employment: employmentPayload }),
+      ...(normalizedFormData.financialInfo && { financialInfo: financialInfoPayload }),
+      ...(normalizedFormData.pets && normalizedFormData.pets.length > 0 && { pets: normalizedFormData.pets }),
+      ...(normalizedFormData.vehicles && normalizedFormData.vehicles.length > 0 && { vehicles: normalizedFormData.vehicles }),
+      ...(normalizedFormData.references &&
+        normalizedFormData.references.length > 0 && { references: normalizedFormData.references }),
+      ...(normalizedFormData.privacy && { privacy: normalizedFormData.privacy }),
       isActive: true,
       // Set application status for both new and existing tenants
       applicationStatus:

@@ -7,6 +7,7 @@ import MenuIcon from '@mui/icons-material/Menu'
 import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
 import { Link as RouterLink } from 'react-router-dom'
+import { prefetchByPath } from '../../utils/prefetchRoutes'
 import MobileMenuDrawer from './MobileMenuDrawer'
 import { useTheme } from '@mui/material/styles'
 
@@ -89,6 +90,9 @@ const Navbar: React.FC = () => {
                 key={link.label}
                 component={isHashLink || isMailto ? 'a' : RouterLink}
                 {...(isHashLink || isMailto ? { href: link.to } : { to: link.to })}
+                onMouseEnter={() => {
+                  if (!isHashLink && !isMailto) prefetchByPath(link.to)
+                }}
                 sx={{
                   color: '#000',
                   fontWeight: 700,

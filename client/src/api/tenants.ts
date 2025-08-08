@@ -360,45 +360,37 @@ export const tenantsApi = {
       pages: number
     }
   }> => {
-    try {
-      const params = new URLSearchParams()
+    const params = new URLSearchParams()
 
-      if (filters?.page) params.append('page', filters.page.toString())
-      if (filters?.limit) params.append('limit', filters.limit.toString())
-      if (filters?.search) params.append('search', filters.search)
-      if (filters?.status && filters.status !== 'all') params.append('status', filters.status)
-      if (filters?.property && filters.property !== 'all')
-        params.append('property', filters.property)
-      if (filters?.leaseStatus && filters.leaseStatus !== 'all')
-        params.append('leaseStatus', filters.leaseStatus)
+    if (filters?.page) params.append('page', filters.page.toString())
+    if (filters?.limit) params.append('limit', filters.limit.toString())
+    if (filters?.search) params.append('search', filters.search)
+    if (filters?.status && filters.status !== 'all') params.append('status', filters.status)
+    if (filters?.property && filters.property !== 'all')
+      params.append('property', filters.property)
+    if (filters?.leaseStatus && filters.leaseStatus !== 'all')
+      params.append('leaseStatus', filters.leaseStatus)
 
-      const queryString = params.toString()
-      const url = `/tenants${queryString ? `?${queryString}` : ''}`
+    const queryString = params.toString()
+    const url = `/tenants${queryString ? `?${queryString}` : ''}`
 
-      console.log('GET ALL TENANTS API CALL:', url)
-      const response = await apiClient.get<{
-        status: string
-        results: number
-        pagination: {
-          page: number
-          limit: number
-          total: number
-          pages: number
-        }
-        data: {
-          tenants: Tenant[]
-        }
-      }>(url)
-
-      console.log('GET ALL TENANTS API RESPONSE:', response)
-
-      return {
-        tenants: response.data.data.tenants || [],
-        pagination: response.data.pagination,
+    const response = await apiClient.get<{
+      status: string
+      results: number
+      pagination: {
+        page: number
+        limit: number
+        total: number
+        pages: number
       }
-    } catch (error) {
-      console.error('GET ALL TENANTS API ERROR:', error)
-      throw error
+      data: {
+        tenants: Tenant[]
+      }
+    }>(url)
+
+    return {
+      tenants: response.data.data.tenants || [],
+      pagination: response.data.pagination,
     }
   },
 
@@ -460,6 +452,27 @@ export const tenantsApi = {
       return tenant
     } catch (error) {
       console.error('UPDATE TENANT API ERROR:', error)
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status
+        type ErrorItem = { msg?: string } | string
+        const data: unknown = error.response?.data || {}
+        let serverMsg: string | undefined
+        let errors: ErrorItem[] | undefined
+        if (typeof data === 'object' && data !== null) {
+          const rec = data as Record<string, unknown>
+          serverMsg = typeof rec.message === 'string' ? rec.message : undefined
+          errors = Array.isArray(rec.errors) ? (rec.errors as ErrorItem[]) : undefined
+        }
+        if (status === 400 && (serverMsg || errors)) {
+          const combined = Array.isArray(errors)
+            ? errors
+                .map(e => (typeof e === 'string' ? e : e.msg))
+                .filter((s): s is string => Boolean(s))
+                .join(', ')
+            : serverMsg
+          throw new Error(combined || 'Bad Request')
+        }
+      }
       throw error
     }
   },
@@ -608,9 +621,14 @@ export const tenantsApi = {
         `/tenants/${id}/referencing`,
         referencingData
       )
+      // Ensure outcome is always sent (server validator requires it)
+      const payload = {
+        outcome: referencingData.outcome ?? 'pending',
+        ...referencingData,
+      }
       const response = await apiClient.patch<TenantResponse>(
         `/tenants/${id}/referencing`,
-        referencingData
+        payload
       )
       console.log('UPDATE REFERENCING STATUS API RESPONSE:', response)
       const tenant = response.data.tenant || response.data.data?.tenant

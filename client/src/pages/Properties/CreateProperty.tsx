@@ -369,12 +369,10 @@ const CreateProperty: React.FC = () => {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 
     if (file.size > maxSize) {
-      console.error('File too large. Maximum size is 10MB.')
       return
     }
 
     if (!allowedTypes.includes(file.type)) {
-      console.error('Invalid file type. Only JPEG, PNG, and WebP are allowed.')
       return
     }
 
@@ -420,8 +418,7 @@ const CreateProperty: React.FC = () => {
             // Update with real server data
             setFormData(updatedProperty)
           },
-          onError: (error: unknown) => {
-            console.error('Failed to upload image:', error)
+          onError: () => {
             // Remove optimistic image on failure
             setFormData((prev) => ({
               ...prev,
@@ -453,7 +450,6 @@ const CreateProperty: React.FC = () => {
       // For existing properties, show optimistic update then sync with server
       // At this point we know imageToRemove._id exists due to the condition above
       if (!imageToRemove._id || typeof imageToRemove._id !== 'string') {
-        console.error('Image ID not found for deletion')
         return
       }
 
@@ -479,8 +475,7 @@ const CreateProperty: React.FC = () => {
           onSuccess: (updatedProperty) => {
             setFormData(updatedProperty)
           },
-          onError: (error: unknown) => {
-            console.error('Failed to remove image:', error)
+          onError: () => {
             // Revert optimistic update on failure
             setFormData((prev) => ({
               ...prev,
@@ -507,7 +502,6 @@ const CreateProperty: React.FC = () => {
     } else {
       // For existing properties, optimistic update then sync with server
       if (!imageToSetPrimary._id || typeof imageToSetPrimary._id !== 'string') {
-        console.error('Image ID not found for setting primary')
         return
       }
 
@@ -530,8 +524,7 @@ const CreateProperty: React.FC = () => {
           onSuccess: (updatedProperty) => {
             setFormData(updatedProperty)
           },
-          onError: (error: unknown) => {
-            console.error('Failed to set primary image:', error)
+          onError: () => {
             // Revert optimistic update on failure
             setFormData((prev) => ({
               ...prev,
@@ -657,7 +650,6 @@ const CreateProperty: React.FC = () => {
     // Remove _id for create operations
     delete sanitizedData._id
 
-    console.log('Sanitized property data:', sanitizedData)
     return sanitizedData
   }
 
@@ -679,7 +671,6 @@ const CreateProperty: React.FC = () => {
     // Validate data first
     const validationErrors = validatePropertyData(formData)
     if (validationErrors.length > 0) {
-      console.error('Validation errors:', validationErrors)
       // You could show these errors in the UI
       return
     }
@@ -758,8 +749,7 @@ const CreateProperty: React.FC = () => {
               void navigate('/properties')
             }, 1500)
           },
-          onError: (error: unknown) => {
-            console.error('Failed to upload images after property creation:', error)
+          onError: () => {
             // Still navigate but show warning
             setTimeout(() => {
               void navigate('/properties')
@@ -767,8 +757,7 @@ const CreateProperty: React.FC = () => {
           },
         }
       )
-    } catch (error) {
-      console.error('Error processing local images:', error)
+    } catch {
       setTimeout(() => {
         void navigate('/properties')
       }, 1500)

@@ -56,8 +56,7 @@ export const useLogin = () => {
       // Invalidate current user query to refresh data
       void queryClient.invalidateQueries({ queryKey: authKeys.currentUser() })
     },
-    onError: (error) => {
-      console.error('Login failed:', error)
+    onError: () => {
       // Clear any existing auth data on login failure
       localStorage.removeItem('authToken')
       localStorage.removeItem('userData')
@@ -80,8 +79,7 @@ export const useLogout = () => {
       // Clear all queries (fresh start after logout)
       queryClient.clear()
     },
-    onError: (error) => {
-      console.error('Logout failed:', error)
+    onError: () => {
       // Even if logout API fails, clear local data
       localStorage.removeItem('authToken')
       localStorage.removeItem('userData')
@@ -94,13 +92,6 @@ export const useLogout = () => {
 export const useSignup = () => {
   return useMutation({
     mutationFn: (data: SignupRequest) => authApi.signup(data),
-    onSuccess: (data) => {
-      console.log('Signup successful:', data)
-      // Note: Don't auto-login after signup since email verification might be required
-    },
-    onError: (error) => {
-      console.error('Signup failed:', error)
-    },
   })
 }
 
@@ -111,8 +102,6 @@ export const useVerifyEmail = () => {
   return useMutation({
     mutationFn: (token: string) => authApi.verifyEmail(token),
     onSuccess: (data) => {
-      console.log('Email verification successful:', data)
-
       // If verification returns auth data, store it
       if (data.token) {
         localStorage.setItem('authToken', data.token)
@@ -122,9 +111,6 @@ export const useVerifyEmail = () => {
         queryClient.setQueryData(authKeys.currentUser(), { user: data.user })
       }
     },
-    onError: (error) => {
-      console.error('Email verification failed:', error)
-    },
   })
 }
 
@@ -132,12 +118,6 @@ export const useVerifyEmail = () => {
 export const useForgotPassword = () => {
   return useMutation({
     mutationFn: (data: ForgotPasswordRequest) => authApi.forgotPassword(data),
-    onSuccess: (data) => {
-      console.log('Password reset email sent:', data)
-    },
-    onError: (error) => {
-      console.error('Forgot password failed:', error)
-    },
   })
 }
 
@@ -146,12 +126,6 @@ export const useResetPassword = () => {
   return useMutation({
     mutationFn: ({ token, password }: { token: string; password: string }) =>
       authApi.resetPassword(token, { password }),
-    onSuccess: (data) => {
-      console.log('Password reset successful:', data)
-    },
-    onError: (error) => {
-      console.error('Password reset failed:', error)
-    },
   })
 }
 
@@ -159,11 +133,5 @@ export const useResetPassword = () => {
 export const useResendVerification = () => {
   return useMutation({
     mutationFn: (data: ResendVerificationRequest) => authApi.resendVerification(data),
-    onSuccess: (data) => {
-      console.log('Verification email resent:', data)
-    },
-    onError: (error) => {
-      console.error('Resend verification failed:', error)
-    },
   })
 }
