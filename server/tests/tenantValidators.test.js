@@ -4,6 +4,9 @@ import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { jest } from '@jest/globals';
 
+// Ensure mongodb-memory-server uses a unique download dir in CI to avoid lockfile conflicts
+// Note: MONGOMS_DOWNLOAD_DIR is now set via Jest setupFiles in tests/setupEnv.js
+
 // Load test environment variables
 dotenv.config({ path: '.env.test' });
 
